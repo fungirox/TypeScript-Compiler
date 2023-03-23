@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="xmlbeans-2.6.0">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/src/resources/libraries/xmlbeans-2.6.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/src/resources/libraries/log4j-1.2.17.jar!/" />
+      <root url="jar://$PROJECT_DIR$/src/resources/libraries/junit-4.12.jar!/" />
+      <root url="jar://$PROJECT_DIR$/src/resources/libraries/curvesapi-1.04.jar!/" />
+      <root url="jar://$PROJECT_DIR$/src/resources/libraries/commons-logging-1.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/src/resources/libraries/commons-collections4-4.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/src/resources/libraries/commons-codec-1.10.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
