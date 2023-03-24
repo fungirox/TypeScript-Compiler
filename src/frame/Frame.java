@@ -6,6 +6,7 @@ import resources.CargarRecursos;
 import resources.Line;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -376,8 +377,11 @@ public class Frame extends JFrame{
 //        imprimirMap(palabrasReservadas);
         if(compilo){
             JFileChooser fileChooser=new JFileChooser();
+            fileChooser.setDialogTitle("Save Excel File");
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Excel files (*.xlsx)", "xlsx"));
             int r=fileChooser.showSaveDialog(null);//Select file to open
             String path="";
+
             if(r==JFileChooser.APPROVE_OPTION){
                 path=fileChooser.getSelectedFile().getAbsolutePath();
                 lexico.writeExcel(path);
@@ -391,8 +395,11 @@ public class Frame extends JFrame{
         if(compilo)
             lexico.clean();
         JFileChooser fileChooser=new JFileChooser();
+        fileChooser.setDialogTitle("Open File");
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Text files (*.txt)", "txt"));
         int r=fileChooser.showOpenDialog(null);//Select file to open
         String path="",contenido="";
+
         if(r==JFileChooser.APPROVE_OPTION){
             path=fileChooser.getSelectedFile().getAbsolutePath();
             contenido=CargarRecursos.openFile(path);
