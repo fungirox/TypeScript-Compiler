@@ -17,6 +17,8 @@ public class Lexico {
     private int []contadores=new int[21];
     private int lastToken=-57;
     private int linea=1;
+    private int lineaComentario=0;
+    private boolean comentario=false;
 //    Map<Integer,String> errores=new HashMap<Integer,String>();
     private JTable tblErrores,tblTokens,tblContadores;
     private DefaultTableModel mdTblErrores,mdTblTokens,mdTblContadores;
@@ -37,15 +39,26 @@ public class Lexico {
             //Selecciona el caracter actual
             charac=text.charAt(i);
             col=getCol(charac);
-            System.out.print(charac+" "+col+" ");
+//            System.out.print(charac+" "+col+" ");
             estado=matrizLexico[estado][col];
+
             if(estado<0){//Si es Token
                 if(estado==-1&&palabras_reservadas.containsKey(lexema)){//Evaluar palabras reservadas
                     estado=lastToken-palabras_reservadas.get(lexema);
                 }
+//                int resta=comentario?lineaComentario:0;
+//                comentario=comentario?false:comentario;
+//                System.out.println("L "+linea);
+//                System.out.println("LC "+lineaComentario);
+//                System.out.print(resta+"\n ------------");
                 tokenListLexico.add(new Token(lexema,estado,linea));
+//                System.out.print(lexema);
                 if(categorizarTokens(estado)){
                     tokenListSintaxis.add(tokenListLexico.getLast());
+                }
+                else if (estado==-54){
+                    comentario=false;
+                    tokenListLexico.getLast().setLinea(lineaComentario);
                 }
                 estado=0;
                 lexema="";
@@ -65,10 +78,18 @@ public class Lexico {
             }
             else if(estado!=0){
                 lexema+=charac;
+                if(charac=='\n'){
+                    linea++;
+                }
+                if(lexema.equals("/*")&&!comentario){
+                    comentario=true;
+                    lineaComentario=linea;
+                }
             }
             else if(charac=='\n'){
                 linea++;
             }
+
         }
         if(estado!=0){
             erroresList.add(new Errores(lexema,estado,linea));

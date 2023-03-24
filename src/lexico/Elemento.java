@@ -21,6 +21,10 @@ public abstract class Elemento {
         return token;
     }
 
+    public void setLinea(int linea) {
+        this.linea = linea;
+    }
+
     public void setToken(int token) {
         this.token = token;
     }
