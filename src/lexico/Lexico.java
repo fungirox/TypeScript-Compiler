@@ -74,7 +74,7 @@ public class Lexico {
                 erroresList.add(new Errores(lexema,estado,linea));
                 estado=0;
                 lexema="";
-                contadores[0]++;
+                contadores[20]++;
             }
             else if(estado!=0){
                 lexema+=charac;
@@ -95,7 +95,7 @@ public class Lexico {
             erroresList.add(new Errores(lexema,estado,linea));
             estado=0;
             lexema="";
-            contadores[0]++;
+            contadores[20]++;
         }
         llenarTablas();
     }
