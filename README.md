@@ -1,0 +1,2 @@
+# lexico
+Etapa de léxico 
