@@ -39,20 +39,13 @@ public class Lexico {
             //Selecciona el caracter actual
             charac=text.charAt(i);
             col=getCol(charac);
-//            System.out.print(charac+" "+col+" ");
             estado=matrizLexico[estado][col];
 
             if(estado<0){//Si es Token
                 if(estado==-1&&palabras_reservadas.containsKey(lexema)){//Evaluar palabras reservadas
                     estado=lastToken-palabras_reservadas.get(lexema);
                 }
-//                int resta=comentario?lineaComentario:0;
-//                comentario=comentario?false:comentario;
-//                System.out.println("L "+linea);
-//                System.out.println("LC "+lineaComentario);
-//                System.out.print(resta+"\n ------------");
                 tokenListLexico.add(new Token(lexema,estado,linea));
-//                System.out.print(lexema);
                 if(categorizarTokens(estado)){
                     tokenListSintaxis.add(tokenListLexico.getLast());
                 }
