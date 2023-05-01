@@ -221,7 +221,7 @@ public class Frame extends JFrame{
                 btnCompilarActionPerformed(evt);
             }
         });
-        jPanel3.add(btnCompilar);
+
 
         btnOpenFile.setIcon(iconDir);
         btnOpenFile.setPreferredSize(new java.awt.Dimension(72, 50));
@@ -236,6 +236,8 @@ public class Frame extends JFrame{
         });
 
         jPanel3.add(btnOpenFile);
+
+        jPanel3.add(btnCompilar);
 
         btnExcel.setIcon(iconExcel);
         btnExcel.setPreferredSize(new java.awt.Dimension(72, 50));
