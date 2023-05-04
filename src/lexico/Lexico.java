@@ -47,6 +47,7 @@ public class Lexico {
                 }
                 tokenListLexico.add(new Token(lexema,estado,linea));
                 if(categorizarTokens(estado)){
+                    System.out.print(estado+" ");
                     tokenListSintaxis.add(tokenListLexico.getLast());
                 }
                 else if (estado==-54){
@@ -307,7 +308,7 @@ public class Lexico {
         CargarRecursos.writeToExcel(tokenListSintaxis,erroresList,contadores,path);
     }
 
-    private final Map<String,Integer> palabras_reservadas= new HashMap<String,Integer>()
+    private final Map<String,Integer> palabras_reservadas=new HashMap<String,Integer>()
     {{
         put("true",1);
         put("false",2);
@@ -318,46 +319,48 @@ public class Lexico {
         put("for",7);
         put("do",8);
         put("while",9);
-        put("console",10);
+        put("Console",10);
         put("log",11);
-        put("forEach",12);
-        put("break",13);
-        put("continue",14);
-        put("let",15);
-        put("const",16);
-        put("undefined",17);
-        put("interface",18);
-        put("typeof",19);
-        put("Number",20);
-        put("String",21);
-        put("any",22);
-        put("set",23);
-        put("get",24);
-        put("class",25);
-        put("toLowerCase",26);
-        put("toUpperCase",27);
-        put("length",28);
-        put("trim",29);
-        put("charAt",30);
-        put("startsWith",31);
-        put("endsWith",32);
-        put("indexOf",33);
-        put("Includes",34);
-        put("slice",35);
-        put("replace",36);
-        put("split",37);
-        put("push",38);
-        put("shift",39);
-        put("in",40);
-        put("of",41);
-        put("splice",42);
-        put("concat",43);
-        put("find",44);
-        put("findIndex",45);
-        put("filter",46);
-        put("map",47);
-        put("sort",48);
-        put("reverse",49);
+        put("fuction",12);
+        put("real",13);
+        put("boolean",14);
+        put("Array",15);
+        put("new",16);
+        put("read",17);
+        put("case",18);
+        put("default",19);
+        put("return",20);
+        put("expo",21);
+        put("sqrtv",22);
+        put("ConvBase",23);
+        put("asc",24);
+        put("sen",25);
+        put("val",26);
+        put("cos",27);
+        put("tan",28);
+        put("break",29);
+        put("let",30);
+        put("interface",31);
+        put("number",32);
+        put("string",33);
+        put("set",34);
+        put("get",35);
+        put("class",36);
+        put("toLowerCase",37);
+        put("toUpperCase",38);
+        put("legth",39);
+        put("trim",40);
+        put("charAt",41);
+        put("startsWith",42);
+        put("endsWith",43);
+        put("indexOf",44);
+        put("includes",45);
+        put("slice",46);
+        put("replace",47);
+        put("split",48);
+        put("in",49);
+        put("of",50);
+        put("Map",51);
     }};
 
 }

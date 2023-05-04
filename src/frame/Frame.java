@@ -1,7 +1,6 @@
 package frame;
 
 import lexico.Lexico;
-import org.apache.poi.ss.usermodel.Cell;
 import resources.CargarRecursos;
 import resources.Line;
 
@@ -40,7 +39,7 @@ public class Frame extends JFrame{
         initComponentsPersonal();
 
         //Cargar excel de léxico
-        matrizLexico=CargarRecursos.openExcelFile(excelLexicoPath);
+        matrizLexico=CargarRecursos.openExcelFileLexico(excelLexicoPath);
 //        CargarRecursos.llenarContadores();
     }
     private void initImages(){
@@ -375,8 +374,8 @@ public class Frame extends JFrame{
     }
 
     private void btnExcelActionPerformed(java.awt.event.ActionEvent evt){
-//        String palabrasReservadas=CargarRecursos.openTxtFile("src/resources/palabrasReservadas.txt");
-//        imprimirMap(palabrasReservadas);
+        /*String palabrasReservadas=CargarRecursos.openFile("src/resources/palabrasReservadas.txt");
+        imprimirMap(palabrasReservadas);*/
         if(compilo){
             JFileChooser fileChooser=new JFileChooser();
             fileChooser.setDialogTitle("Save Excel File");

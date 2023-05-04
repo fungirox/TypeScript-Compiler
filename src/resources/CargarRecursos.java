@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class CargarRecursos {
-    private static String excelPath="E:/USER/Documents/2.  CODES/Intellij ide/Compi/compi/src/resources/out.xlsx";
+    //private static String excelPath="E:/USER/Documents/2.  CODES/Intellij ide/Compi/compi/src/resources/out.xlsx";
     public static BufferedImage compatibleImageOPAQUE(final String ruta){
         Image imagen;
         BufferedImage imagenBuff=null;
@@ -75,8 +75,38 @@ public class CargarRecursos {
         }
         return con;
     }
-    public static int [][] openExcelFile(final String filePath){
+    public static int [][] openExcelFileLexico(final String filePath){
         int [][] matriz=new int[66][35];
+        ArrayList cellData=new ArrayList();
+
+        try {
+            FileInputStream fileInputStream=new FileInputStream(new File(filePath));
+            XSSFWorkbook workBook = new XSSFWorkbook(fileInputStream);
+
+            XSSFSheet hssfSheet=workBook.getSheetAt(0);
+
+            int rows=hssfSheet.getLastRowNum();
+
+            for (int i=1;i<=rows;i++){
+                Row fila =hssfSheet.getRow(i);
+                int col=fila.getLastCellNum();
+                for (int j=1;j<col;j++){
+                    Cell cell=fila.getCell(j);
+                    switch (cell.getCellTypeEnum().toString()){
+                        case "NUMERIC":
+                            int aux=(int)cell.getNumericCellValue();
+                            matriz[i-1][j-1]=aux;
+                            break;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return matriz;
+    }
+    public static int [][] openExcelFileSintaxis(final String filePath){
+        int [][] matriz=new int[92][108];
         ArrayList cellData=new ArrayList();
 
         try {
