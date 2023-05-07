@@ -1,13 +1,18 @@
 package frame;
 
+import lexico.Errores;
 import lexico.Lexico;
+import lexico.Token;
 import resources.CargarRecursos;
 import resources.Line;
+import sintaxis.Sintaxis;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableModel;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.LinkedList;
 
 public class Frame extends JFrame{
     //Titulo
@@ -18,16 +23,22 @@ public class Frame extends JFrame{
     private final String excelIconPath="src/resources/images/excel.png";
     private final String dirPath="src/resources/images/carpeta.png";
     private final String excelLexicoPath="src/resources/matrizLexico.xlsx";
+    private final String excelSintaxisPath="src/resources/matrizSintaxis.xlsx";
     //Icono
     private ImageIcon icon;
     private ImageIcon iconCompi;
     private ImageIcon iconExcel;
     private ImageIcon iconDir;
     //Numero de linea para TextArea
-    Line numLine;
-    private int [][] matrizLexico;
+    private Line numLine;
+    private final int [][] matrizLexico;
+    private final int [][] matrizSintactica;
     //Instancias de clase
     private Lexico lexico;
+    private DefaultTableModel mdTblErrores;
+    private LinkedList<Errores> erroresList =new LinkedList<>();
+    private LinkedList<Token> tokenListSintaxis =new LinkedList<>();
+    private Sintaxis sintaxis;
     private boolean compilo=false;
 
     //Constructor de la clase, define el titulo, icono y llama a InitComponents
@@ -40,6 +51,7 @@ public class Frame extends JFrame{
 
         //Cargar excel de léxico
         matrizLexico=CargarRecursos.openExcelFileLexico(excelLexicoPath);
+        matrizSintactica=CargarRecursos.openExcelFileSintaxis(excelSintaxisPath);
 //        CargarRecursos.llenarContadores();
     }
     private void initImages(){
@@ -60,6 +72,8 @@ public class Frame extends JFrame{
 //        setLayout(new BorderLayout());
         setLocationRelativeTo(null);
 
+        mdTblErrores=(DefaultTableModel) tblError.getModel();
+
         sclCodigo.setRowHeaderView(numLine);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
@@ -78,6 +92,8 @@ public class Frame extends JFrame{
         pnRight = new javax.swing.JPanel();
         sclTokens = new javax.swing.JScrollPane();
         tblTokens = new javax.swing.JTable();
+        sclTipoError = new javax.swing.JScrollPane();
+        tblTipoError = new javax.swing.JTable();
         lblFungirox = new javax.swing.JLabel();
         lblTokens = new javax.swing.JLabel();
         pnContadores = new javax.swing.JPanel();
@@ -115,6 +131,21 @@ public class Frame extends JFrame{
             tblError.getColumnModel().getColumn(4).setMaxWidth(45);
         }
 
+        tblTipoError.setModel(new javax.swing.table.DefaultTableModel(
+                new Object [][] {
+                        {"Lexico", null},
+                        {"Sintaxis", null}
+                },
+                new String [] {
+                        "Tipos", ""
+                }
+        ));
+
+        sclTipoError.setViewportView(tblTipoError);
+        if (tblTipoError.getColumnModel().getColumnCount() > 0) {
+            tblTipoError.getColumnModel().getColumn(0).setResizable(false);
+        }
+
         javax.swing.GroupLayout pnErroresLayout = new javax.swing.GroupLayout(pnErrores);
         pnErrores.setLayout(pnErroresLayout);
         pnErroresLayout.setHorizontalGroup(
@@ -122,10 +153,10 @@ public class Frame extends JFrame{
                         .addGroup(pnErroresLayout.createSequentialGroup()
                                 .addContainerGap()
                                 .addGroup(pnErroresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addGroup(pnErroresLayout.createSequentialGroup()
-                                                .addComponent(lblErrores)
-                                                .addGap(0, 0, Short.MAX_VALUE))
-                                        .addComponent(sclError))
+                                        .addComponent(sclError, javax.swing.GroupLayout.PREFERRED_SIZE, 820, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(lblErrores))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(sclTipoError, javax.swing.GroupLayout.PREFERRED_SIZE, 230, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addContainerGap())
         );
         pnErroresLayout.setVerticalGroup(
@@ -134,7 +165,9 @@ public class Frame extends JFrame{
                                 .addContainerGap()
                                 .addComponent(lblErrores)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(sclError, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(pnErroresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(sclTipoError, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                                        .addComponent(sclError, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE))
                                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -364,18 +397,28 @@ public class Frame extends JFrame{
             lexico.setText(txtCodigo.getText()+" ");
         }
         else{
-            lexico=new Lexico(matrizLexico,txtCodigo.getText()+'\n',tblTokens,tblError,tblContadores);
+            lexico=new Lexico(matrizLexico,txtCodigo.getText()+'\n',tblTokens/*,tblError*/,tblContadores,erroresList,tokenListSintaxis);
             compilo=true;
+            sintaxis=new Sintaxis(matrizSintactica,erroresList,tokenListSintaxis);
         }
 
         lexico.compilar();
+        sintaxis.analize();
+
+        llenarTablaErrores();
 
 //        txtCodigo.get
     }
 
+    private void llenarTablaErrores(){
+        for(int i = 0; i< erroresList.size(); i++){
+            mdTblErrores.addRow(erroresList.get(i).getRow());
+        }
+    }
+
     private void btnExcelActionPerformed(java.awt.event.ActionEvent evt){
-        /*String palabrasReservadas=CargarRecursos.openFile("src/resources/palabrasReservadas.txt");
-        imprimirMap(palabrasReservadas);*/
+//        String palabrasReservadas=CargarRecursos.openFile("src/resources/palabrasReservadas.txt");
+//        imprimirMap(palabrasReservadas);
         if(compilo){
             JFileChooser fileChooser=new JFileChooser();
             fileChooser.setDialogTitle("Save Excel File");
@@ -448,4 +491,6 @@ public class Frame extends JFrame{
     private javax.swing.JTable tblError;
     private javax.swing.JTable tblTokens;
     private javax.swing.JTextArea txtCodigo;
+    private javax.swing.JTable tblTipoError;
+    private javax.swing.JScrollPane sclTipoError;
 }

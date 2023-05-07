@@ -12,26 +12,29 @@ public class Lexico {
     private int[][] matrizLexico;
     private String text;
     private LinkedList<Token> tokenListLexico =new LinkedList<>();
-    private LinkedList<Token> tokenListSintaxis =new LinkedList<>();
-    private LinkedList<Errores> erroresList =new LinkedList<>();
+    private LinkedList<Token> tokenListSintaxis;
+    private LinkedList<Errores> erroresList;
     private int []contadores=new int[21];
     private int lastToken=-57;
     private int linea=1;
     private int lineaComentario=0;
     private boolean comentario=false;
+
 //    Map<Integer,String> errores=new HashMap<Integer,String>();
-    private JTable tblErrores,tblTokens,tblContadores;
+    private JTable /*tblErrores,*/tblTokens,tblContadores;
     private DefaultTableModel mdTblErrores,mdTblTokens,mdTblContadores;
-    public Lexico(int[][] matrizLexico,final String text,JTable tblTokens,JTable tblErrores,JTable tblContadores){
+    public Lexico(int[][] matrizLexico,final String text,final JTable tblTokens/*,JTable tblErrores*/,final JTable tblContadores,LinkedList<Errores>listErrores,LinkedList<Token>sintaxis){
         this.matrizLexico=matrizLexico;
         this.text=text;
-        this.tblErrores=tblErrores;
+//        this.tblErrores=tblErrores;
         this.tblTokens=tblTokens;
-        this.mdTblErrores=(DefaultTableModel) tblErrores.getModel();
+//        this.mdTblErrores=(DefaultTableModel) tblErrores.getModel();
         this.mdTblTokens=(DefaultTableModel) tblTokens.getModel();
         this.mdTblContadores=(DefaultTableModel) tblContadores.getModel();
+        this.erroresList=listErrores;
+        this.tokenListSintaxis=sintaxis;
     }
-    public void compilar(){
+    public Object[] compilar(){
         int estado=0,col=0;
         char charac;
         String lexema="";
@@ -47,7 +50,6 @@ public class Lexico {
                 }
                 tokenListLexico.add(new Token(lexema,estado,linea));
                 if(categorizarTokens(estado)){
-                    System.out.print(estado+" ");
                     tokenListSintaxis.add(tokenListLexico.getLast());
                 }
                 else if (estado==-54){
@@ -92,6 +94,8 @@ public class Lexico {
             contadores[20]++;
         }
         llenarTablas();
+
+        return new Object[]{tokenListSintaxis,erroresList};
     }
     private boolean categorizarTokens(int token){
         switch (token){
@@ -233,7 +237,7 @@ public class Lexico {
         linea=1;
     }
     private void llenarTablas(){
-        llenarTablaError();
+//        llenarTablaError();
         llenarTablaTokens();
         llenarContadores();
     }
@@ -242,11 +246,11 @@ public class Lexico {
             mdTblContadores.setValueAt(contadores[i],i,1);
         }
     }
-    private void llenarTablaError(){
-        for(int i = 0; i< erroresList.size(); i++){
-            mdTblErrores.addRow(erroresList.get(i).getRow());
-        }
-    }
+//    private void llenarTablaError(){
+//        for(int i = 0; i< erroresList.size(); i++){
+//            mdTblErrores.addRow(erroresList.get(i).getRow());
+//        }
+//    }
     private void llenarTablaTokens(){
         for(int i = 0; i< tokenListLexico.size(); i++){
             mdTblTokens.addRow(tokenListLexico.get(i).getRow());
@@ -361,6 +365,21 @@ public class Lexico {
         put("in",49);
         put("of",50);
         put("Map",51);
+        put("forEach",52);
+        put("any",53);
+        put("const",54);
+        put("continue",55);
+        put("concat",56);
+        put("find",57);
+        put("findIndex",58);
+        put("filter",59);
+        put("push",60);
+        put("shift",61);
+        put("sort",62);
+        put("reverse",63);
+        put("splice",64);
+        put("typeof",65);
+        put("undefined",66);
     }};
 
 }

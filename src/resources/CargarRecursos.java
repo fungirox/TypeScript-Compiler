@@ -106,7 +106,7 @@ public class CargarRecursos {
         return matriz;
     }
     public static int [][] openExcelFileSintaxis(final String filePath){
-        int [][] matriz=new int[92][108];
+        int [][] matriz=new int[93][124];
         ArrayList cellData=new ArrayList();
 
         try {
@@ -120,16 +120,17 @@ public class CargarRecursos {
             for (int i=1;i<=rows;i++){
                 Row fila =hssfSheet.getRow(i);
                 int col=fila.getLastCellNum();
-                for (int j=1;j<col;j++){
+                for (int j=2;j<col;j++){
                     Cell cell=fila.getCell(j);
                     switch (cell.getCellTypeEnum().toString()){
                         case "NUMERIC":
                             int aux=(int)cell.getNumericCellValue();
-                            matriz[i-1][j-1]=aux;
+                            matriz[i-1][j-2]=aux;
                             break;
                     }
                 }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
