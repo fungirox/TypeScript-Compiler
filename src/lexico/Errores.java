@@ -5,13 +5,17 @@ import java.util.Map;
 
 public class Errores extends Elemento {
     private String desc;
-    private final String tipo="Error léxico";//es temporal
+    private final String tipo;//es temporal
     public Errores(final String lexema, final int token, final int linea) {
         super(lexema,token,linea);
         establecerError(token);
-
+        this.tipo="Error léxico";
     }
-
+    public Errores(final String lexema, final int token, final int linea,final String desc) {
+        super(lexema,token,linea);
+        this.desc=desc;
+        this.tipo="Error sintáctico";
+    }
     private void establecerError(final int token){
         switch (token){
             case 500:

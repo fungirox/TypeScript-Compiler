@@ -3,24 +3,90 @@ package sintaxis;
 import lexico.Errores;
 import lexico.Token;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
 public class Sintaxis {
     private final int[][] matrizSintactica;
     private LinkedList<Token> tokenListSintaxis;
     private LinkedList<Errores> erroresList;
+    private Stack<Integer> syntacticStack;
     public Sintaxis(final int [][]matriz,LinkedList<Errores> listErrores, LinkedList<Token>sintaxis){
         this.matrizSintactica=matriz;
         this.tokenListSintaxis=sintaxis;
         this.erroresList=listErrores;
+        this.syntacticStack=new Stack<>();
+        syntacticStack.push(200);
     }
 
     public void analize(){
-        System.out.println("jojo");
-    }
+        int i=0;
+        int colToken,rowNT=0,prod;
+        int topStack;
+        while(!tokenListSintaxis.isEmpty()){
+            topStack=syntacticStack.peek();
+            System.out.print(topStack+": ");
+            Iterator<Integer> iterator = syntacticStack.iterator();
+            while (iterator.hasNext()) {
+                System.out.print(iterator.next() + " ");
+            }
 
+            if(topStack>=200&&topStack<=292){ //Esto quiere decir que es un NO terminal
+                colToken=tokenListSintaxis.getFirst().getToken();
+                colToken*=-1;colToken--;
+
+                prod=matrizSintactica[topStack-200][colToken];
+                if(prod>500){//Caso Error
+                    System.out.println("Error");
+                    erroresList.add(new Errores(tokenListSintaxis.getFirst().getLexema(),tokenListSintaxis.getFirst().getToken(),tokenListSintaxis.getFirst().getLinea(),errores_sintaxis.get(prod)));
+                    System.out.println(errores_sintaxis.get(prod));
+                    tokenListSintaxis.removeFirst();
+                }
+                else if(prod==180){//Caso epsilon
+                    System.out.println("epsilon");
+                    syntacticStack.pop();
+                }
+                else{//Caso produccion
+                    syntacticStack.pop();
+                    System.out.print(" "+prod);
+                    for(int k=producciones[prod].length-1;k>=0;k--){
+                        syntacticStack.push(producciones[prod][k]);
+                    }
+                }
+
+            }
+            else if(topStack<0){ //Esto quiere decir que es un token
+                if(tokenListSintaxis.getFirst().getToken()==topStack){//Si el token de la lista y pila son iguales
+                    System.out.print(tokenListSintaxis.getFirst().getLexema()+" ");
+                    syntacticStack.pop();
+                    tokenListSintaxis.removeFirst();
+                }
+                else if(tokenListSintaxis.getFirst().getToken()==(-47)&&topStack==(-46)){//Caso especifico de cadenas -47
+                    System.out.print(tokenListSintaxis.getFirst().getLexema()+" ");
+                    syntacticStack.pop();
+                    tokenListSintaxis.removeFirst();
+                }
+                else if(tokenListSintaxis.getFirst().getToken()==(-57)&&topStack==(-56)){//Caso especifico de reales -57
+                    System.out.print(tokenListSintaxis.getFirst().getLexema()+" ");
+                    syntacticStack.pop();
+                    tokenListSintaxis.removeFirst();
+                }
+                else{
+                    System.out.println("Error de fuerza bruta");
+                    syntacticStack.pop();
+                    tokenListSintaxis.removeFirst();
+                }
+            }
+            System.out.println();
+
+        }
+        if(!syntacticStack.isEmpty()){
+            System.out.println("Parece que no terminaste tu codigo");
+        }
+    }
+    public void clean(){
+        syntacticStack.clear();
+        syntacticStack.push(200);
+    }
     private final Map<Integer,String> errores_sintaxis=new HashMap<Integer,String>(){{
             put(504,"Solo puedes comenzar un programa con let class fuction o interface");
             put(505,"Se esperaba let, interface o class");
@@ -35,7 +101,11 @@ public class Sintaxis {
 
             put(700,"Error Sintactico temporal");
     }};
-    private final int[][] producciones = {
+    //Contenidos: del 200 a 292 son NO terminales (ver en matriz)
+    //            del -1 al -124 son tokens, ver en pila
+    //Longitud del arreglo: 0 al 179
+
+    private final int[][] producciones = {//Siempre insertar al reves
             {201,-19,254,206,-20}, 	// 0
             {247,201}, 	// 1
             {207,201}, 	// 2
@@ -64,14 +134,14 @@ public class Sintaxis {
             {-71}, 	// 25
             {-60}, 	// 26
             {-70}, 	// 27
-            {-46,-47}, 	// 28 CADENAS
+            {-46}, 	// 28 CADENAS Eliminé el token -47
             {-55}, 	// 29
             {-58}, 	// 30
             {-59}, 	// 31
-            {-56,-57}, 	// 32 REALES
+            {-56}, 	// 32 REALES Eliminé el token -57
             {-60}, 	// 33
             {-87,-1,221}, 	// 34
-            {222}, 	// 35
+            {-30,222}, 	// 35
             {-69,-10,246,223,-11,224,-19,254,225,-20}, 	// 36
             {-16,246,223}, 	// 37
             {-13,218}, 	// 38
@@ -134,7 +204,7 @@ public class Sintaxis {
             {-65,254,-66,-10,273,-11,-14}, 	// 95
             {-64,-10,264,-11,254}, 	// 96
             {-74,-10,273,256-11}, 	// 97
-            {-68,-10,371,-11}, 	// 98
+            {-68,-10,273,-11}, 	// 98
             {-16,273,256}, 	// 99
             {-62,273}, 	// 100
             {-75,273,-13,258}, 	// 101
@@ -156,14 +226,14 @@ public class Sintaxis {
             {-76},  //117
             {-97,-10,-11},  //118
             {-98,-10,273,-11},  //119
-            {-99,-10,237,-11},  //120
-            {-100,-10,237,-11},  //121
-            {-101,-10,237,-11},  //122
-            {-102,-10,237,-11},  //123
-            {-103,-10,237,-11},  //124
-            {-104,-10,237,-11},  //125
-            {-105,-10,237,-11},  //126
-            {-78,-10,273,-16 ,273-11},  //127
+            {-99,-10,273,-11},  //120
+            {-100,-10,273,-11},  //121
+            {-101,-10,273,-11},  //122
+            {-102,-10,273,-11},  //123
+            {-103,-10,273,-11},  //124
+            {-104,-10,273,-11},  //125
+            {-105,-10,273,-11},  //126
+            {-78,-10,273,-16,273-11},  //127
             {-79,-10,273,-16,273-11},  //128
             {-80,-10,273,-16,273,-16,-11},  //129
             {-81,-10,273,-16,273,-11},  //130

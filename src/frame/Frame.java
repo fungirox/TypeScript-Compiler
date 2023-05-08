@@ -35,11 +35,17 @@ public class Frame extends JFrame{
     private final int [][] matrizSintactica;
     //Instancias de clase
     private Lexico lexico;
+
+    private int erroresLexico;
+    private int erroresSintaxis;
     private DefaultTableModel mdTblErrores;
+    private DefaultTableModel mdTblTipoErrores;
+    private DefaultTableModel mdTblContadores;
     private LinkedList<Errores> erroresList =new LinkedList<>();
     private LinkedList<Token> tokenListSintaxis =new LinkedList<>();
     private Sintaxis sintaxis;
     private boolean compilo=false;
+
 
     //Constructor de la clase, define el titulo, icono y llama a InitComponents
     public Frame (final String title){
@@ -52,6 +58,7 @@ public class Frame extends JFrame{
         //Cargar excel de léxico
         matrizLexico=CargarRecursos.openExcelFileLexico(excelLexicoPath);
         matrizSintactica=CargarRecursos.openExcelFileSintaxis(excelSintaxisPath);
+
 //        CargarRecursos.llenarContadores();
     }
     private void initImages(){
@@ -73,6 +80,8 @@ public class Frame extends JFrame{
         setLocationRelativeTo(null);
 
         mdTblErrores=(DefaultTableModel) tblError.getModel();
+        mdTblTipoErrores=(DefaultTableModel) tblTipoError.getModel();
+        mdTblContadores=(DefaultTableModel) tblContadores.getModel();
 
         sclCodigo.setRowHeaderView(numLine);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -123,11 +132,11 @@ public class Frame extends JFrame{
         ));
         sclError.setViewportView(tblError);
         if (tblError.getColumnModel().getColumnCount() > 0) {
-            tblError.getColumnModel().getColumn(0).setMinWidth(80);
-            tblError.getColumnModel().getColumn(0).setMaxWidth(80);
-            tblError.getColumnModel().getColumn(3).setMinWidth(300);
-            tblError.getColumnModel().getColumn(3).setMaxWidth(300);
-            tblError.getColumnModel().getColumn(4).setMinWidth(45);
+            tblError.getColumnModel().getColumn(0).setMinWidth(80); //Token
+            tblError.getColumnModel().getColumn(0).setMaxWidth(80); //
+            tblError.getColumnModel().getColumn(3).setMinWidth(120);//Tipo
+            tblError.getColumnModel().getColumn(3).setMaxWidth(120);//Tipo
+            tblError.getColumnModel().getColumn(4).setMinWidth(45); //Linea
             tblError.getColumnModel().getColumn(4).setMaxWidth(45);
         }
 
@@ -392,20 +401,33 @@ public class Frame extends JFrame{
 
     private void btnCompilarActionPerformed(java.awt.event.ActionEvent evt){
         //Compilar
-        if (compilo){
-            lexico.clean();
-            lexico.setText(txtCodigo.getText()+" ");
-        }
-        else{
-            lexico=new Lexico(matrizLexico,txtCodigo.getText()+'\n',tblTokens/*,tblError*/,tblContadores,erroresList,tokenListSintaxis);
-            compilo=true;
-            sintaxis=new Sintaxis(matrizSintactica,erroresList,tokenListSintaxis);
+
+        switch (txtCodigo.getText()){
+            case "":
+            case " ":
+            case "\n":
+            case "\t":
+                JOptionPane.showMessageDialog(null,"Escribe/abre tu codigo antes de compilar (o゜▽゜)o☆");
+                break;
+            default:
+                if (compilo){
+                    lexico.clean();
+                    sintaxis.clean();
+                    mdTblErrores.setRowCount(0);
+                    lexico.setText(txtCodigo.getText()+" ");
+                }
+                else{
+                    lexico=new Lexico(matrizLexico,txtCodigo.getText()+'\n',tblTokens/*,tblError*/,tblContadores,erroresList,tokenListSintaxis);
+                    compilo=true;
+                    sintaxis=new Sintaxis(matrizSintactica,erroresList,tokenListSintaxis);
+                }
+                lexico.compilar();
+                erroresLexico=erroresList.size();
+                sintaxis.analize();
+                erroresSintaxis=erroresList.size()-erroresLexico;
+                llenarTablaErrores();
         }
 
-        lexico.compilar();
-        sintaxis.analize();
-
-        llenarTablaErrores();
 
 //        txtCodigo.get
     }
@@ -414,6 +436,9 @@ public class Frame extends JFrame{
         for(int i = 0; i< erroresList.size(); i++){
             mdTblErrores.addRow(erroresList.get(i).getRow());
         }
+        mdTblContadores.setValueAt(erroresList.size(),20,1);
+        mdTblTipoErrores.setValueAt(erroresLexico,0,1);
+        mdTblTipoErrores.setValueAt(erroresSintaxis,1,1);
     }
 
     private void btnExcelActionPerformed(java.awt.event.ActionEvent evt){

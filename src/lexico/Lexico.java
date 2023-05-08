@@ -226,7 +226,7 @@ public class Lexico {
     }
     public void clean(){
         text="";
-        mdTblErrores.setRowCount(0);
+//        mdTblErrores.setRowCount(0);
         mdTblTokens.setRowCount(0);
         erroresList.clear();
         tokenListLexico.clear();
