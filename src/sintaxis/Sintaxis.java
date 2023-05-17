@@ -98,6 +98,41 @@ public class Sintaxis {
             put(511,"Se esperaba :");
             put(512,"Se esperaba set o get");
             put(513,"Se esperaba un tipo de variable");
+            put(514,"Se esperaba =");
+            put(515,"Se esperaba una constante");
+            put(516,"Se esperaba let");
+            put(517,"Se esperaba interface");
+            put(518,"Se esperaba : o =");
+            put(519,"Se esperaba ( o fuction");
+            put(520,"Se esperaba Array, identificador o tipo de variable");
+            put(521,"Se esperaba identificador o tipo de variable");
+            put(522,"Se esperaba [ o new");
+            put(523,"Se esperaba una función, constante, ++, --, ~, (, ! o identificador");
+            put(524,"Se esperaba { o constante");
+            put(525,"Se esperaba =, < o Map");
+            put(526,"Se esperaba Map");
+            put(527,"Se esperaba = += /= *= -= %= &= ^= <<= >>= o >>>=");
+            put(528,"Se esperaba Console, if, switch, while, return, do, for, una función, constante, ++, --, ~, {, (, ! o identificador");
+            put(529,"Se esperaba read o log");
+            put(530,"Se esperaba else");
+            put(531,"Se esperaba case");
+            put(532,"Se esperaba case o default");
+            put(533,"Se esperaba let, una función, constante, ++, --, ~, (, ! o identificador");
+            put(534,"Se esperaba of o in");
+            put(535,"Se esperaba un método para cadena");
+            put(536,"Se esperaba una función o un método para cadena");
+            put(537,"Se esperaba un [");
+            put(538,"Se esperaba || o |");
+            put(539,"Se esperaba && & o ^");
+            put(540,"Se esperaba < <= == != > >= === o !==");
+            put(541,"Se esperaba - + << >> o >>>");
+            put(542,"Se esperaba * / o %");
+            put(543,"Se esperaba **");
+            put(544,"Se esperaba ");
+            put(545,"Se esperaba ++ o --");
+            put(546,"Se esperaba [ o (");
+            put(547,"Se esperaba ?");
+            put(548,"Se esperaba ! o ~");
 
             put(700,"Error Sintactico temporal");
     }};
@@ -135,11 +170,11 @@ public class Sintaxis {
             {-71}, 	// 25
             {-60}, 	// 26
             {-70}, 	// 27
-            {-46}, 	// 28 CADENAS Eliminé el token -47
+            {-46}, 	// 28 CADENAS Eliminé el token -47 " " ' '
             {-55}, 	// 29
             {-58}, 	// 30
             {-59}, 	// 31
-            {-56}, 	// 32 REALES Eliminé el token -57
+            {-56}, 	// 32 REALES Eliminé el token -57 882.31 9288.2^+56
             {-60}, 	// 33
             {-87,-1,221}, 	// 34
             {-30,222}, 	// 35
