@@ -240,13 +240,8 @@ public class Lexico {
     private void llenarTablas(){
 //        llenarTablaError();
         llenarTablaTokens();
-        llenarContadores();
     }
-    private void llenarContadores(){
-        for (int i=0;i<contadores.length;i++){
-            mdTblContadores.setValueAt(contadores[i],i,1);
-        }
-    }
+
 //    private void llenarTablaError(){
 //        for(int i = 0; i< erroresList.size(); i++){
 //            mdTblErrores.addRow(erroresList.get(i).getRow());

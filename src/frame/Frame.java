@@ -43,6 +43,7 @@ public class Frame extends JFrame{
     private DefaultTableModel mdTblContadores;
     private LinkedList<Errores> erroresList =new LinkedList<>();
     private LinkedList<Token> tokenListSintaxis =new LinkedList<>();
+    private LinkedList<Token> copy =new LinkedList<>();
     private Sintaxis sintaxis;
     private boolean compilo=false;
     private int []contadores=new int[21];
@@ -423,8 +424,11 @@ public class Frame extends JFrame{
                 }
                 lexico.compilar();
                 erroresLexico=erroresList.size();
+                copy = new LinkedList<>(tokenListSintaxis);
+
                 sintaxis.analize();
                 erroresSintaxis=erroresList.size()-erroresLexico;
+
                 llenarTablaErrores();
         }
 
@@ -436,11 +440,19 @@ public class Frame extends JFrame{
         for(int i = 0; i< erroresList.size(); i++){
             mdTblErrores.addRow(erroresList.get(i).getRow());
         }
+        contadores[20]=erroresList.size();
+        llenarContadores();
         mdTblContadores.setValueAt(erroresList.size(),20,1);
         mdTblTipoErrores.setValueAt(erroresLexico,0,1);
         mdTblTipoErrores.setValueAt(erroresSintaxis,1,1);
-    }
 
+
+    }
+    private void llenarContadores(){
+        for (int i=0;i<contadores.length;i++){
+            mdTblContadores.setValueAt(contadores[i],i,1);
+        }
+    }
     private void btnExcelActionPerformed(java.awt.event.ActionEvent evt){
 //        String palabrasReservadas=CargarRecursos.openFile("src/resources/palabrasReservadas.txt");
 //        imprimirMap(palabrasReservadas);
@@ -460,7 +472,7 @@ public class Frame extends JFrame{
             JOptionPane.showMessageDialog(null,"Primero debes Compilar (o゜▽゜)o☆");
     }
     public void writeExcel(final String path){
-        CargarRecursos.writeToExcel(tokenListSintaxis,erroresList,contadores,erroresLexico,erroresSintaxis,path);
+        CargarRecursos.writeToExcel(copy,erroresList,contadores,erroresLexico,erroresSintaxis,path);
     }
     private void btnOpenFileActionPerformed(java.awt.event.ActionEvent evt) throws IOException {
         if(compilo)

@@ -23,13 +23,13 @@ public class Sintaxis {
         int colToken,rowNT=0,prod;
         int topStack;
         while(!tokenListSintaxis.isEmpty()&&!syntacticStack.isEmpty()){
-            System.out.print(syntacticStack.size()+" ");
+//            System.out.print(syntacticStack.size()+" "+tokenListSintaxis.getFirst().getLexema()+" ");
             topStack=syntacticStack.peek();
-            System.out.print(topStack+": ");
-            Iterator<Integer> iterator = syntacticStack.iterator();
-            while (iterator.hasNext()) {
-                System.out.print(iterator.next() + " ");
-            }
+//            System.out.print(topStack+": ");
+//            Iterator<Integer> iterator = syntacticStack.iterator();
+//            while (iterator.hasNext()) {
+//                System.out.print(iterator.next() + " ");
+//            }
 
             if(topStack>=200&&topStack<=292){ //Esto quiere decir que es un NO terminal
                 colToken=tokenListSintaxis.getFirst().getToken();
@@ -37,18 +37,18 @@ public class Sintaxis {
 
                 prod=matrizSintactica[topStack-200][colToken];
                 if(prod>500){//Caso Error
-                    System.out.println("Error");
+//                    System.out.println("Error");
                     erroresList.add(new Errores(tokenListSintaxis.getFirst().getLexema(),tokenListSintaxis.getFirst().getToken(),tokenListSintaxis.getFirst().getLinea(),errores_sintaxis.get(prod)));
-                    System.out.println(errores_sintaxis.get(prod));
+//                    System.out.println(errores_sintaxis.get(prod));
                     tokenListSintaxis.removeFirst();
                 }
                 else if(prod==180){//Caso epsilon
-                    System.out.println("epsilon");
+//                    System.out.println("epsilon");
                     syntacticStack.pop();
                 }
                 else{//Caso produccion
                     syntacticStack.pop();
-                    System.out.print("prod "+prod);
+//                    System.out.print("prod "+prod);
                     for(int k=producciones[prod].length-1;k>=0;k--){
                         syntacticStack.push(producciones[prod][k]);
                     }
@@ -77,7 +77,7 @@ public class Sintaxis {
                     tokenListSintaxis.removeFirst();
                 }
             }
-            System.out.println(" lp "+syntacticStack.size());
+//            System.out.println(" lp "+syntacticStack.size());
 
         }
         if(!syntacticStack.isEmpty()){

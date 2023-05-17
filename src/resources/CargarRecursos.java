@@ -202,7 +202,7 @@ public class CargarRecursos {
             cell.setCellValue(rowHeadTER[i]);
         }
         //data rows
-        Row dataRowTER=contadoresSheet.createRow(1);
+        Row dataRowTER=tiposErrorSheet.createRow(1);
             dataRowTER.createCell(0).setCellValue(lexico);
             dataRowTER.createCell(1).setCellValue(sintaxis);
         /*
