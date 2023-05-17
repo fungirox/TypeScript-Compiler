@@ -45,7 +45,7 @@ public class Frame extends JFrame{
     private LinkedList<Token> tokenListSintaxis =new LinkedList<>();
     private Sintaxis sintaxis;
     private boolean compilo=false;
-
+    private int []contadores=new int[21];
 
     //Constructor de la clase, define el titulo, icono y llama a InitComponents
     public Frame (final String title){
@@ -417,7 +417,7 @@ public class Frame extends JFrame{
                     lexico.setText(txtCodigo.getText()+" ");
                 }
                 else{
-                    lexico=new Lexico(matrizLexico,txtCodigo.getText()+'\n',tblTokens/*,tblError*/,tblContadores,erroresList,tokenListSintaxis);
+                    lexico=new Lexico(matrizLexico,txtCodigo.getText()+'\n',tblTokens/*,tblError*/,tblContadores,erroresList,tokenListSintaxis,contadores);
                     compilo=true;
                     sintaxis=new Sintaxis(matrizSintactica,erroresList,tokenListSintaxis);
                 }
@@ -453,13 +453,15 @@ public class Frame extends JFrame{
 
             if(r==JFileChooser.APPROVE_OPTION){
                 path=fileChooser.getSelectedFile().getAbsolutePath();
-                lexico.writeExcel(path);
+                writeExcel(path);
             }
         }
         else
             JOptionPane.showMessageDialog(null,"Primero debes Compilar (o゜▽゜)o☆");
     }
-
+    public void writeExcel(final String path){
+        CargarRecursos.writeToExcel(tokenListSintaxis,erroresList,contadores,erroresLexico,erroresSintaxis,path);
+    }
     private void btnOpenFileActionPerformed(java.awt.event.ActionEvent evt) throws IOException {
         if(compilo)
             lexico.clean();

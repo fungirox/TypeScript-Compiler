@@ -136,7 +136,7 @@ public class CargarRecursos {
         }
         return matriz;
     }
-    public static void writeToExcel(final LinkedList listaToken,final LinkedList listaErrores,final int[] contadores,final String path){
+    public static void writeToExcel(final LinkedList listaToken,final LinkedList listaErrores,final int[] contadores,final int lexico, final int sintaxis,final String path){
         XSSFWorkbook book=new XSSFWorkbook();
         XSSFSheet tokenSheet=book.createSheet("Token");
         Row headerRow1=tokenSheet.createRow(0);
@@ -192,6 +192,20 @@ public class CargarRecursos {
             dataRow.createCell(i).setCellValue(contadores[i]);
         }
         /*
+         * Tipos de error
+         */
+        XSSFSheet tiposErrorSheet=book.createSheet("Tipos de error");
+        Row tiposErrorR=tiposErrorSheet.createRow(0);
+        //headers
+        for(int i=0;i<rowHeadTER.length;i++){
+            Cell cell=tiposErrorR.createCell(i);
+            cell.setCellValue(rowHeadTER[i]);
+        }
+        //data rows
+        Row dataRowTER=contadoresSheet.createRow(1);
+            dataRowTER.createCell(0).setCellValue(lexico);
+            dataRowTER.createCell(1).setCellValue(sintaxis);
+        /*
          *  Escribir archivo
          */
         FileOutputStream out;
@@ -220,6 +234,8 @@ public class CargarRecursos {
     private static String [] rowHeadErrores={
             "Token","Descripcion","Lexema","Tipo de error","Linea"
     };
-
+    private static String [] rowHeadTER={
+            "Lexico","Sintaxis"
+    };
 
 }

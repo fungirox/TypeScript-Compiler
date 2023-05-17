@@ -22,7 +22,8 @@ public class Sintaxis {
         int i=0;
         int colToken,rowNT=0,prod;
         int topStack;
-        while(!tokenListSintaxis.isEmpty()){
+        while(!tokenListSintaxis.isEmpty()&&!syntacticStack.isEmpty()){
+            System.out.print(syntacticStack.size()+" ");
             topStack=syntacticStack.peek();
             System.out.print(topStack+": ");
             Iterator<Integer> iterator = syntacticStack.iterator();
@@ -76,7 +77,7 @@ public class Sintaxis {
                     tokenListSintaxis.removeFirst();
                 }
             }
-            System.out.println();
+            System.out.println(" lp "+syntacticStack.size());
 
         }
         if(!syntacticStack.isEmpty()){

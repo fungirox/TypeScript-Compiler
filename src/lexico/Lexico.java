@@ -14,7 +14,7 @@ public class Lexico {
     private LinkedList<Token> tokenListLexico =new LinkedList<>();
     private LinkedList<Token> tokenListSintaxis;
     private LinkedList<Errores> erroresList;
-    private int []contadores=new int[21];
+    private int []contadores;
     private int lastToken=-57;
     private int linea=1;
     private int lineaComentario=0;
@@ -23,7 +23,7 @@ public class Lexico {
 //    Map<Integer,String> errores=new HashMap<Integer,String>();
     private JTable /*tblErrores,*/tblTokens,tblContadores;
     private DefaultTableModel mdTblErrores,mdTblTokens,mdTblContadores;
-    public Lexico(int[][] matrizLexico,final String text,final JTable tblTokens/*,JTable tblErrores*/,final JTable tblContadores,LinkedList<Errores>listErrores,LinkedList<Token>sintaxis){
+    public Lexico(int[][] matrizLexico,final String text,final JTable tblTokens/*,JTable tblErrores*/,final JTable tblContadores,LinkedList<Errores>listErrores,LinkedList<Token>sintaxis,int[]contadores){
         this.matrizLexico=matrizLexico;
         this.text=text;
 //        this.tblErrores=tblErrores;
@@ -33,6 +33,7 @@ public class Lexico {
         this.mdTblContadores=(DefaultTableModel) tblContadores.getModel();
         this.erroresList=listErrores;
         this.tokenListSintaxis=sintaxis;
+        this.contadores=contadores;
     }
     public Object[] compilar(){
         int estado=0,col=0;
@@ -308,9 +309,7 @@ public class Lexico {
         this.text = text;
     }
 
-    public void writeExcel(final String path){
-        CargarRecursos.writeToExcel(tokenListSintaxis,erroresList,contadores,path);
-    }
+
 
     private final Map<String,Integer> palabras_reservadas=new HashMap<String,Integer>()
     {{
