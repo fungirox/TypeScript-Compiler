@@ -11,11 +11,11 @@ import java.util.Map;
 public class Lexico {
     private int[][] matrizLexico;
     private String text;
-    private LinkedList<Token> tokenListLexico =new LinkedList<>();
+    private LinkedList<Token> tokenListLexico = new LinkedList<>();
     private LinkedList<Token> tokenListSintaxis;
     private LinkedList<Errores> erroresList;
     private int []contadores;
-    private int lastToken=-57;
+    private int lastToken=-58;
     private int linea=1;
     private int lineaComentario=0;
     private boolean comentario=false;
@@ -115,6 +115,7 @@ public class Lexico {
                 //Constantes de cadena
                 contadores[14]++;
                 return true;
+
             case -55:
                 //Constantes numericas
                 contadores[15]++;
@@ -124,12 +125,12 @@ public class Lexico {
                 //Constantes reales
                 contadores[16]++;
                 return true;
-            case -58:
             case -59:
+            case -60:
                 //booleanas
                 contadores[17]++;
                 return true;
-            case -60:
+            case -61:
                 //nulas
                 contadores[18]++;
                 return true;
@@ -292,10 +293,11 @@ public class Lexico {
                 case '*'->27;
                 case '/'->28;
                 case '_'->30;
-                case '\n'->32;
-                case ' '->33;
-                case '\t'->34;
-                default ->31;
+                case '\n'->33;
+                case ' '->34;
+                case '\t'->35;
+                case '#'->31;
+                default ->32;
             };
         }
     }

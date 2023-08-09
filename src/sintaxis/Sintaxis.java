@@ -23,32 +23,32 @@ public class Sintaxis {
         int colToken,rowNT=0,prod;
         int topStack;
         while(!tokenListSintaxis.isEmpty()&&!syntacticStack.isEmpty()){
-            System.out.print(syntacticStack.size()+" "+tokenListSintaxis.getFirst().getLexema()+" ");
+//            System.out.print(syntacticStack.size()+" "+tokenListSintaxis.getFirst().getLexema()+" ");
             topStack=syntacticStack.peek();
-            System.out.print(topStack+": ");
-            Iterator<Integer> iterator = syntacticStack.iterator();
-            while (iterator.hasNext()) {
-                System.out.print(iterator.next() + " ");
-            }
+//            System.out.print(topStack+": ");
+//            Iterator<Integer> iterator = syntacticStack.iterator();
+//            while (iterator.hasNext()) {
+//                System.out.print(iterator.next() + " ");
+//            }
 
             if(topStack>=200&&topStack<=292){ //Esto quiere decir que es un NO terminal
                 colToken=tokenListSintaxis.getFirst().getToken();
                 colToken*=-1;colToken--;
 
                 prod=matrizSintactica[topStack-200][colToken];
-                if(prod>500){//Caso Error
+                if(prod>499){//Caso Error
                     System.out.println("Error");
                     erroresList.add(new Errores(tokenListSintaxis.getFirst().getLexema(),tokenListSintaxis.getFirst().getToken(),tokenListSintaxis.getFirst().getLinea(),errores_sintaxis.get(prod)));
-                    System.out.println(errores_sintaxis.get(prod));
+//                    System.out.println(errores_sintaxis.get(prod));
                     tokenListSintaxis.removeFirst();
                 }
                 else if(prod==180){//Caso epsilon
-                    System.out.println("epsilon");
+//                    System.out.println("epsilon");
                     syntacticStack.pop();
                 }
                 else{//Caso produccion
                     syntacticStack.pop();
-                    System.out.print("prod "+prod);
+//                    System.out.print("prod "+prod);
                     for(int k=producciones[prod].length-1;k>=0;k--){
                         syntacticStack.push(producciones[prod][k]);
                     }
@@ -57,17 +57,17 @@ public class Sintaxis {
             }
             else if(topStack<0){ //Esto quiere decir que es un token
                 if(tokenListSintaxis.getFirst().getToken()==topStack){//Si el token de la lista y pila son iguales
-                    System.out.print(tokenListSintaxis.getFirst().getLexema()+" ");
+//                    System.out.print(tokenListSintaxis.getFirst().getLexema()+" ");
                     syntacticStack.pop();
                     tokenListSintaxis.removeFirst();
                 }
                 else if(tokenListSintaxis.getFirst().getToken()==(-47)&&topStack==(-46)){//Caso especifico de cadenas -47
-                    System.out.print(tokenListSintaxis.getFirst().getLexema()+" ");
+//                    System.out.print(tokenListSintaxis.getFirst().getLexema()+" ");
                     syntacticStack.pop();
                     tokenListSintaxis.removeFirst();
                 }
                 else if(tokenListSintaxis.getFirst().getToken()==(-57)&&topStack==(-56)){//Caso especifico de reales -57
-                    System.out.print(tokenListSintaxis.getFirst().getLexema()+" ");
+//                    System.out.print(tokenListSintaxis.getFirst().getLexema()+" ");
                     syntacticStack.pop();
                     tokenListSintaxis.removeFirst();
                 }
@@ -77,7 +77,7 @@ public class Sintaxis {
                     tokenListSintaxis.removeFirst();
                 }
             }
-            System.out.println(" lp "+syntacticStack.size());
+//            System.out.println(" lp "+syntacticStack.size());
 
         }
         if(!syntacticStack.isEmpty()){
@@ -154,45 +154,45 @@ public class Sintaxis {
             {-14,254,206}, 	// 9
             {-14,254,206}, 	// 10
 
-            {-93,-1,-19,246,208,249,209,-20}, 	// 11
+            {-94,-1,-19,246,208,249,209,-20}, 	// 11
             {-14,246,208}, 	// 12
             {249,209}, 	// 13
-            {-69,-1,-10,246,211,-11,212,-19,254,213,-20}, 	// 14
+            {-70,-1,-10,246,211,-11,212,-19,254,213,-20}, 	// 14
             {-16,246,211}, 	// 15
             {-13,218}, 	// 16
             {-14,254,213}, 	// 17
-            {-91,-1,-10,246,215,-11,-19,254,216,-20}, 	// 18
+            {-92,-1,-10,246,215,-11,-19,254,216,-20}, 	// 18
             {-16,246,215}, 	// 19
             {-14,254,216}, 	// 20
-            {-92,-1,-10,-11,-13,218,-19,254,217,-20}, 	// 21
+            {-93,-1,-10,-11,-13,218,-19,254,217,-20}, 	// 21
             {-14,254,217}, 	// 22
-            {-90}, 	// 23
-            {-89}, 	// 24
-            {-71}, 	// 25
-            {-60}, 	// 26
-            {-70}, 	// 27
+            {-91}, 	// 23
+            {-90}, 	// 24
+            {-72}, 	// 25
+            {-61}, 	// 26
+            {-72}, 	// 27
             {-46}, 	// 28 CADENAS Eliminé el token -47 " " ' '
             {-55}, 	// 29
-            {-58}, 	// 30
-            {-59}, 	// 31
+            {-59}, 	// 30
+            {-60}, 	// 31
             {-56}, 	// 32 REALES Eliminé el token -57 882.31 9288.2^+56
-            {-60}, 	// 33
+            {-61}, 	// 33
             {-87,-1,221}, 	// 34
             {-30,222}, 	// 35
-            {-69,-10,246,223,-11,224,-19,254,225,-20}, 	// 36
+            {-70,-10,246,223,-11,224,-19,254,225,-20}, 	// 36
             {-16,246,223}, 	// 37
             {-13,218}, 	// 38
             {-14,254,226}, 	// 39
             {-10,246,226,-11,-33,254}, 	// 40
             {-16,246,226}, 	// 41
             {-13,227}, 	// 42
-            {-72,-26,228,-40,-30,229}, 	// 43
+            {-73,-26,228,-40,-30,229}, 	// 43
             {218}, 	// 44
             {-1}, 	// 45
             {-17,230,-18}, //46
             {273,231}, 	// 47
             {-16,273,231}, 	// 48
-            {-73,-72,-10,-11}, 	// 49
+            {-74,-73,-10,-11}, 	// 49
             {218,232}, 	// 50
             {-30,233}, 	// 51
             {219}, 	// 52
@@ -208,13 +208,13 @@ public class Sintaxis {
             {-16,214}, 	// 62
             {-16,249}, 	// 63
             {242,-26,218,-16,218,-40,-30,243}, 	// 64
-            {-108}, 	// 65
-            {-73,-108,-10,-11}, 	// 66
+            {-109}, 	// 65
+            {-74,-109,-10,-11}, 	// 66
             {-17,244,-18}, // 67
             {273,245}, 	// 68
             {-16,273,245}, 	// 69
             {-1,-13,218}, 	// 70
-            {-88,-1,-19,246,248,-20}, 	// 71
+            {-87,-1,-19,246,248,-20}, 	// 71
             {-14,246,248}, 	// 72
             {-1,-10,246,250,-11,251,-19,254,252,-20}, 	// 73
             {-16,246,250}, 	// 74
@@ -231,23 +231,23 @@ public class Sintaxis {
             {-28}, 	// 85
             {-45}, 	// 86
             {-44}, 	// 87
-            {-67,-12,255}, 	// 88
-            {-61,-10,273,-11,254,257}, 	// 89
-            {-63,-10,273,-11,-19,-75,273,-13,258,254,259,-86,260,-20}, 	// 90
+            {-68,-12,255}, 	// 88
+            {-62,-10,273,-11,254,257}, 	// 89
+            {-64,-10,273,-11,-19,-76,273,-13,258,254,259,-87,260,-20}, 	// 90
             {-19,254,263,-20}, 	// 91
-            {-66,-10,273,-11,254}, 	// 92
+            {-67,-10,273,-11,254}, 	// 92
             {273,-14}, 	// 93
-            {-77,273,-14}, 	// 94
-            {-65,254,-66,-10,273,-11,-14}, 	// 95
-            {-64,-10,264,-11,254}, 	// 96
-            {-74,-10,273,256,-11}, 	// 97
-            {-68,-10,273,-11}, 	// 98
+            {-78,273,-14}, 	// 94
+            {-66,254,-67,-10,273,-11,-14}, 	// 95
+            {-65,-10,264,-11,254}, 	// 96
+            {-75,-10,273,256,-11}, 	// 97
+            {-69,-10,273,-11}, 	// 98
             {-16,273,256}, 	// 99
-            {-62,273}, 	// 100
-            {-75,273,-13,258}, 	// 101
+            {-63,273}, 	// 100
+            {-76,273,-13,258}, 	// 101
             {-14,254,259}, 	// 102
-            {-75,273,-13,268,-86,260}, 	// 103
-            {-76,-13,254,262}, 	// 104
+            {-76,273,-13,268,-87,260}, 	// 103
+            {-77,-13,254,262}, 	// 104
             {-14,254,261}, //105
             {-14,254,262}, //106
             {-14,254,263}, //107
@@ -255,29 +255,29 @@ public class Sintaxis {
             {-87,-1,267,-1},  //109
             {-16,273,265},  //110
             {-16,273,266},  //111
-            {-106},  //112
-            {-107},  //113
+            {-107},  //112
+            {-108},  //113
             {254,261},  //114
-            {-94,-10,-11},  //115
-            {-95,-10,-11},  //116
-            {-76},  //117
-            {-97,-10,-11},  //118
-            {-98,-10,273,-11},  //119
-            {-99,-10,273,-11},  //120
-            {-100,-10,273,-11},  //121
-            {-101,-10,273,-11},  //122
-            {-102,-10,273,-11},  //123
-            {-103,-10,273,-16,273,-11},  //124
-            {-104,-10,273,-16,273,-11},  //125
-            {-105,-10,273,-11},  //126
-            {-78,-10,273,-16,273,-11},  //127
-            {-79,-10,273,-16,273,-11},  //128
-            {-80,-10,273,-16,273,-16,-11},  //129
-            {-81,-10,273,-11},  //130
-            {-82,-10,273,-11},  //131
-            {-83,-10,273,-11},  //132
-            {-84,-10,273,-11},  //133
-            {-85,-10,273,-11},  //134
+            {-95,-10,-11},  //115
+            {-96,-10,-11},  //116
+            {-97},  //117 -------
+            {-98,-10,-11},  //118
+            {-99,-10,273,-11},  //119
+            {-100,-10,273,-11},  //120
+            {-101,-10,273,-11},  //121
+            {-102,-10,273,-11},  //122
+            {-103,-10,273,-11},  //123
+            {-104,-10,273,-16,273,-11},  //124
+            {-105,-10,273,-16,273,-11},  //125
+            {-106,-10,273,-11},  //126
+            {-79,-10,273,-16,273,-11},  //127
+            {-80,-10,273,-16,273,-11},  //128
+            {-81,-10,273,-16,273,-16,-11},  //129
+            {-82,-10,273,-11},  //130
+            {-83,-10,273,-11},  //131
+            {-84,-10,273,-11},  //132
+            {-85,-10,273,-11},  //133
+            {-86,-10,273,-11},  //134
             {269},  //135
             {-17,273,272,-18},  //136
             {-16,273,272},  //137

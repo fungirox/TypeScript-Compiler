@@ -76,7 +76,7 @@ public class CargarRecursos {
         return con;
     }
     public static int [][] openExcelFileLexico(final String filePath){
-        int [][] matriz=new int[66][35];
+        int [][] matriz=new int[67][36];
         ArrayList cellData=new ArrayList();
 
         try {
@@ -106,7 +106,7 @@ public class CargarRecursos {
         return matriz;
     }
     public static int [][] openExcelFileSintaxis(final String filePath){
-        int [][] matriz=new int[93][124];
+        int [][] matriz=new int[93][125];
         ArrayList cellData=new ArrayList();
 
         try {
