@@ -1,0 +1,152 @@
+PPAL
+PPAL → interface class let fuction
+PP0 → interface class let fuction
+PP1 → ; Ɛ 
+PP2 → fuction Ɛ 
+PP3 → ; Ɛ
+PP4 → ; Ɛ
+PP5 → ; Ɛ
+
+CLASE 
+CLASE → class
+E0 → Ɛ ;
+E1 → Ɛ id
+
+DEC_FUN 
+DEC_FUN → fuction 
+F0 → Ɛ ,
+F1 → Ɛ :
+F2 → Ɛ ;
+
+DEC_GETYSET
+GS → set get
+G0 → Ɛ ,
+G1 → Ɛ ;
+G2 → Ɛ ;
+
+TIPO
+TIPO → # string number boolean null real
+
+CONSTIPO
+CT → cadena numerica true false real null
+
+LET
+LET → let
+T0 → = : 
+T1 → fuction (
+T2 → Ɛ ,
+T3 → Ɛ :
+T4 → Ɛ ;
+T5 → Ɛ ,
+T6 → id Array string number boolean null real
+T7 → id string number boolean null real
+T8 → new  [
+T9 → Ɛ -- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+T10 → Ɛ , 
+T11 → Ɛ =
+T12 → { cadena numerica true false real null
+T13 → Ɛ id
+T14 → Ɛ ,
+T15 → Ɛ ,
+T16 → = Map <
+T17 → { cadena numerica true false real null
+T18 → Ɛ id
+T19 → Ɛ ,
+T20 → Ɛ ,
+T21 → Ɛ Map
+T22 → new [
+T23 → Ɛ -- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+T24 → Ɛ ,
+
+DEC_VAR
+DEC_VAR → id
+
+INTERF
+INTERF → interface
+H0 → Ɛ ;
+
+DEC_MET
+DM → id 
+I0 → Ɛ ,
+I1 → Ɛ :
+I2 → Ɛ ;
+
+ASIG 
+AS → = += /= *= -= %= &= ^= <<= >>= >>>=
+
+STATUS
+STATUS → Console if switch { while return do for 
+-- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+S0 → read log 
+S1 → Ɛ ,
+S2 → Ɛ else
+S3 → Ɛ case
+S4 → Ɛ ;
+S5 → Ɛ default case 
+S6 → Ɛ ;
+S7 → Ɛ ;
+S8 → Ɛ ;
+S9 → let -- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+S10 → Ɛ ,
+S11 → Ɛ ,
+S12 → in of
+S13 → Console if switch { while return do for 
+-- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+
+MET_CAD
+MC → toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+
+FUNCION 
+FUN → expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+
+ARR 
+ARR → [
+D0 → Ɛ ,
+
+OR
+OR → -- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+L0 → Ɛ || |
+
+AND
+AND → -- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+M0 → Ɛ && & ^ 
+
+EXP_PAS
+EXP → -- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+EXP0 → Ɛ < <= == != > >= === !==
+
+SIMPLE EXP_PAS
+SEP → -- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+EP1 → Ɛ - + << >> >>> 
+
+TERMINO PASCAL
+TMP → -- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+K0 → Ɛ * / %
+
+ELEVACION
+EL → -- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+J0 → Ɛ ** 
+
+FACTOR 
+FA → -- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+FA0 → Ɛ -- ++ 
+FA1 → Ɛ ( [ = += /= *= -= %= &= ^= <<= >>= >>>=
+FA2 → Ɛ = += /= *= -= %= &= ^= <<= >>= >>>= 
+FA3 → Ɛ ?
+FA4 → Ɛ -- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+FA5 → Ɛ , 
+FA6 → Ɛ ! ~

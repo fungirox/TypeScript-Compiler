@@ -42,7 +42,7 @@ public class Sintaxis {
 //                    System.out.println(errores_sintaxis.get(prod));
                     tokenListSintaxis.removeFirst();
                 }
-                else if(prod==180){//Caso epsilon
+                else if(prod==182){//Caso epsilon
 //                    System.out.println("epsilon");
                     syntacticStack.pop();
                 }
@@ -72,6 +72,7 @@ public class Sintaxis {
                     tokenListSintaxis.removeFirst();
                 }
                 else{
+//                    System.out.println("\n------------------\n Error de fuerza bruta \n -----------------------");
                     System.out.println("Error de fuerza bruta");
                     syntacticStack.pop();
                     tokenListSintaxis.removeFirst();
@@ -98,7 +99,7 @@ public class Sintaxis {
             put(510,"Se esperaba ,");
             put(511,"Se esperaba :");
             put(512,"Se esperaba set o get");
-            put(513,"Se esperaba un tipo de variable");
+            put(513,"Se esperaba un tipo de variable o #");
             put(514,"Se esperaba =");
             put(515,"Se esperaba una constante");
             put(516,"Se esperaba let");
@@ -177,7 +178,7 @@ public class Sintaxis {
             {-60}, 	// 31
             {-56}, 	// 32 REALES Eliminé el token -57 882.31 9288.2^+56
             {-61}, 	// 33
-            {-87,-1,221}, 	// 34
+            {-88,-1,221}, 	// 34
             {-30,222}, 	// 35
             {-70,-10,246,223,-11,224,-19,254,225,-20}, 	// 36
             {-16,246,223}, 	// 37
@@ -243,7 +244,7 @@ public class Sintaxis {
             {-75,-10,273,256,-11}, 	// 97
             {-69,-10,273,-11}, 	// 98
             {-16,273,256}, 	// 99
-            {-63,273}, 	// 100
+            {-63,254}, 	// 100
             {-76,273,-13,258}, 	// 101
             {-14,254,259}, 	// 102
             {-76,273,-13,268,-87,260}, 	// 103
@@ -323,6 +324,9 @@ public class Sintaxis {
             {-16,273,291},  //177
             {-2},  //178
             {-21},  //179
+
+            {-58,-1}, //180 TIPO
+            {253,273,289}, //181 FA1
     };
 
 }

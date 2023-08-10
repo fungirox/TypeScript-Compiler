@@ -116,12 +116,13 @@ public class CargarRecursos {
             XSSFSheet hssfSheet=workBook.getSheetAt(0);
 
             int rows=hssfSheet.getLastRowNum();
-
-            for (int i=1;i<=rows;i++){
+            System.out.println(rows);
+            for (int i=1;i<rows;i++){
                 Row fila =hssfSheet.getRow(i);
                 int col=fila.getLastCellNum();
                 for (int j=2;j<col;j++){
                     Cell cell=fila.getCell(j);
+//                    System.out.println("i: "+i+" j: "+j);
                     switch (cell.getCellTypeEnum().toString()){
                         case "NUMERIC":
                             int aux=(int)cell.getNumericCellValue();
