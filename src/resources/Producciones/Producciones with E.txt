@@ -183,6 +183,7 @@ S11 → , OR S11
 S12 → in
 S12 → of
 S13 → STATUS S6
+S13 -> case OR : S13 
 
 MET_CAD
 MC → toLowerCase()

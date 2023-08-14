@@ -94,7 +94,7 @@ toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes s
 S10 → Ɛ ,
 S11 → Ɛ ,
 S12 → in of
-S13 → Console if switch { while return do for 
+S13 → case Console if switch { while return do for 
 -- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
 toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
 

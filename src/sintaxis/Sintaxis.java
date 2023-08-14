@@ -26,9 +26,9 @@ public class Sintaxis {
 //            System.out.print(syntacticStack.size()+" "+tokenListSintaxis.getFirst().getLexema()+" ");
             topStack=syntacticStack.peek();
 //            System.out.print(topStack+": ");
-//            Iterator<Integer> iterator = syntacticStack.iterator();
-//            while (iterator.hasNext()) {
-//                System.out.print(iterator.next() + " ");
+//           t Iterator<Integer> iterator = syntacticStack.iterator();
+////            while (iterator.hasNext()) {
+////                Sysem.out.print(iterator.next() + " ");
 //            }
 
             if(topStack>=200&&topStack<=292){ //Esto quiere decir que es un NO terminal
@@ -42,7 +42,7 @@ public class Sintaxis {
 //                    System.out.println(errores_sintaxis.get(prod));
                     tokenListSintaxis.removeFirst();
                 }
-                else if(prod==182){//Caso epsilon
+                else if(prod==183){//Caso epsilon
 //                    System.out.println("epsilon");
                     syntacticStack.pop();
                 }
@@ -327,6 +327,7 @@ public class Sintaxis {
 
             {-58,-1}, //180 TIPO
             {253,273,289}, //181 FA1
+            {-76,273,-13,268}//182 case OR : S13
     };
 
 }
