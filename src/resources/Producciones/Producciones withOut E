@@ -1,6 +1,5 @@
-183 X → Ɛ
 PPAL
-0 PPAL → PP0 { STATUS PP5 }
+0 PPAL → ¿ PP0 { STATUS PP5 ¿ } <-----
 1 PP0 → INTERF PP0
 2 PP0 → CLASE PP0
 3 PP0 → LET PP1 PP2
@@ -10,28 +9,25 @@ PPAL
 7 PP3 -> ; DEC_FUN PP3
 8 PP4 -> ; DEC_FUN PP4 
 9 PP5 -> ; STATUS PP5
-
+10 PP5 -> ; STATUS PP5
 
 CLASE 
-10 CLASE → class id { DEC_VAR E0 DEC_MET E1 }
+11 CLASE → class id {¿ DEC_VAR E0 DEC_MET E1 ¿} <-----
 11 E0 → ; DEC_VAR E0
 12 E1 → DEC_MET E1
 
-
 DEC_FUN 
-13 DEC_FUN → fuction id ( DEC_VAR F0 ) F1 { STATUS F2 }
+13 DEC_FUN → fuction id (¿ DEC_VAR F0 ) F1 { STATUS F2 ¿} <-----
 14 F0 → , DEC_VAR F0
 15 F1 → : TIPO
 16 F2 → ; STATUS F2
 
-
 DEC_GET_SET
-17 GS → set id ( DEC_VAR G0 ) { STATUS G1 }
+17 GS → set id (¿ DEC_VAR G0 ) { STATUS G1 ¿} <-----
 18 G0 → , DEC_VAR G0
 19 G1 → ; STATUS G1
-20 GS → get id ( ) : TIPO { STATUS G2 }
+20 GS → get id (¿ ) : TIPO { STATUS G2 ¿} <-----
 21 G2 → ; STATUS G2
-
 
 TIPO
 22 TIPO → string
@@ -39,200 +35,194 @@ TIPO
 24 TIPO → boolean
 25 TIPO → null
 26 TIPO → real
-
+27 TIPO -> # id 
 
 CONSTIPO
-27 CT → cadena
-28 CT → numerica
-29 CT → true
-30 CT → false
-31 CT → real
-32 CT → null
+28 CT → cadena
+29 CT → numerica
+30 CT → true
+31 CT → false
+32 CT → real
+33 CT → null
 
 LET
-33 LET → let id T0
-34 T0 → = T1
-35 T1 → fuction ( DEC_VAR T2 ) T3 { STATUS T4 }
-36 T2 → , DEC_VAR T2
-37 T3 → : TIPO
-38 T4 → ; STATUS T4
-39 T1 → ( DEC_VAR T5 ) = > STATUS
-40 T5 → , DEC_VAR T5
-41 T0 → : T6
-42 T6 → Array <T7> = T8
-43 T7 → TIPO 
-44 T7 → id
-45 T8 → [ T9 ] 
-46 T9 → OR T10 
-47 T10 → , OR T10 
-48 T8 → new Array ()
-49 T6 → TIPO T11
-50 T11 → = T12
-51 T12 → CONSTIPO
-52 T12 → { DEC_VAR , T13 DEC_GET_SET T14 DEC_MET T15 }
-53 T13 → DEC_VAR ,
-54 T14 → , DEC_GET_SET
-55 T15 → , DEC_MET
-56 T6 → id T16
-57 T16 → = T17
-58 T17 → CONSTIPO
-59 T17 → { DEC_VAR , T18 DEC_GET_SET T19 DEC_MET T20 }
-60 T18 → DEC_VAR ,
-61 T19 → , DEC_GET_SET
-62 T20 → , DEC_MET
-63 T16 → T21 < TIPO , TIPO > = T22
-64 T21 → Map 
-65 T22 → new Map ()
-66 T22 → [ T23 ]
-67 T23 → OR T24
-68 T24 → , OR T24
+34 LET → let id T0
+35 T0 → = T1
+36 T1 → fuction (¿ DEC_VAR T2 ) T3 { STATUS T4 ¿} <-----
+37 T2 → , DEC_VAR T2
+38 T3 → : TIPO
+39 T4 → ; STATUS T4
+40 T1 → (¿ DEC_VAR T5 ) = > STATUS ¿ <-----
+41 T5 → , DEC_VAR T5
+42 T0 → : T6
+43 T6 → Array <T7> = T8
+44 T7 → TIPO 
+45 T7 → id
+46 T8 → [ T9 ] 
+47 T9 → OR T10 
+48 T10 → , OR T10 
+49 T8 → new Array ()
+50 T6 → TIPO T11
+51 T11 → = T12
+52 T12 → CONSTIPO
+53 T12 → { DEC_VAR , T13 DEC_GET_SET T14 DEC_MET T15 } //Observar ****************************
+54 T13 → DEC_VAR ,
+55 T14 → , DEC_GET_SET
+56 T15 → , DEC_MET
+57 T6 → id T16
+58 T16 → = T17
+59 T17 → CONSTIPO
+60 T17 → { DEC_VAR , T18 DEC_GET_SET T19 DEC_MET T20 } //Observar ****************************
+61 T18 → DEC_VAR ,
+62 T19 → , DEC_GET_SET
+63 T20 → , DEC_MET
+64 T16 → T21 < TIPO , TIPO > = T22
+65 T21 → Map 
+66 T22 → new Map ()
+67 T22 → [ T23 ]
+68 T23 → OR T24
+69 T24 → , OR T24
 
 DEC_VAR
-69 DEC_VAR → id : TIPO 
+70 DEC_VAR → id : TIPO 
 
 INTERF
-70 INTERF → interface id { DEC_VAR H0 }
-71 H0 → ; DEC_VAR H0
+71 INTERF → interface id {¿ DEC_VAR H0 ¿} <-----
+72 H0 → ; DEC_VAR H0
 
 DEC_MET
-72 DM → id ( DEC_VAR I0 ) I1 { STATUS I2 }
-73 I0 → , DEC_VAR I0
-74 I1 → : TIPO
-75 I2 → ; STATUS I2
----------
+73 DM → id (¿ DEC_VAR I0 ) I1 { STATUS I2 ¿} <-----
+74 I0 → , DEC_VAR I0
+75 I1 → : TIPO
+76 I2 → ; STATUS I2
+
 ASIG 
 77 AS → =
-77 AS → +=
-78 AS → /=
-79 AS → *=
-80 AS → -=
-81 AS → %=
-82 AS → &=
-83 AS → ^=
-84 AS → <<=
-85 AS → >>=
-86 AS → >>>=
+78 AS → +=
+79 AS → /=
+80 AS → *=
+81 AS → -=
+82 AS → %=
+83 AS → &=
+84 AS → ^=
+85 AS → <<=
+86 AS → >>=
+87 AS → >>>=
 
 STATUS
-87 STATUS → Console . S0
-88 STATUS → if ( OR ) STATUS S2
-89 STATUS → switch ( OR ) { case OR : S3 STATUS S4 break S5 }
-90 STATUS → { STATUS S8 }
-91 STATUS → while ( OR ) STATUS
-92 STATUS → OR ;
-93 STATUS → return OR ;
-94 STATUS → do STATUS while ( OR ) ; 
-95 STATUS → for ( S9 ) STATUS
-96 S0 → read ( OR S1 )
-97 S0 → log ( OR )
-98 S1 → , OR S1
-99 S2 → else OR
-100 S3 → case OR : S3
-101 S4 → ; STATUS S4
-102 S5 → case OR : S13 break S5
-103 S5 → default : STATUS S7
-104 S6 → ; STATUS S6
-105 S7 → ; STATUS S7
-106 S8 → ; STATUS S8
-107 S9 → OR S10 ; STATUS ; OR S11
-108 S9 → let id S12 id 
-109 S10 → , OR S10
-110 S11 → , OR S11
-111 S12 → in
-112 S12 → of
-113 S13 → STATUS S6
+88 STATUS → Console . S0
+89 STATUS → if ( OR ) STATUS S2
+90 STATUS → switch ( OR ) { case OR : S3 STATUS S4 break S5 }
+91 STATUS → { STATUS S8 }
+92 STATUS → while ( OR ) STATUS
+93 STATUS → OR ;
+94 STATUS → return OR ;
+95 STATUS → do STATUS while ( OR ) ; 
+96 STATUS → for ( S9 ) STATUS
+97 S0 → read ( OR S1 )
+98 S0 → log ( OR )
+99 S1 → , OR S1
+100 S2 → else OR
+101 S3 → case OR : S3
+102 S4 → ; STATUS S4
+103 S5 → case OR : S13 break S5
+104 S5 → default : STATUS S7
+105 S6 → ; STATUS S6
+106 S7 → ; STATUS S7
+107 S8 → ; STATUS S8
+108 S9 → OR S10 ; STATUS ; OR S11
+109 S9 → let id S12 id 
+110 S10 → , OR S10
+111 S11 → , OR S11
+112 S12 → in
+113 S12 → of
+114 S13 → STATUS S6
 
 MET_CAD
-114 MC → toLowerCase()
-115 MC → toUpperCase()
-116 MC → legth
-117 MC → trim()
-118 MC → charAt(OR)
-119 MC → startsWith(OR)
-120 MC → endsWith(OR)
-121 MC → indexOf(OR)
-122 MC → includes(OR)
-123 MC → slice(OR,OR)
-124 MC → replace(OR,OR)
-125 MC → split(OR)
+115 MC → toLowerCase()
+116 MC → toUpperCase()
+117 MC → legth
+118 MC → trim()
+119 MC → charAt(OR)
+120 MC → startsWith(OR)
+121 MC → endsWith(OR)
+122 MC → indexOf(OR)
+123 MC → includes(OR)
+124 MC → slice(OR,OR)
+125 MC → replace(OR,OR)
+126 MC → split(OR)
 
 FUNCION 
-126 FUN → expo ( OR , OR )
-127 FUN → sqrtv ( OR , OR )
-128 FUN → ConvBase ( OR , OR , )
-129 FUN → asc ( OR )
-130 FUN → sen ( OR )
-131 FUN → val ( OR )
-132 FUN → cos ( OR )
-133 FUN → tan ( OR )
-134 FUN → MET_CAD
+127 FUN → expo ( OR , OR )
+128 FUN → sqrtv ( OR , OR )
+129 FUN → ConvBase ( OR , OR , )
+130 FUN → asc ( OR )
+131 FUN → sen ( OR )
+132 FUN → val ( OR )
+133 FUN → cos ( OR )
+134 FUN → tan ( OR )
+135 FUN → MET_CAD
 
 ARR 
-135 ARR → [ OR D0 ]
-136 D0 → , OR D0
+136 ARR → [ OR D0 ]
+137 D0 → , OR D0
 
 OR
-137 OR → AND L0
-138 L0 → || AND L0
-139 L0 → | AND L0
-
+138 OR → AND L0
+139 L0 → || AND L0
+140 L0 → | AND L0
 
 AND
-140 AND → EXP_PAS M0
-141 M0 → && EXP_PAS M0
-142 M0 → & EXP_PAS M0
-143 M0 → ^ EXP_PAS M0
-
+141 AND → EXP_PAS M0
+142 M0 → && EXP_PAS M0
+143 M0 → & EXP_PAS M0
+144 M0 → ^ EXP_PAS M0
 
 EXP_PAS
-144 EXP_PAS → SEP EXP0
-145 EXP0 → < SEP EXP0
-146 EXP0 → <= SEP EXP0
-147 EXP0 → == SEP EXP0
-148 EXP0 → != SEP EXP0
-149 EXP0 → >= SEP EXP0
-150 EXP0 → > SEP EXP0
-151 EXP0 → === SEP EXP0
-152 EXP0 → !== SEP EXP0
+145 EXP_PAS → SEP EXP0
+146 EXP0 → < SEP EXP0
+147 EXP0 → <= SEP EXP0
+148 EXP0 → == SEP EXP0
+149 EXP0 → != SEP EXP0
+150 EXP0 → >= SEP EXP0
+151 EXP0 → > SEP EXP0
+152 EXP0 → === SEP EXP0
+153 EXP0 → !== SEP EXP0
 
 SIMPLE EXP_PAS
-153 SEP → TMP SEP1 
-154 SEP1 → - TMP SEP1
-155 SEP1 → + TMP SEP1
-156 SEP1 → << TMP SEP1
-157 SEP1 → >> TMP SEP1
-158 SEP1 → >>> TMP SEP1
-
+154 SEP → TMP SEP1 
+155 SEP1 → - TMP SEP1
+156 SEP1 → + TMP SEP1
+157 SEP1 → << TMP SEP1
+158 SEP1 → >> TMP SEP1
+159 SEP1 → >>> TMP SEP1
 
 TERMINO PASCAL
-159 TMP → ELEV K0
-160 K0 → * ELEV K0
-161 K0 → / ELEV K0
-162 K0 → % ELEV K0
+160 TMP → ELEV K0
+161 K0 → * ELEV K0
+162 K0 → / ELEV K0
+163 K0 → % ELEV K0
 
 ELEVACION
-163 ELEV → FACTOR J0
-164 J0 → ** FACTOR J0
-
+164 ELEV → FACTOR J0
+165 J0 → ** FACTOR J0
 
 FACTOR 
-165 FA → CONSTIPO 
-166 FA → FA0 id FA1
-167 FA → FA6 ( OR )
-168 FA → FUNCION
-169 FA0 → ++
-170 FA0 → --
-171 FA1 → ARR FA2
-172 FA1 → ( FA4 )
+166 FA → CONSTIPO 
+167 FA → FA0 id FA1
+168 FA → FA6 ( OR )
+169 FA → FUNCION
+170 FA0 → ++
+171 FA0 → --
+172 FA1 → ARR FA2
+173 FA1 → ( FA4 )
+174 FA2 → ASIG OR FA3
+175 FA3 → ? OR : OR 
+176 FA4 → OR FA5
+177 FA5 → , OR FA5 
+178 FA6 → !
+179 FA6 → ~
 
-173 FA2 → ASIG OR FA3
-174 FA3 → ? OR : OR 
-175 FA4 → OR FA5
-176 FA5 → , OR FA5 
-177 FA6 → !
-178 FA6 → ~
-
-
- TIPO -> # id 
- FA1 -> ASIG OR FA3 
- {-76,273,-13,268} 182 case OR : S13
+180 TIPO -> # id 
+181 FA1 -> ASIG OR FA3 
+182 {-76,273,-13,268} 182 case OR : S13
