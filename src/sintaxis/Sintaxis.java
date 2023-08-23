@@ -161,7 +161,7 @@ public class Sintaxis {
     //Longitud del arreglo: 0 al 179
 
     private final int[][] producciones = {//Siempre insertar al reves
-            {1000,201,-19,254,206,-20,1001}, 	// 0 <-----
+            {1000,201,-19,254,206,1001,-20}, 	// 0 <-----
             {247,201}, 	// 1
             {207,201}, 	// 2
             {220,202,203}, 	// 3
