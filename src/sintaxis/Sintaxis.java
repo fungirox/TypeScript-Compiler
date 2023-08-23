@@ -23,13 +23,15 @@ public class Sintaxis {
         int colToken,rowNT=0,prod;
         int topStack;
         while(!tokenListSintaxis.isEmpty()&&!syntacticStack.isEmpty()){
-//            System.out.print(syntacticStack.size()+" "+tokenListSintaxis.getFirst().getLexema()+" ");
+
             topStack=syntacticStack.peek();
-//            System.out.print(topStack+": ");
-//           t Iterator<Integer> iterator = syntacticStack.iterator();
-////            while (iterator.hasNext()) {
-////                Sysem.out.print(iterator.next() + " ");
-//            }
+
+            System.out.println("topStack: "+topStack+" lexeme: "+tokenListSintaxis.getFirst().getLexema());
+
+            Iterator<Integer> iterator = syntacticStack.iterator();
+            while (iterator.hasNext()) {
+                System.out.print(iterator.next() + " ");
+            }
 
             if(topStack>=200&&topStack<=292){ //Esto quiere decir que es un NO terminal
                 colToken=tokenListSintaxis.getFirst().getToken();
@@ -39,46 +41,45 @@ public class Sintaxis {
                 if(prod>499){//Caso Error
                     System.out.println("Error");
                     erroresList.add(new Errores(tokenListSintaxis.getFirst().getLexema(),tokenListSintaxis.getFirst().getToken(),tokenListSintaxis.getFirst().getLinea(),errores_sintaxis.get(prod)));
-//                    System.out.println(errores_sintaxis.get(prod));
+
                     tokenListSintaxis.removeFirst();
                 }
                 else if(prod==183){//Caso epsilon
-//                    System.out.println("epsilon");
+
                     syntacticStack.pop();
                 }
                 else{//Caso produccion
                     syntacticStack.pop();
-//                    System.out.print("prod "+prod);
+
                     for(int k=producciones[prod].length-1;k>=0;k--){
                         syntacticStack.push(producciones[prod][k]);
                     }
+                    System.out.print(" prod: "+prod+" ");
                 }
 
             }
             else if(topStack<0){ //Esto quiere decir que es un token
                 if(tokenListSintaxis.getFirst().getToken()==topStack){//Si el token de la lista y pila son iguales
-//                    System.out.print(tokenListSintaxis.getFirst().getLexema()+" ");
+
                     syntacticStack.pop();
                     tokenListSintaxis.removeFirst();
                 }
                 else if(tokenListSintaxis.getFirst().getToken()==(-47)&&topStack==(-46)){//Caso especifico de cadenas -47
-//                    System.out.print(tokenListSintaxis.getFirst().getLexema()+" ");
+
                     syntacticStack.pop();
                     tokenListSintaxis.removeFirst();
                 }
                 else if(tokenListSintaxis.getFirst().getToken()==(-57)&&topStack==(-56)){//Caso especifico de reales -57
-//                    System.out.print(tokenListSintaxis.getFirst().getLexema()+" ");
+
                     syntacticStack.pop();
                     tokenListSintaxis.removeFirst();
                 }
                 else{
-//                    System.out.println("\n------------------\n Error de fuerza bruta \n -----------------------");
-                    System.out.println("Error de fuerza bruta");
+                    System.out.println("Error de fuerza bruta, linea: "+tokenListSintaxis.getFirst().getLinea());
                     syntacticStack.pop();
                     tokenListSintaxis.removeFirst();
                 }
             }
-//            System.out.println(" lp "+syntacticStack.size());
 
         }
         if(!syntacticStack.isEmpty()){
@@ -215,7 +216,7 @@ public class Sintaxis {
             {273,245}, 	// 68
             {-16,273,245}, 	// 69
             {-1,-13,218}, 	// 70
-            {-87,-1,-19,246,248,-20}, 	// 71
+            {-89,-1,-19,246,248,-20}, 	// 71
             {-14,246,248}, 	// 72
             {-1,-10,246,250,-11,251,-19,254,252,-20}, 	// 73
             {-16,246,250}, 	// 74
