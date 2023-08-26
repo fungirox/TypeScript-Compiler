@@ -426,7 +426,11 @@ public class Frame extends JFrame{
                 erroresLexico=erroresList.size();
                 copy = new LinkedList<>(tokenListSintaxis);
 
-                sintaxis.analize();
+                try {
+                    sintaxis.analize();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 erroresSintaxis=erroresList.size()-erroresLexico;
 
                 llenarTablaErrores();

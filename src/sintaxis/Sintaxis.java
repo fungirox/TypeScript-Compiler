@@ -2,7 +2,12 @@ package sintaxis;
 
 import lexico.Errores;
 import lexico.Token;
-
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public class Sintaxis {
@@ -12,6 +17,8 @@ public class Sintaxis {
     private Stack<Integer> syntacticStack;
     private Stack<Integer> ambitoStack;
     private int ambito=0;
+    private String avance1="";
+    private String avance1Out="src/resources/20130044_Avance1.txt";
     public Sintaxis(final int [][]matriz,LinkedList<Errores> listErrores, LinkedList<Token>sintaxis){
         this.matrizSintactica = matriz;
         this.tokenList = sintaxis;
@@ -20,7 +27,7 @@ public class Sintaxis {
         this.ambitoStack = new Stack<>();
         syntacticStack.push(200);
     }
-    public void analize(){
+    public void analize() throws IOException {
         int matrizData;
         while(!tokenList.isEmpty()&&!syntacticStack.isEmpty()){
             if(syntacticStack.peek()>=200&&syntacticStack.peek()<=292){ //Esto quiere decir que es un NO terminal
@@ -62,8 +69,12 @@ public class Sintaxis {
         }
         if(!syntacticStack.isEmpty()){
             System.out.println("Parece que no terminaste tu codigo");
+
         }
+        Files.write(Paths.get(avance1Out),avance1.getBytes(StandardCharsets.UTF_8),
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
+
     private int mapearToken(){
         int token=tokenList.getFirst().getToken();
         token*=-1;
@@ -79,10 +90,12 @@ public class Sintaxis {
         syntacticStack.pop();
         if (m){
             ambitoStack.push(ambito);
+            avance1+="Creacion ambito: ["+ambitoStack.peek()+", "+ tokenList.getFirst().getLinea()+"]\n";
             System.out.println("Creacion ambito: ["+ambitoStack.peek()+", "+ tokenList.getFirst().getLinea()+"]");
             ambito++;
         }
         else{
+            avance1+="Eliminacion ambito: ["+ambitoStack.peek()+", "+ tokenList.getFirst().getLinea()+"]\n";
             System.out.println("Eliminacion ambito: ["+ambitoStack.peek()+", "+ tokenList.getFirst().getLinea()+"]");
             ambitoStack.pop();
         }
@@ -94,16 +107,22 @@ public class Sintaxis {
     }
     private void printStack(Stack<Integer> stack){
         if (stack.isEmpty()){
-            System.out.print("\tLa pila esta vacia");
+            avance1+="\tLa pila esta vacia\n";
+            System.out.println("\tLa pila esta vacia");
             return;
         }
         Iterator<Integer> iterator = stack.iterator();
+        avance1+="\t[";
         System.out.print("\t[");
         while (iterator.hasNext()) {
-            System.out.print(iterator.next());
+            String a= String.valueOf(iterator.next());
+            System.out.print(a);
+            avance1+=a;
             if(iterator.hasNext())
+                avance1+=", ";
                 System.out.print(", ");
         }
+        avance1+="]\n";
         System.out.println("]");
     }
     public void clean(){
