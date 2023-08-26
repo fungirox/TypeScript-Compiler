@@ -7,21 +7,19 @@ import java.util.*;
 
 public class Sintaxis {
     private final int[][] matrizSintactica;
-    private LinkedList<Token> tokenList;
+    private final LinkedList<Token> tokenList;
     private LinkedList<Errores> erroresList;
     private Stack<Integer> syntacticStack;
     private Stack<Integer> ambitoStack;
+    private int ambito=0;
     public Sintaxis(final int [][]matriz,LinkedList<Errores> listErrores, LinkedList<Token>sintaxis){
-        this.matrizSintactica=matriz;
-        this.tokenList =sintaxis;
-        this.erroresList=listErrores;
-        this.syntacticStack=new Stack<>();
-        this.ambitoStack=new Stack<>();
+        this.matrizSintactica = matriz;
+        this.tokenList = sintaxis;
+        this.erroresList = listErrores;
+        this.syntacticStack = new Stack<>();
+        this.ambitoStack = new Stack<>();
         syntacticStack.push(200);
     }
-
-    private int ambito=0;
-
     public void analize(){
         int matrizData;
         while(!tokenList.isEmpty()&&!syntacticStack.isEmpty()){
