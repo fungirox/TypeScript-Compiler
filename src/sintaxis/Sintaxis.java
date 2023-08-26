@@ -7,13 +7,13 @@ import java.util.*;
 
 public class Sintaxis {
     private final int[][] matrizSintactica;
-    private LinkedList<Token> tokenListSintaxis;
+    private LinkedList<Token> tokenList;
     private LinkedList<Errores> erroresList;
     private Stack<Integer> syntacticStack;
     private Stack<Integer> ambitoStack;
     public Sintaxis(final int [][]matriz,LinkedList<Errores> listErrores, LinkedList<Token>sintaxis){
         this.matrizSintactica=matriz;
-        this.tokenListSintaxis=sintaxis;
+        this.tokenList =sintaxis;
         this.erroresList=listErrores;
         this.syntacticStack=new Stack<>();
         this.ambitoStack=new Stack<>();
@@ -23,68 +23,41 @@ public class Sintaxis {
     private int ambito=0;
 
     public void analize(){
-        int i=0;
-        int colToken,rowNT=0,prod;
-        int topStack;
-        while(!tokenListSintaxis.isEmpty()&&!syntacticStack.isEmpty()){
+        int matrizData;
+        while(!tokenList.isEmpty()&&!syntacticStack.isEmpty()){
             if(syntacticStack.peek()>=200&&syntacticStack.peek()<=292){ //Esto quiere decir que es un NO terminal
 
-                colToken=tokenListSintaxis.getFirst().getToken();
-                colToken*=-1;colToken--;
-                prod=matrizSintactica[syntacticStack.peek()-200][colToken];
+                matrizData=mapearToken();
 
-                if(prod>499){//Caso Error
-                    erroresList.add(new Errores(tokenListSintaxis.getFirst().getLexema(),tokenListSintaxis.getFirst().getToken(),tokenListSintaxis.getFirst().getLinea(),errores_sintaxis.get(prod)));
-                    tokenListSintaxis.removeFirst();
+                if(matrizData>499){//Caso Error
+                    erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),errores_sintaxis.get(matrizData)));
+                    tokenList.removeFirst();
                 }
-                else if(prod==183){//Caso epsilon
+                else if(matrizData==183){//Caso epsilon
                     syntacticStack.pop();
                 }
                 else{//Caso produccion
                     syntacticStack.pop();
-                    for(int k=producciones[prod].length-1;k>=0;k--){
-                        syntacticStack.push(producciones[prod][k]);
-                    }
+                    addProduction(matrizData);
                 }
 
             }
-            else if(syntacticStack.peek()==1000){
-                syntacticStack.pop();
-                ambitoStack.push(ambito);
-                System.out.println("Creacion ambito: ["+ambitoStack.peek()+", "+tokenListSintaxis.getFirst().getLinea()+"]");
-                ambito++;
-                printStack(ambitoStack);
+            else if(syntacticStack.peek()==1000){ //Creación de ambito
+                gestionAmbito(true);
             }
-            else if(syntacticStack.peek()==1001){
-                System.out.println("Eliminacion ambito: ["+ambitoStack.peek()+", "+tokenListSintaxis.getFirst().getLinea()+"]");
-                syntacticStack.pop();
-                ambito--;
-                ambitoStack.pop();
-                printStack(ambitoStack);
+            else if(syntacticStack.peek()==1001){ //Eliminación de ambito
+                gestionAmbito(false);
             }
             else if(syntacticStack.peek()<0){ //Esto quiere decir que es un token
-                if(tokenListSintaxis.getFirst().getToken()==syntacticStack.peek()){//Si el token de la lista y pila son iguales
-
-                    syntacticStack.pop();
-                    tokenListSintaxis.removeFirst();
-
+                if(tokenList.getFirst().getToken()==syntacticStack.peek()){//Si el token de la lista y pila son iguales
+                    delete();
                 }
-                else if(tokenListSintaxis.getFirst().getToken()==(-47)&&syntacticStack.peek()==(-46)){//Caso especifico de cadenas -47
-
-                    syntacticStack.pop();
-                    tokenListSintaxis.removeFirst();
-
-                }
-                else if(tokenListSintaxis.getFirst().getToken()==(-57)&&syntacticStack.peek()==(-56)){//Caso especifico de reales -57
-
-                    syntacticStack.pop();
-                    tokenListSintaxis.removeFirst();
-
+                else if((tokenList.getFirst().getToken()==(-47)&&syntacticStack.peek()==(-46))||(tokenList.getFirst().getToken()==(-57)&&syntacticStack.peek()==(-56))){//Caso especifico de cadenas -47 y reales -57
+                    delete();
                 }
                 else{
-                    System.out.println("Error de fuerza bruta, linea: "+tokenListSintaxis.getFirst().getLinea()+" lexema: "+tokenListSintaxis.getFirst().getLexema());
-                    syntacticStack.pop();
-                    tokenListSintaxis.removeFirst();
+                    System.out.println("Error de fuerza bruta, linea: "+ tokenList.getFirst().getLinea()+" lexema: "+ tokenList.getFirst().getLexema());
+                    delete();
                 }
             }
 
@@ -93,7 +66,39 @@ public class Sintaxis {
             System.out.println("Parece que no terminaste tu codigo");
         }
     }
-    public void printStack(Stack<Integer> stack){
+    private int mapearToken(){
+        int token=tokenList.getFirst().getToken();
+        token*=-1;
+        token--;
+        return matrizSintactica[syntacticStack.peek()-200][token];
+    }
+    private void addProduction(int produccion){
+        for(int k=producciones[produccion].length-1;k>=0;k--){
+            syntacticStack.push(producciones[produccion][k]);
+        }
+    }
+    private void gestionAmbito(boolean m){//true crear false eliminar
+        syntacticStack.pop();
+        if (m){
+            ambitoStack.push(ambito);
+            System.out.println("Creacion ambito: ["+ambitoStack.peek()+", "+ tokenList.getFirst().getLinea()+"]");
+            ambito++;
+        }
+        else{
+            System.out.println("Eliminacion ambito: ["+ambitoStack.peek()+", "+ tokenList.getFirst().getLinea()+"]");
+            ambitoStack.pop();
+        }
+        printStack(ambitoStack);
+    }
+    private void delete(){
+        syntacticStack.pop();
+        tokenList.removeFirst();
+    }
+    private void printStack(Stack<Integer> stack){
+        if (stack.isEmpty()){
+            System.out.print("\tLa pila esta vacia");
+            return;
+        }
         Iterator<Integer> iterator = stack.iterator();
         System.out.print("\t[");
         while (iterator.hasNext()) {
@@ -106,6 +111,8 @@ public class Sintaxis {
     public void clean(){
         syntacticStack.clear();
         syntacticStack.push(200);
+        ambitoStack.clear();
+        ambito=0;
     }
     private final Map<Integer,String> errores_sintaxis=new HashMap<Integer,String>(){{
             put(504,"Solo puedes comenzar un programa con let class fuction o interface");
@@ -156,12 +163,14 @@ public class Sintaxis {
 
             put(700,"Error Sintactico temporal");
     }};
+
+
     //Contenidos: del 200 a 292 son NO terminales (ver en matriz)
     //            del -1 al -124 son tokens, ver en pila
-    //Longitud del arreglo: 0 al 179
+    //Longitud del arreglo: 0 al 182
 
     private final int[][] producciones = {//Siempre insertar al reves
-            {1000,201,-19,254,206,-20,1001}, 	// 0 <-----
+            {1000,201,-19,254,206,1001,-20}, 	// 0 <-----
             {247,201}, 	// 1
             {207,201}, 	// 2
             {220,202,203}, 	// 3
@@ -172,17 +181,17 @@ public class Sintaxis {
             {-14,210,205}, 	// 8
             {-14,254,206}, 	// 9
             {-14,254,206}, 	// 10
-            {-94,-1,-19,1000,246,208,249,209,1001,-20}, 	// 11 <-----
+            {-94,-1,1000,-19,246,208,249,209,1001,-20}, 	// 11 <-----
             {-14,246,208}, 	// 12
             {249,209}, 	// 13
-            {-70,-1,-10,1000,246,211,-11,212,-19,254,213,1001,-20}, 	// 14 <-----
+            {-70,-1,1000,-10,246,211,-11,212,-19,254,213,1001,-20}, 	// 14 <-----
             {-16,246,211}, 	// 15
             {-13,218}, 	// 16
             {-14,254,213}, 	// 17
-            {-92,-1,-10,1000,246,215,-11,-19,254,216,1001,-20}, 	// 18
+            {-92,-1,1000,-10,246,215,-11,-19,254,216,1001,-20}, 	// 18
             {-16,246,215}, 	// 19
             {-14,254,216}, 	// 20
-            {-93,-1,-10,1000,-11,-13,218,-19,254,217,1001,-20}, 	// 21
+            {-93,-1,1000,-10,-11,-13,218,-19,254,217,1001,-20}, 	// 21
             {-14,254,217}, 	// 22
             {-91}, 	// 23
             {-90}, 	// 24
@@ -197,11 +206,11 @@ public class Sintaxis {
             {-61}, 	// 33
             {-88,-1,221}, 	// 34
             {-30,222}, 	// 35
-            {-70,-10,1000,246,223,-11,224,-19,254,225,1001,-20}, 	// 36
+            {-70,1000,-10,246,223,-11,224,-19,254,225,1001,-20}, 	// 36
             {-16,246,223}, 	// 37
             {-13,218}, 	// 38
             {-14,254,226}, 	// 39
-            {-10,1000,246,226,-11,-33,254,1001}, 	// 40
+            {1000,-10,246,226,-11,-33,254,1001}, 	// 40
             {-16,246,226}, 	// 41
             {-13,227}, 	// 42
             {-73,-26,228,-40,-30,229}, 	// 43
@@ -232,9 +241,9 @@ public class Sintaxis {
             {273,245}, 	// 68
             {-16,273,245}, 	// 69
             {-1,-13,218}, 	// 70
-            {-89,-1,-19,1000,246,248,1001,-20}, 	// 71
+            {-89,-1,1000,-19,246,248,1001,-20}, 	// 71
             {-14,246,248}, 	// 72
-            {-1,-10,1000,246,250,-11,251,-19,254,252,1001,-20}, 	// 73
+            {-1,1000,-10,246,250,-11,251,-19,254,252,1001,-20}, 	// 73
             {-16,246,250}, 	// 74
             {-13,218}, 	// 75
             {-14,254,252}, 	// 76
