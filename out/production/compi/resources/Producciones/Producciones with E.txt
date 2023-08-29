@@ -1,0 +1,287 @@
+PPAL
+PPAL → PP0 { STATUS PP5 }
+PP0 → INTERF PP0
+PP0 → CLASE PP0
+PP0 → LET PP1 PP2
+PP0 -> DEC_FUN PP3
+PP1 -> Ɛ
+PP1 -> ; LET PP1
+PP2 -> Ɛ
+PP2 -> DEC_FUN PP4
+PP3 -> Ɛ
+PP3 -> ; DEC_FUN PP3 
+PP4 -> Ɛ
+PP4 -> ; DEC_FUN PP4 
+PP5 -> Ɛ
+PP5 -> ; STATUS PP5
+
+
+CLASE 
+CLASE → class id { DEC_VAR E0 DEC_MET E1 }
+E0 → Ɛ
+E0 → ; DEC_VAR E0
+E1 → Ɛ
+E1 → DEC_MET E1
+
+
+DEC_FUN 
+DEC_FUN → fuction id ( DEC_VAR F0 ) F1 { STATUS F2 }
+F0 → Ɛ
+F0 → , DEC_VAR F0
+F1 → Ɛ
+F1 → : TIPO
+F2 → Ɛ
+F2 → ; STATUS F2
+
+
+DEC_GET_SET
+GS → set id ( DEC_VAR G0 ) { STATUS G1 }
+G0 → Ɛ
+G0 → , DEC_VAR G0
+G1 → Ɛ
+G1 → ; STATUS G1
+GS → get id ( ) : TIPO { STATUS G2 }
+G2 → Ɛ
+G2 → ; STATUS G2
+
+
+TIPO
+TIPO → string
+TIPO → number
+TIPO → boolean
+TIPO → null
+TIPO → real
+TIPO -> # id 
+
+CONSTIPO
+CT → cadena
+CT → numerica
+CT → true
+CT → false
+CT → real
+CT → null
+
+LET
+LET → let id T0
+T0 → = T1
+T1 → fuction ( DEC_VAR T2 ) T3 { STATUS T4 }
+T2 → Ɛ
+T2 → , DEC_VAR T2
+T3 → Ɛ
+T3 → : TIPO
+T4 → Ɛ
+T4 → ; STATUS T4
+T1 → ( DEC_VAR T5 ) = > STATUS
+T5 → Ɛ
+T5 → , DEC_VAR T5
+T0 → : T6
+T6 → Array <T7> = T8
+T7 → TIPO 
+T7 → id
+T8 → [ T9 ]
+T9 → Ɛ
+T9 → OR T10
+T10 → Ɛ
+T10 → , OR T10
+T8 → new Array ()
+T6 → TIPO T11
+T11 → Ɛ
+T11 → = T12
+T12 → CONSTIPO
+T12 → { DEC_VAR , T13 DEC_GET_SET T14 DEC_MET T15 }
+T13 → Ɛ
+T13 → DEC_VAR ,
+T14 → Ɛ
+T14 → , DEC_GET_SET
+T15 → Ɛ
+T15 → , DEC_MET
+T6 → id T16
+T16 → = T17
+T17 → CONSTIPO
+T17 → { DEC_VAR , T18 DEC_GET_SET T19 DEC_MET T20 }
+T18 → Ɛ
+T18 → DEC_VAR ,
+T19 → Ɛ
+T19 → , DEC_GET_SET
+T20 → Ɛ
+T20 → , DEC_MET
+T16 → T21 < TIPO , TIPO > = T22
+T21 → Ɛ
+T21 → Map 
+T22 → new Map ()
+T22 → [ T23 ]
+T23 → Ɛ
+T23 → OR T24
+T24 → Ɛ
+T24 → , OR T24
+
+DEC_VAR
+DEC_VAR → id : TIPO 
+
+INTERF
+INTERF → interface id { DEC_VAR H0 }
+H0 → Ɛ
+H0 → ; DEC_VAR H0
+
+DEC_MET
+DM → id ( DEC_VAR I0 ) I1 { STATUS I2 }
+I0 → Ɛ
+I0 → , DEC_VAR I0
+I1 → Ɛ
+I1 → : TIPO
+I2 → Ɛ
+I2 → ; STATUS I2
+
+ASIG 
+AS → =
+AS → +=
+AS → /=
+AS → *=
+AS → -=
+AS → %=
+AS → &=
+AS → ^=
+AS → <<=
+AS → >>=
+AS → >>>=
+
+STATUS
+STATUS → Console . S0
+STATUS → if ( OR ) STATUS S2
+STATUS → switch ( OR ) { case OR : S3 STATUS S4 break S5 }
+STATUS → { STATUS S8 }
+STATUS → while ( OR ) STATUS
+STATUS → OR ;
+STATUS → return OR ;
+STATUS → do STATUS while ( OR ) ; 
+STATUS → for ( S9 ) STATUS
+S0 → read ( OR S1 )
+S0 → log ( OR )
+S1 → Ɛ
+S1 → , OR S1
+S2 → Ɛ
+S2 → else STATUS ->
+S3 → Ɛ 
+S3 → case OR : S3
+S4 → Ɛ
+S4 → ; STATUS S4
+S5 → Ɛ
+S5 → case OR : S13 break S5
+S5 → default : STATUS S7
+S6 → Ɛ
+S6 → ; STATUS S6
+S7 → Ɛ
+S7 → ; STATUS S7
+S8 → Ɛ
+S8 → ; STATUS S8
+S9 → OR S10 ; STATUS ; OR S11
+S9 → let id S12 id 
+S10 → Ɛ
+S10 → , OR S10
+S11 → Ɛ
+S11 → , OR S11
+S12 → in
+S12 → of
+S13 → STATUS S6
+S13 -> case OR : S13 
+
+MET_CAD
+MC → toLowerCase()
+MC → toUpperCase()
+MC → legth
+MC → trim()
+MC → charAt(OR)
+MC → startsWith(OR)
+MC → endsWith(OR)
+MC → indexOf(OR)
+MC → includes(OR)
+MC → slice(OR)
+MC → replace(OR)
+MC → split(OR)
+
+FUNCION 
+FUN → expo ( OR , OR )
+FUN → sqrtv ( OR , OR )
+FUN → convBase ( OR , OR , )
+FUN → asc ( OR )
+FUN → sen ( OR )
+FUN → val ( OR )
+FUN → cos ( OR )
+FUN → tan ( OR )
+FUN → MET_CAD
+
+ARR 
+ARR → [ OR D0 ]
+D0 → Ɛ
+D0 → , OR D0
+
+OR
+OR → AND L0
+L0 → || AND L0
+L0 → | AND L0
+L0 → Ɛ
+
+AND
+AND → EXP_PAS M0
+M0 → && EXP_PAS M0
+M0 → & EXP_PAS M0
+M0 → ^ EXP_PAS M0
+M0 → Ɛ
+
+EXP_PAS
+EXP_PAS → SEP EXP0
+EXP0 → Ɛ 
+EXP0 → < SEP EXP0
+EXP0 → <= SEP EXP0
+EXP0 → == SEP EXP0
+EXP0 → != SEP EXP0
+EXP0 → >= SEP EXP0
+EXP0 → > SEP EXP0
+EXP0 → === SEP EXP0
+EXP0 → !== SEP EXP0
+
+SIMPLE EXP_PAS
+SEP → TMP EP1 
+SEP1 → - TMP EP1
+SEP1 → + TMP EP1
+SEP1 → << TMP EP1
+SEP1 → >> TMP EP1
+SEP1 → >>> TMP EP1
+SEP1 → Ɛ
+
+TERMINO PASCAL
+TMP → ELEV K0
+K0 → Ɛ
+K0 → * ELEV K0
+K0 → / ELEV K0
+K0 → % ELEV K0
+
+ELEVACION
+ELEV → FACTOR J0
+J0 → ** FACTOR J0
+J0 → Ɛ
+
+FACTOR 
+FA → CONSTIPO 
+FA → FA0 id FA1
+FA → FA6 ( OR )
+FA → FUNCION
+FA0 → Ɛ
+FA0 → ++
+FA0 → --
+FA1 → Ɛ
+FA1 → ARR FA2
+FA1 → ( FA4 )
+FA1 -> ASIG OR FA3 
+FA2 → Ɛ
+FA2 → ASIG OR FA3
+FA3 → Ɛ
+FA3 → ? OR : OR 
+FA4 → Ɛ
+FA4 → OR FA5
+FA5 → Ɛ
+FA5 → , OR FA5 
+FA6 → Ɛ
+FA6 → !
+FA6 → ~
+

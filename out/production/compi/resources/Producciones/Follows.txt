@@ -1,0 +1,140 @@
+PPAL
+PPAL → $
+PP0 → { 
+PP1 → { fuction
+PP2 → { 
+PP3 → {
+PP4 → {
+PP5 → }
+
+CLASE 
+CLASE → interface class let fuction
+E0 → id
+E1 → }
+
+DEC_FUN 
+DEC_FUN → ; { 
+F0 → )
+F1 → {
+F2 → }
+
+DEC_GETYSET
+GS → , id 
+G0 → )
+G1 → }
+G2 → }
+
+TIPO
+TIPO → { } = , > ; , ) id
+
+CONSTIPO
+CT → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+
+LET
+LET → ; fuction {
+T0 → ; fuction {
+T1 → ; fuction {
+T2 → )
+T3 → {
+T4 → }
+T5 → )
+T6 → ; fuction {
+T7 → >
+T8 → ; fuction {
+T9 → ]
+T10 → ]
+T11 → ; fuction {
+T12 → ; fuction { 
+T13 → set get
+T14 → id
+T15 → }
+T16 → ; fuction {
+T17 → ; fuction {
+T18 → set get
+T19 → id
+T20 → }
+T21 → <
+T22 → ; fuction {
+T23 → ]
+T24 → ]
+
+DEC_VAR
+DEC_VAR → ; } , ) id
+
+INTERF
+INTERF → interface class let fuction
+H0 → }
+
+DEC_MET
+DM → , } id 
+I0 → )
+I1 → {
+I2 → }
+
+ASIG CORREGUIR ///////////////////////////// MATRIZ
+AS → -- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+
+STATUS
+STATUS → else ; break while fuction { }
+S0 → else ; break while fuction { }
+S1 → )
+S2 → else ; break while fuction { }
+S3 → Console if switch { while return do for 
+-- ++ id ! ~ ( cadena numerica true false real null expo sqrtv convBase asc sen val cos tan 
+toLowerCase toUpperCase legth trim charAt startsWith endsWith indexOf includes slice replace split
+S4 → break
+S5 → }
+S6 → break
+S7 → }
+S8 → } //REVISAR LO QUE DIJO MONI
+S9 → )
+S10 → ;
+S11 → )
+S12 → id
+S13 → break
+
+MET_CAD
+MC → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+
+FUNCION 
+FUN → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+
+ARR 
+ARR → = += /= *= -= %= &= ^= <<= >>= >>>= 
+** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+D0 → ]
+
+OR
+OR → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+L0 → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+
+AND
+AND → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+M0 → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+
+EXP_PAS
+EXP → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+EXP0 → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+
+SIMPLE EXP_PAS
+SEP → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+EP1 → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+
+TERMINO PASCAL
+TMP → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+K0 → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+
+ELEVACION
+EL → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+J0 → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+
+FACTOR 
+FA → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+FA0 → id 
+FA1 → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+FA2 → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+FA3 → ** * / % - + << >> >>> < <= == != > >= === !== && & ^ || | , ] ) { } : ; ? else break while fuction
+FA4 → )
+FA5 → )
+FA6 → (

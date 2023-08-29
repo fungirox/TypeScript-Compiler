@@ -26,9 +26,7 @@ public class Lexico {
     public Lexico(int[][] matrizLexico,final String text,final JTable tblTokens/*,JTable tblErrores*/,final JTable tblContadores,LinkedList<Errores>listErrores,LinkedList<Token>sintaxis,int[]contadores){
         this.matrizLexico=matrizLexico;
         this.text=text;
-//        this.tblErrores=tblErrores;
         this.tblTokens=tblTokens;
-//        this.mdTblErrores=(DefaultTableModel) tblErrores.getModel();
         this.mdTblTokens=(DefaultTableModel) tblTokens.getModel();
         this.mdTblContadores=(DefaultTableModel) tblContadores.getModel();
         this.erroresList=listErrores;
@@ -228,7 +226,6 @@ public class Lexico {
     }
     public void clean(){
         text="";
-//        mdTblErrores.setRowCount(0);
         mdTblTokens.setRowCount(0);
         erroresList.clear();
         tokenListLexico.clear();
@@ -239,15 +236,8 @@ public class Lexico {
         linea=1;
     }
     private void llenarTablas(){
-//        llenarTablaError();
         llenarTablaTokens();
     }
-
-//    private void llenarTablaError(){
-//        for(int i = 0; i< erroresList.size(); i++){
-//            mdTblErrores.addRow(erroresList.get(i).getRow());
-//        }
-//    }
     private void llenarTablaTokens(){
         for(int i = 0; i< tokenListLexico.size(); i++){
             mdTblTokens.addRow(tokenListLexico.get(i).getRow());
