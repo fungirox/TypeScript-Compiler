@@ -1,8 +1,10 @@
 package sintaxis;
 
+import ambito.Ambito;
+import ambito.Area;
 import lexico.Errores;
 import lexico.Token;
-import java.io.File;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,18 +15,20 @@ import java.util.*;
 public class Sintaxis {
     private final int[][] matrizSintactica;
     private final LinkedList<Token> tokenList;
-    private LinkedList<Errores> erroresList;
-    private Stack<Integer> syntacticStack;
-    private Stack<Integer> ambitoStack;
+    private final LinkedList<Errores> erroresList;
+    private final LinkedList<Area> areasList;
+    private final Stack<Integer> syntacticStack;
+    private final Stack<Ambito> ambitoStack;
     private int ambito=0;
-    private String avance1="";
-    private String avance1Out="src/resources/20130044_Avance1.txt";
+    private String stringTxt ="";
+    private final String txtPath ="src/resources/20130044_resultado.txt";
     public Sintaxis(final int [][]matriz,LinkedList<Errores> listErrores, LinkedList<Token>sintaxis){
         this.matrizSintactica = matriz;
         this.tokenList = sintaxis;
         this.erroresList = listErrores;
         this.syntacticStack = new Stack<>();
         this.ambitoStack = new Stack<>();
+        this.areasList = new LinkedList<>();
         syntacticStack.push(200);
     }
     public void analize() throws IOException {
@@ -53,6 +57,18 @@ public class Sintaxis {
             else if(syntacticStack.peek()==1001){ //Eliminación de ambito
                 gestionAmbito(false);
             }
+            else if(syntacticStack.peek()==1002){ //Abre area de ejecución
+                addArea(true);
+            }
+            else if(syntacticStack.peek()==1003){ //Cierra area de ejecución
+                closeArea(true);
+            }
+            else if(syntacticStack.peek()==1004){ //Abre area de declaracion
+                addArea(false);
+            }
+            else if(syntacticStack.peek()==1005){ //Cierra area de declaracion
+                closeArea(false);
+            }
             else if(syntacticStack.peek()<0){ //Esto quiere decir que es un token
                 if(tokenList.getFirst().getToken()==syntacticStack.peek()){//Si el token de la lista y pila son iguales
                     delete();
@@ -71,10 +87,21 @@ public class Sintaxis {
             System.out.println("Parece que no terminaste tu codigo");
 
         }
-        Files.write(Paths.get(avance1Out),avance1.getBytes(StandardCharsets.UTF_8),
+        Files.write(Paths.get(txtPath), stringTxt.getBytes(StandardCharsets.UTF_8),
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
-
+    private void addArea(boolean m){ //true:ejecucion false:declaracion
+        areasList.add(new Area(tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(),0,m));
+        syntacticStack.pop();
+//        String a=m?"ejecucion":"declaracion";
+//        stringTxt +=areasList.getLast().getLineStart()+", "+a+", apertura\n";
+    }
+    private void closeArea(boolean m){
+        areasList.getLast().setLineFinish(tokenList.getFirst().getLinea());
+        syntacticStack.pop();
+//        String a=m?"ejecucion":"declaracion";
+//        stringTxt +=areasList.getLast().getLineStart()+", "+a+", cerradura\n";
+    }
     private int mapearToken(){
         int token=tokenList.getFirst().getToken();
         token*=-1;
@@ -89,41 +116,55 @@ public class Sintaxis {
     private void gestionAmbito(boolean m){//true crear false eliminar
         syntacticStack.pop();
         if (m){
-            ambitoStack.push(ambito);
-            avance1+="Creacion ambito: ["+ambitoStack.peek()+", "+ tokenList.getFirst().getLinea()+"]\n";
-            System.out.println("Creacion ambito: ["+ambitoStack.peek()+", "+ tokenList.getFirst().getLinea()+"]");
+            ambitoStack.push(new Ambito(ambito,tokenList.getFirst().getLinea(),0,"placeholder"));
+            stringTxt +="Creacion ambito: ["+ambitoStack.peek().getNumber()+", "+ ambitoStack.peek().getLineStart()+"]\n";
             ambito++;
         }
         else{
-            avance1+="Eliminacion ambito: ["+ambitoStack.peek()+", "+ tokenList.getFirst().getLinea()+"]\n";
-            System.out.println("Eliminacion ambito: ["+ambitoStack.peek()+", "+ tokenList.getFirst().getLinea()+"]");
+            ambitoStack.peek().setLineFinish(tokenList.getFirst().getLinea());
+            stringTxt +="Eliminacion ambito: ["+ambitoStack.peek().getNumber()+", "+ ambitoStack.peek().getLineFinish()+"]\n";
             ambitoStack.pop();
         }
-        printStack(ambitoStack);
+        printStackAmbito(ambitoStack);
     }
     private void delete(){
         syntacticStack.pop();
         tokenList.removeFirst();
     }
-    private void printStack(Stack<Integer> stack){
+    private void printStackInteger(Stack<Integer> stack){
         if (stack.isEmpty()){
-            avance1+="\tLa pila esta vacia\n";
-            System.out.println("\tLa pila esta vacia");
+            stringTxt +="\tLa pila esta vacia\n";
+//            System.out.println("\tLa pila esta vacia");
             return;
         }
         Iterator<Integer> iterator = stack.iterator();
-        avance1+="\t[";
-        System.out.print("\t[");
+        stringTxt +="\t[";
+//        System.out.print("\t[");
         while (iterator.hasNext()) {
             String a= String.valueOf(iterator.next());
             System.out.print(a);
-            avance1+=a;
+            stringTxt +=a;
             if(iterator.hasNext())
-                avance1+=", ";
-                System.out.print(", ");
+                stringTxt +=", ";
+//                System.out.print(", ");
         }
-        avance1+="]\n";
-        System.out.println("]");
+        stringTxt +="]\n";
+//        System.out.println("]");
+    }
+    private void printStackAmbito(Stack<Ambito> stack){
+        if (stack.isEmpty()){
+            stringTxt +="\tLa pila esta vacia\n";
+            return;
+        }
+        Iterator<Ambito> iterator = stack.iterator();
+        stringTxt +="\t[";
+        while (iterator.hasNext()) {
+            String a= String.valueOf(iterator.next().getNumber());
+            stringTxt +=a;
+            if(iterator.hasNext())
+                stringTxt +=", ";
+        }
+        stringTxt +="]\n";
     }
     public void clean(){
         syntacticStack.clear();
@@ -187,7 +228,7 @@ public class Sintaxis {
     //Longitud del arreglo: 0 al 182
 
     private final int[][] producciones = {//Siempre insertar al reves
-            {1000,201,-19,254,206,1001,-20}, 	// 0 <-----
+            {1000,1004,201,1005,-19,1002,254,206,1003,1001,-20}, 	// 0 <----- abre ambito ; ejecucion ; declaracion
             {247,201}, 	// 1
             {207,201}, 	// 2
             {220,202,203}, 	// 3
@@ -198,17 +239,17 @@ public class Sintaxis {
             {-14,210,205}, 	// 8
             {-14,254,206}, 	// 9
             {-14,254,206}, 	// 10
-            {-94,-1,1000,-19,246,208,249,209,1001,-20}, 	// 11 <-----
+            {-94,-1,1000,1004,-19,246,208,249,209,1005,1001,-20}, 	// 11 <----- abre ambito ; area de declaracion
             {-14,246,208}, 	// 12
             {249,209}, 	// 13
-            {-70,-1,1000,-10,246,211,-11,212,-19,254,213,1001,-20}, 	// 14 <-----
+            {-70,-1,1000,1004,-10,246,211,1005,-11,212,-19,1002,254,213,1003,1001,-20}, 	// 14 <----- abre ambito ; ejecucion ; area de declaracion
             {-16,246,211}, 	// 15
             {-13,218}, 	// 16
             {-14,254,213}, 	// 17
-            {-92,-1,1000,-10,246,215,-11,-19,254,216,1001,-20}, 	// 18
+            {-92,-1,1000,-10,1004,246,215,1005,-11,-19,1002,254,216,1003,1001,-20}, 	// 18 <----- abre ambito ; ejecucion ; declaracion
             {-16,246,215}, 	// 19
             {-14,254,216}, 	// 20
-            {-93,-1,1000,-10,-11,-13,218,-19,254,217,1001,-20}, 	// 21
+            {-93,-1,1000,-10,1004,1005,-11,-13,218,-19,1002,254,217,1003,1001,-20}, 	// 21 <----- abre ambito ; ejecucion ; declaracion
             {-14,254,217}, 	// 22
             {-91}, 	// 23
             {-90}, 	// 24
@@ -223,11 +264,11 @@ public class Sintaxis {
             {-61}, 	// 33
             {-88,-1,221}, 	// 34
             {-30,222}, 	// 35
-            {-70,1000,-10,246,223,-11,224,-19,254,225,1001,-20}, 	// 36
+            {-70,1000,-10,1004,246,223,1005,-11,224,-19,1002,254,225,1003,1001,-20}, 	// 36 ambito ; ejecucion ; declaracion
             {-16,246,223}, 	// 37
             {-13,218}, 	// 38
             {-14,254,226}, 	// 39
-            {1000,-10,246,226,-11,-33,254,1001}, 	// 40
+            {1000,-10,1004,246,226,1005,-11,-33,1002,254,1003,1001}, 	// 40 ambito ; ejecucion ; declaracion
             {-16,246,226}, 	// 41
             {-13,227}, 	// 42
             {-73,-26,228,-40,-30,229}, 	// 43
@@ -240,14 +281,14 @@ public class Sintaxis {
             {218,232}, 	// 50
             {-30,233}, 	// 51
             {219}, 	// 52
-            {-19,246,-16,234,214,235,249,236,-20}, 	// 53
+            {-19,1000,1004,246,-16,234,214,235,249,236,1005,1001,-20}, 	// 53 ambito ; declaracion
             {246,-16}, 	// 54
             {-16,214}, 	// 55
             {-16,249}, 	// 56
             {-1,237}, 	// 57
             {-30,238}, 	// 58
             {219}, 	// 59
-            {-19,246,-16,239,214,240,249,241,-20}, 	// 60
+            {-19,1000,1004,246,-16,239,214,240,249,241,1005,1001,-20}, 	// 60 ambito ; declaracion
             {246,-16}, 	// 61
             {-16,214}, 	// 62
             {-16,249}, 	// 63
@@ -258,9 +299,9 @@ public class Sintaxis {
             {273,245}, 	// 68
             {-16,273,245}, 	// 69
             {-1,-13,218}, 	// 70
-            {-89,-1,1000,-19,246,248,1001,-20}, 	// 71
+            {-89,-1,1000,1004,-19,246,248,1005,1001,-20}, 	// 71 ambito ; declaracion
             {-14,246,248}, 	// 72
-            {-1,1000,-10,246,250,-11,251,-19,254,252,1001,-20}, 	// 73
+            {-1,1000,-10,1004,246,250,1005,-11,251,-19,1002,254,252,1003,1001,-20}, 	// 73 ambito ; ejecucion ; declaracion
             {-16,246,250}, 	// 74
             {-13,218}, 	// 75
             {-14,254,252}, 	// 76
@@ -351,7 +392,7 @@ public class Sintaxis {
             {-48,283,282},  //161
             {-51,283,282},  //162
             {-8,283,282},  //163
-            {285,284},  //164
+            {285,284},  //164H
             {-49,285,284},  //165
             {219},  //166
             {286,-1,287},  //167
