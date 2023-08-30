@@ -2,6 +2,8 @@ package sintaxis;
 
 import ambito.Ambito;
 import ambito.Area;
+import ambito.Estado;
+import ambito.MemberDetails;
 import lexico.Errores;
 import lexico.Token;
 
@@ -22,56 +24,91 @@ public class Sintaxis {
     private int ambito=0;
     private String stringTxt ="";
     private final String txtPath ="src/resources/20130044_resultado.txt";
+    private LinkedList<MemberDetails> memberDetailsList;
+    private Estado estado = Estado.NONE;
+
     public Sintaxis(final int [][]matriz,LinkedList<Errores> listErrores, LinkedList<Token>sintaxis){
         this.matrizSintactica = matriz;
         this.tokenList = sintaxis;
         this.erroresList = listErrores;
         this.syntacticStack = new Stack<>();
         this.ambitoStack = new Stack<>();
+        this.memberDetailsList = new LinkedList<>();
         this.areasList = new LinkedList<>();
         syntacticStack.push(200);
     }
     public void analize() throws IOException {
         int matrizData;
         while(!tokenList.isEmpty()&&!syntacticStack.isEmpty()){
-            if(syntacticStack.peek()>=200&&syntacticStack.peek()<=292){ //Esto quiere decir que es un NO terminal
+            if(syntacticStack.peek()>=200&&syntacticStack.peek()<=292){ // Esto quiere decir que es un NO terminal
 
                 matrizData=mapearToken();
 
-                if(matrizData>499){//Caso Error
+                if(matrizData>499){ // Caso Error
                     erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),errores_sintaxis.get(matrizData)));
                     tokenList.removeFirst();
                 }
-                else if(matrizData==183){//Caso epsilon
+                else if(matrizData==183){ // Caso epsilon
                     syntacticStack.pop();
                 }
-                else{//Caso produccion
+                else { // Caso produccion
                     syntacticStack.pop();
                     addProduction(matrizData);
                 }
 
             }
-            else if(syntacticStack.peek()==1000){ //Creación de ambito
-                gestionAmbito(true);
-            }
-            else if(syntacticStack.peek()==1001){ //Eliminación de ambito
-                gestionAmbito(false);
-            }
-            else if(syntacticStack.peek()==1002){ //Abre area de ejecución
-                addArea(true);
-            }
-            else if(syntacticStack.peek()==1003){ //Cierra area de ejecución
-                closeArea(true);
-            }
-            else if(syntacticStack.peek()==1004){ //Abre area de declaracion
-                addArea(false);
-            }
-            else if(syntacticStack.peek()==1005){ //Cierra area de declaracion
-                closeArea(false);
+            else if(syntacticStack.peek()>=1000 && syntacticStack.peek()<1300){ // Declaracion de miembros // Apertura de ambitos, areas de declaracion y ejecución
+                int topStack=syntacticStack.peek();
+                syntacticStack.pop();
+                switch (topStack) {
+                    case 1000:
+                        gestionAmbito(true); // Creación de ámbito
+                        break;
+                    case 1001:
+                        gestionAmbito(false); // Eliminación de ámbito
+                        break;
+                    case 1002:
+                        addArea(true); // Abre área de ejecución
+                        break;
+                    case 1003:
+                        closeArea(true); // Cierra área de ejecución
+                        break;
+                    case 1004:
+                        addArea(false); // Abre área de declaración
+                        break;
+                    case 1005:
+                        closeArea(false); // Cierra área de declaración
+                        break;
+                    case 1200: // Declaración de variable en DEC_VAR
+                        estado=Estado.DEC_VAR;
+                        break;
+                    case 1201: // Declaración de variable en DEC_VAR
+                        closeDec_var();
+                        break;
+
+                    default:
+                        // Acción por defecto si el valor no coincide con ninguno de los casos anteriores
+                        break;
+                }
             }
             else if(syntacticStack.peek()<0){ //Esto quiere decir que es un token
                 if(tokenList.getFirst().getToken()==syntacticStack.peek()){//Si el token de la lista y pila son iguales
+                    if(estado==Estado.DEC_VAR){
+                        switch (tokenList.getFirst().getToken())
+                        {
+                            case -1:
+                                memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"","variable"," ",ambitoStack.peek().getNumber(),0,0,null));
+                                break;
+                            case -91:
+                            case -72:
+                            case -61:
+                            case -71:
+                                memberDetailsList.getLast().setType(tokenList.getFirst().getLexema());
+                                break;
+                        }
+                    }
                     delete();
+
                 }
                 else if((tokenList.getFirst().getToken()==(-47)&&syntacticStack.peek()==(-46))||(tokenList.getFirst().getToken()==(-57)&&syntacticStack.peek()==(-56))){//Caso especifico de cadenas -47 y reales -57
                     delete();
@@ -82,25 +119,42 @@ public class Sintaxis {
                 }
             }
 
+
+
         }
+
         if(!syntacticStack.isEmpty()){
             System.out.println("Parece que no terminaste tu codigo");
 
         }
+        printDetailMember();
         Files.write(Paths.get(txtPath), stringTxt.getBytes(StandardCharsets.UTF_8),
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
+
+    public void printDetailMember() {
+        Iterator<MemberDetails> iterator = memberDetailsList.iterator();
+        while (iterator.hasNext()) {
+            System.out.println(iterator.next());
+        }
+    }
+
     private void addArea(boolean m){ //true:ejecucion false:declaracion
         areasList.add(new Area(tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(),0,m));
-        syntacticStack.pop();
         String a=m?"ejecucion":"declaracion";
-        stringTxt +=areasList.getLast().getLineStart()+", "+a+", apertura\n";
+        stringTxt += areasList.getLast().getLineStart()+", "+a+", apertura\n";
+
     }
     private void closeArea(boolean m){
         areasList.getLast().setLineFinish(tokenList.getFirst().getLinea());
-        syntacticStack.pop();
         String a=m?"ejecucion":"declaracion";
-        stringTxt +=areasList.getLast().getLineFinish()+", "+a+", cerradura\n";
+        stringTxt += areasList.getLast().getLineFinish()+", "+a+", cerradura\n";
+
+    }
+
+    private void closeDec_var(){ //true:ejecucion false:declaracion
+        estado=Estado.NONE;
+
     }
     private int mapearToken(){
         int token=tokenList.getFirst().getToken();
@@ -114,7 +168,6 @@ public class Sintaxis {
         }
     }
     private void gestionAmbito(boolean m){//true crear false eliminar
-        syntacticStack.pop();
         if (m){
             ambitoStack.push(new Ambito(ambito,tokenList.getFirst().getLinea(),0,"placeholder"));
             stringTxt += "Creacion ambito: [#"+ambitoStack.peek().getNumber()+", #"+ ambitoStack.peek().getLineStart()+"]\n";
@@ -198,8 +251,6 @@ public class Sintaxis {
             put(546,"Se esperaba [ o (");
             put(547,"Se esperaba ?");
             put(548,"Se esperaba ! o ~");
-
-            put(700,"Error Sintactico temporal");
     }};
 
 
@@ -231,11 +282,11 @@ public class Sintaxis {
             {-14,254,216}, 	                                                                                            // 20
             {-93,-1,1000,-10,1004,1005,-11,-13,218,-19,1002,254,217,1003,1001,-20}, 	                                // 21 <----- Ambito ; Ejecución ; Declaración
             {-14,254,217}, 	                                                                                            // 22
-            {-91}, 	                                                                                                 	// 23
-            {-90},  	                                                                                            	// 24
-            {-72}, 	 	                                                                                                // 25
-            {-61}, 	 	                                                                                                // 26
-            {-71}, 	 	                                                                                                // 27
+            {-91}, 	                                                                                                 	// 23 // string
+            {-90},  	                                                                                            	// 24 // number
+            {-72}, 	 	                                                                                                // 25 // boolean
+            {-61}, 	 	                                                                                                // 26 // null
+            {-71}, 	 	                                                                                                // 27 // real
             {-46}, 	 	                                                                                                // 28 CADENAS Eliminé el token -47 " " ' '
             {-55}, 	 	                                                                                                // 29
             {-59}, 	 	                                                                                                // 30
@@ -278,7 +329,7 @@ public class Sintaxis {
             {-17,244,-18},                                                                                              // 67
             {273,245}, 	                                                                                                // 68
             {-16,273,245}, 	                                                                                            // 69
-            {-1,-13,218}, 	                                                                                            // 70
+            {1200,-1,-13,218,1201}, 	                                                                                        // 70 // DEC_VAR
             {-89,-1,1000,1004,-19,246,248,1005,1001,-20}, 	                                                            // 71 <----- Ambito ; Declaración
             {-14,246,248}, 	                                                                                            // 72
             {-1,1000,-10,1004,246,250,1005,-11,251,-19,1002,254,252,1003,1001,-20}, 	                                // 73 <----- Ambito ; Ejecución ; Declaración
@@ -395,3 +446,10 @@ public class Sintaxis {
     };
 
 }
+/**
+ * 1200 : declaracion de variable
+ *
+ *
+ */
+
+

@@ -1,88 +1,88 @@
 Creacion ambito: [#0, #1]
-	Pila -> [0]
+Pila -> [0]
 1, declaracion, apertura
 Creacion ambito: [#1, #1]
-	Pila -> [0, 1]
+Pila -> [0, 1]
 1, declaracion, apertura
 4, declaracion, cerradura
 Eliminacion ambito: [#1, #4]
-	Pila -> [0]
+Pila -> [0]
 Creacion ambito: [#2, #5]
-	Pila -> [0, 2]
+Pila -> [0, 2]
 5, declaracion, apertura
 Creacion ambito: [#3, #9]
-	Pila -> [0, 2, 3]
+Pila -> [0, 2, 3]
 9, declaracion, apertura
 9, declaracion, cerradura
 11, ejecucion, apertura
 13, ejecucion, cerradura
 Eliminacion ambito: [#3, #13]
-	Pila -> [0, 2]
+Pila -> [0, 2]
 Creacion ambito: [#4, #14]
-	Pila -> [0, 2, 4]
+Pila -> [0, 2, 4]
 14, declaracion, apertura
 14, declaracion, cerradura
 16, ejecucion, apertura
 17, ejecucion, cerradura
 Eliminacion ambito: [#4, #17]
-	Pila -> [0, 2]
+Pila -> [0, 2]
 18, declaracion, cerradura
 Eliminacion ambito: [#2, #18]
-	Pila -> [0]
+Pila -> [0]
 Creacion ambito: [#5, #20]
-	Pila -> [0, 5]
+Pila -> [0, 5]
 20, declaracion, apertura
 Creacion ambito: [#6, #21]
-	Pila -> [0, 5, 6]
+Pila -> [0, 5, 6]
 21, declaracion, apertura
 21, declaracion, cerradura
 23, ejecucion, apertura
 24, ejecucion, cerradura
 Eliminacion ambito: [#6, #24]
-	Pila -> [0, 5]
+Pila -> [0, 5]
 Creacion ambito: [#7, #25]
-	Pila -> [0, 5, 7]
+Pila -> [0, 5, 7]
 25, declaracion, apertura
 25, declaracion, cerradura
 27, ejecucion, apertura
 28, ejecucion, cerradura
 Eliminacion ambito: [#7, #28]
-	Pila -> [0, 5]
+Pila -> [0, 5]
 Creacion ambito: [#8, #29]
-	Pila -> [0, 5, 8]
+Pila -> [0, 5, 8]
 29, declaracion, apertura
 29, declaracion, cerradura
 31, ejecucion, apertura
 33, ejecucion, cerradura
 Eliminacion ambito: [#8, #33]
-	Pila -> [0, 5]
+Pila -> [0, 5]
 34, declaracion, cerradura
 Eliminacion ambito: [#5, #34]
-	Pila -> [0]
+Pila -> [0]
 Creacion ambito: [#9, #35]
-	Pila -> [0, 9]
+Pila -> [0, 9]
 35, declaracion, apertura
 35, declaracion, cerradura
 37, ejecucion, apertura
 39, ejecucion, cerradura
 Eliminacion ambito: [#9, #39]
-	Pila -> [0]
+Pila -> [0]
 Creacion ambito: [#10, #40]
-	Pila -> [0, 10]
+Pila -> [0, 10]
 40, declaracion, apertura
 40, declaracion, cerradura
 40, ejecucion, apertura
 42, ejecucion, cerradura
 Eliminacion ambito: [#10, #42]
-	Pila -> [0]
+Pila -> [0]
 Creacion ambito: [#11, #42]
-	Pila -> [0, 11]
+Pila -> [0, 11]
 42, declaracion, apertura
 42, declaracion, cerradura
 44, ejecucion, apertura
 50, ejecucion, cerradura
 Eliminacion ambito: [#11, #50]
-	Pila -> [0]
+Pila -> [0]
 51, declaracion, cerradura
 52, ejecucion, apertura
 53, ejecucion, cerradura

@@ -231,6 +231,9 @@ public class CargarRecursos {
     private static String [] rowHeadErrores={
             "Token","Descripcion","Lexema","Tipo de error","Linea"
     };
+    private static String [] rowHeadAmbito={
+            "ambito","string","number","boolean","real","null","# id","class","interface","@fuction","errores","total"
+    };
     private static String [] rowHeadTER={
             "Lexico","Sintaxis"
     };
