@@ -2,6 +2,8 @@ package ambito;
 
 public enum Estado {
     NONE,
-    DEC_VAR
+    DEC_VAR,
+    CLASS_TYPE,
+    DEC_MET
 
 }
