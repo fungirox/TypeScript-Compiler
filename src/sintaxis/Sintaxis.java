@@ -92,12 +92,16 @@ public class Sintaxis {
                     case 1202: // Declaración de DEC_MET
                         currentState = Estado.DEC_MET;
                         break;
-                    case 1203: // Declaración de DEC_MET
+                    case 1204:
+                        currentState = Estado.DEC_FUN;
+                        break;
+                    case 1203:
+                    case 1205: // Declaración de DEC_MET
                         currentState = Estado.NONE;
-                        parametro=0;
-                        contieneParametro=false;
                         memberDetailsList.get(memberPosition).setCantPrametro(parametro);
                         memberDetailsList.get(memberPosition).setTypeParametro(ambitoStack.peek().getNumber()+"");
+                        parametro=0;
+                        contieneParametro=false;
                         break;
                     default:
                         // Acción por defecto si el valor no coincide con ninguno de los casos anteriores
@@ -114,7 +118,10 @@ public class Sintaxis {
                             CLASS_TYPE();
                             break;
                         case DEC_MET:
-                            DEC_MET();
+                            DEC_MET_FUN(true);
+                            break;
+                        case DEC_FUN:
+                            DEC_MET_FUN(false);
                             break;
                     }
                     delete();
@@ -166,12 +173,12 @@ public class Sintaxis {
                 currentState = Estado.CLASS_TYPE;
         }
     }
-    private void DEC_MET(){
+    private void DEC_MET_FUN(boolean m){
         contieneParametro=true;
         switch (tokenList.getFirst().getToken())
         {
             case -1:
-                memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"void","metodo","",ambitoStack.peek().getNumber(),0,0,null));
+                memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"void",m?"metodo":"funcion","",ambitoStack.peek().getNumber(),0,0,null));
                 memberPosition=memberDetailsList.size()-1;
                 memberString=tokenList.getFirst().getLexema();
                 break;
@@ -325,7 +332,7 @@ public class Sintaxis {
             {-94,-1,1000,1004,-19,246,208,249,209,1005,1001,-20}, 	                                                    // 11 <----- Ambito ; Declaración
             {-14,246,208}, 	                                                                                            // 12
             {249,209}, 	                                                                                                // 13
-            {-70,-1,1000,1004,-10,246,211,1005,-11,212,-19,1002,254,213,1003,1001,-20}, 	                            // 14 <----- Ambito ; Ejecución ; Declaración
+            {-70,1204,-1,1000,1004,-10,246,211,1005,-11,1204,212,1205,-19,1002,254,213,1003,1001,-20}, 	                            // 14 <----- Ambito ; Ejecución ; Declaración
             {-16,246,211}, 	                                                                                            // 15
             {-13,218}, 	                                                                                                // 16
             {-14,254,213}, 	                                                                                            // 17
@@ -500,8 +507,11 @@ public class Sintaxis {
 }
 /**
  * 1200 : declaracion de variable
- *
- *
+ * 1201 : cierra declaración de variable
+ * 1202 : abre declaracion de metodo o funcion
+ * 1203 : cierra declaracion de metodo o funcion
+ * 1204 : abre declaracion de metodo o funcion
+ * 1205 : cierra declaracion de metodo o funcion
  */
 
 
