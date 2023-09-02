@@ -5,6 +5,9 @@ public enum Estado {
     DEC_VAR,
     CLASS_TYPE,
     DEC_MET,
-    DEC_FUN
+    DEC_FUN,
+    DEC_SET,
+    DEC_GET,
+    INTERFACE
 
 }
