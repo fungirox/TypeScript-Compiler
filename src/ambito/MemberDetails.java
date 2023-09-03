@@ -6,7 +6,7 @@ public class MemberDetails {
     final private String id,classId;
     private String type,typeParametro;
     final private int ambito,arrayDimension;
-    private int cantPrametro;
+    private int cantParametro;
     final private int [] arrayLength;
 
     public MemberDetails(String id, String type, String classId, String typeParametro, int ambito, int cantParametro, int arrayDimension, int[] arrayLength) {
@@ -15,17 +15,17 @@ public class MemberDetails {
         this.classId = classId;
         this.typeParametro = typeParametro;
         this.ambito = ambito;
-        this.cantPrametro = cantParametro;
+        this.cantParametro = cantParametro;
         this.arrayDimension = arrayDimension;
         this.arrayLength = arrayLength;
     }
 
-    public int getCantPrametro() {
-        return cantPrametro;
+    public int getCantParametro() {
+        return cantParametro;
     }
 
-    public void setCantPrametro(int cantPrametro) {
-        this.cantPrametro = cantPrametro;
+    public void setCantParametro(int cantParametro) {
+        this.cantParametro = cantParametro;
     }
 
     public String getType() {
@@ -46,15 +46,6 @@ public class MemberDetails {
 
     @Override
     public String toString() {
-        return "MemberDetails{" +
-                "id='" + id + '\'' +
-                ", type='" + type + '\'' +
-                ", classId='" + classId + '\'' +
-                ", typeParametro='" + typeParametro + '\'' +
-                ", ambito=" + ambito +
-                ", cantPrametro=" + cantPrametro +
-                ", arrayDimension=" + arrayDimension +
-                ", arrayLength=" + Arrays.toString(arrayLength) +
-                '}';
+        return String.format("%10s%10s%15s%10d%15d%15s%15d", id, type, classId, ambito, cantParametro, typeParametro,arrayDimension);
     }
 }

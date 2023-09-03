@@ -28,8 +28,12 @@ public class Sintaxis {
     private Estado currentState = Estado.NONE;
     private int parametro=0;
     private boolean contieneParametro=false;
-    private int memberPosition;
+    private int memberPositionVar;
+    private int memberPositionClass;
     private String memberString;
+    private String letID;
+    private boolean let=false;
+    private boolean classOVar=false;
     public Sintaxis(final int [][]matriz,LinkedList<Errores> listErrores, LinkedList<Token>sintaxis){
         this.matrizSintactica = matriz;
         this.tokenList = sintaxis;
@@ -92,28 +96,58 @@ public class Sintaxis {
                     case 1202: // Declaración de DEC_MET
                         currentState = Estado.DEC_MET;
                         break;
-                    case 1204:
+                    case 1204: // Declaraciond de DEC_FUN
                         currentState = Estado.DEC_FUN;
                         break;
-                    case 1206:
+                    case 1206: // DEC_SET
                         currentState = Estado.DEC_SET;
                         break;
-                    case 1208:
+                    case 1208: // DEC_GET
                         currentState = Estado.DEC_GET;
                         break;
-                    case 1210:
+                    case 1210: // INTERFACE
                         currentState = Estado.INTERFACE;
+                        break;
+                    case 1212:
+                        currentState = Estado.ANON_FUN;
+                        let = true;
+                        break;
+                    case 1214:
+                        currentState = Estado.ARROW_FUN;
+                        let = true;
+                        break;
+                    case 1216: // CLASS
+                        currentState = Estado.CLASS;
                         break;
                     case 1203:
                     case 1205:
                     case 1207:
                     case 1209:
-                    case 1211: // Declaración de DEC_MET
+                    case 1213:
+                    case 1215: // Declaración de DEC_MET
                         currentState = Estado.NONE;
-                        memberDetailsList.get(memberPosition).setCantPrametro(parametro);
-                        memberDetailsList.get(memberPosition).setTypeParametro(ambitoStack.peek().getNumber()+"");
-                        parametro=0;
-                        contieneParametro=false;
+                        memberDetailsList.get(memberPositionClass).setCantParametro(parametro);
+                        memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
+                        parametro = 0;
+                        contieneParametro = false;
+                        classOVar = false;
+                        break;
+                    case 1211:
+                    case 1217:
+                        parametro = 0;
+                        classOVar = false;
+                        currentState = Estado.NONE;
+                        memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
+                        break;
+                    case 1218: // ARRAY
+                        currentState = Estado.ARRAY;
+                        break;
+                    case 1219:
+                        currentState = Estado.NONE;
+
+                        break; // CIERRE ARRAY
+                    case 1270:
+                        currentState = Estado.SAVEID;
                         break;
                     default:
                         // Acción por defecto si el valor no coincide con ninguno de los casos anteriores
@@ -142,7 +176,24 @@ public class Sintaxis {
                             DEC_MET_FUN("get",true);
                             break;
                         case INTERFACE:
-                            DEC_MET_FUN("interface",false);
+                            INTERFACE_CLASS(true);
+                            break;
+                        case CLASS:
+                            INTERFACE_CLASS(false);
+                            break;
+                        case ANON_FUN:
+                            DEC_MET_FUN("@fuction",true);
+                            break;
+                        case ARROW_FUN:
+                            DEC_MET_FUN("arrow fuction",true);
+                            break;
+                        case ARRAY:
+                            ARRAY();
+                            break;
+                        case SAVEID:
+                            if(tokenList.getFirst().getToken()==-1)
+                                letID=tokenList.getFirst().getLexema();
+                            currentState = Estado.NONE;
                             break;
                     }
                     delete();
@@ -163,13 +214,50 @@ public class Sintaxis {
         Files.write(Paths.get(txtPath), stringTxt.getBytes(StandardCharsets.UTF_8),
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
+    private void ARRAY(){
+        if(let && (currentState==Estado.ARRAY)){
+            memberDetailsList.addLast(new MemberDetails(letID,"","Array","",ambitoStack.peek().getNumber(),0,0,null));
+            memberPositionVar =memberDetailsList.size()-1;
+            let = false;
+        }
+        else{
+            switch (tokenList.getFirst().getToken())
+            {
+                case -1:
+                    memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"","variable",contieneParametro?memberString:"",ambitoStack.peek().getNumber(),contieneParametro?parametro+1:0,0,null));
+                    if(contieneParametro)
+                        parametro++;
+                    break;
+                case -90:
+                case -91:
+                case -72:
+                case -61:
+                case -71:
+                    memberDetailsList.getLast().setType(tokenList.getFirst().getLexema());
+                    currentState = Estado.NONE;
+                    break;
+                case -58:
+                    memberPositionVar = memberDetailsList.size()-1;
+                    currentState = Estado.CLASS_TYPE;
+            }
+        }
+
+    }
+    private void INTERFACE_CLASS(boolean m){
+        classOVar = true;
+        if(tokenList.getFirst().getToken()==-1)
+        {
+            memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"",m?"interface":"class","",ambitoStack.peek().getNumber(),0,0,null));
+            memberPositionClass = memberDetailsList.size()-1;
+        }
+    }
     private void CLASS_TYPE(){
         if(tokenList.getFirst().getToken()==-1){
-            if(contieneParametro){
-                memberDetailsList.get(memberPosition).setType("#"+tokenList.getFirst().getLexema());
+            if(classOVar){
+                memberDetailsList.get(memberPositionClass).setType("#"+tokenList.getFirst().getLexema());
             }
             else{
-                memberDetailsList.getLast().setType("#"+tokenList.getFirst().getLexema());
+                memberDetailsList.get(memberPositionVar).setType("#"+tokenList.getFirst().getLexema());
             }
         }
         currentState = Estado.NONE;
@@ -191,38 +279,49 @@ public class Sintaxis {
                 currentState = Estado.NONE;
                 break;
             case -58:
+                memberPositionVar = memberDetailsList.size()-1;
                 currentState = Estado.CLASS_TYPE;
         }
     }
     private void DEC_MET_FUN(String type,boolean m){
+        classOVar = true;
         contieneParametro=true;
+        if(let && (currentState==Estado.ANON_FUN||currentState==Estado.ARROW_FUN)){
+            memberDetailsList.addLast(new MemberDetails(letID,m?"void":"",type,"",ambitoStack.peek().getNumber(),0,0,null));
+            memberPositionClass = memberDetailsList.size()-1;
+            memberString=letID;
+            let = false;
+
+            return;
+        }
         switch (tokenList.getFirst().getToken())
         {
             case -1:
                 memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),m?"void":"",type,"",ambitoStack.peek().getNumber(),0,0,null));
-                memberPosition=memberDetailsList.size()-1;
-                memberString=tokenList.getFirst().getLexema();
+                memberPositionClass = memberDetailsList.size()-1;
+                memberString = tokenList.getFirst().getLexema();
                 break;
             case -90: //number
             case -91: //string
             case -72: //
-            case -61:
-            case -71:
-                memberDetailsList.get(memberPosition).setType(tokenList.getFirst().getLexema());
+            case -61: //
+            case -71: //
+                memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema());
                 currentState = Estado.NONE;
                 break;
             case -58:
+                memberPositionClass = memberDetailsList.size()-1;
                 currentState = Estado.CLASS_TYPE;
                 break;
         }
     }
     private void printDetailMember() {
+        System.out.printf("%10s%10s%15s%10s%15s%15s%15s%15s\n","id", "type", "classId","ambito", "cantParametro", "typeParametro","arrayDimension","arrayLength");
         Iterator<MemberDetails> iterator = memberDetailsList.iterator();
         while (iterator.hasNext()) {
             System.out.println(iterator.next());
         }
     }
-
     private void addArea(boolean m){ //true:ejecucion false:declaracion
         areasList.add(new Area(tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(),0,m));
         String a=m?"ejecucion":"declaracion";
@@ -235,7 +334,6 @@ public class Sintaxis {
         stringTxt += areasList.getLast().getLineFinish()+", "+a+", cerradura\n";
 
     }
-
     private int mapearToken(){
         int token=tokenList.getFirst().getToken();
         token*=-1;
@@ -352,7 +450,7 @@ public class Sintaxis {
             {-14,210,205}, 	                                                                                            // 8
             {-14,254,206}, 	                                                                                            // 9
             {-14,254,206}, 	                                                                                            // 10
-            {-94,-1,1000,1004,-19,246,208,249,209,1005,1001,-20}, 	                                                    // 11 <----- Ambito ; Declaración
+            {-94,1216,-1,1000,1217,1004,-19,246,208,249,209,1005,1001,-20}, 	                                                    // 11 <----- Ambito ; Declaración
             {-14,246,208}, 	                                                                                            // 12
             {249,209}, 	                                                                                                // 13
             {-70,1204,-1,1000,1004,-10,246,211,1005,-11,1204,212,1205,-19,1002,254,213,1003,1001,-20}, 	                            // 14 <----- Ambito ; Ejecución ; Declaración
@@ -375,13 +473,13 @@ public class Sintaxis {
             {-60}, 	 	                                                                                                // 31
             {-56}, 	 	                                                                                                // 32 REALES Eliminé el token -57 882.31 9288.2^+56
             {-61}, 	 	                                                                                                // 33
-            {-88,-1,221}, 	 	                                                                                        // 34
+            {-88,1270,-1,221}, 	 	                                                                                        // 34
             {-30,222}, 	                                                                                                // 35
-            {-70,1000,-10,1004,246,223,1005,-11,224,-19,1002,254,225,1003,1001,-20}, 	                                // 36 <----- Ambito ; Ejecución ; Declaración
+            {1212,-70,1000,-10,1004,246,223,1005,-11,224,1213,-19,1002,254,225,1003,1001,-20}, 	                                // 36 <----- Ambito ; Ejecución ; Declaración
             {-16,246,223}, 	                                                                                            // 37
             {-13,218}, 	                                                                                                // 38
             {-14,254,226}, 	                                                                                            // 39
-            {1000,-10,1004,246,226,1005,-11,-33,1002,254,1003,1001}, 	                                                // 40 <----- Ambito ; Ejecución ; Declaración
+            {1214,1000,-10,1004,246,226,1005,-11,1215,-33,1002,254,1003,1001}, 	                                                // 40 <----- Ambito ; Ejecución ; Declaración
             {-16,246,226}, 	                                                                                            // 41
             {-13,227}, 	                                                                                                // 42
             {-73,-26,228,-40,-30,229}, 	                                                                                // 43
@@ -412,7 +510,7 @@ public class Sintaxis {
             {273,245}, 	                                                                                                // 68
             {-16,273,245}, 	                                                                                            // 69
             {1200,-1,-13,218,1201}, 	                                                                                // 70 // DEC_VAR
-            {-89,1210,-1,1000,1004,-19,246,248,1005,1001,1210,1211,-20}, 	                                                            // 71 <----- Ambito ; Declaración
+            {-89,1210,-1,1000,1004,-19,246,248,1005,1211,1001,-20}, 	                                                            // 71 <----- Ambito ; Declaración
             {-14,246,248}, 	                                                                                            // 72
             {1202,-1,1000,-10,1004,246,250,1005,-11,1202,251,1203,-19,1002,254,252,1003,1001,-20}, 	                                // 73 <----- Ambito ; Ejecución ; Declaración ; DEC_MET
             {-16,246,250}, 	                                                                                            // 74

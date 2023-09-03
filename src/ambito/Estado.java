@@ -8,6 +8,11 @@ public enum Estado {
     DEC_FUN,
     DEC_SET,
     DEC_GET,
-    INTERFACE
+    INTERFACE,
+    SAVEID,
+    ANON_FUN,
+    ARROW_FUN,
+    CLASS,
+    ARRAY
 
 }
