@@ -208,37 +208,34 @@ public class Sintaxis {
 
         if(!syntacticStack.isEmpty()){
             System.out.println("Parece que no terminaste tu codigo");
-
         }
         printDetailMember();
         Files.write(Paths.get(txtPath), stringTxt.getBytes(StandardCharsets.UTF_8),
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
+
     private void ARRAY(){
         if(let && (currentState==Estado.ARRAY)){
             memberDetailsList.addLast(new MemberDetails(letID,"","Array","",ambitoStack.peek().getNumber(),0,0,null));
-            memberPositionVar =memberDetailsList.size()-1;
+            memberPositionClass = memberDetailsList.size()-1;
             let = false;
         }
         else{
             switch (tokenList.getFirst().getToken())
             {
                 case -1:
-                    memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"","variable",contieneParametro?memberString:"",ambitoStack.peek().getNumber(),contieneParametro?parametro+1:0,0,null));
-                    if(contieneParametro)
-                        parametro++;
-                    break;
                 case -90:
                 case -91:
                 case -72:
                 case -61:
                 case -71:
                     memberDetailsList.getLast().setType(tokenList.getFirst().getLexema());
-                    currentState = Estado.NONE;
                     break;
                 case -58:
-                    memberPositionVar = memberDetailsList.size()-1;
+                    memberPositionClass = memberDetailsList.size()-1;
                     currentState = Estado.CLASS_TYPE;
+                    break;
+
             }
         }
 
@@ -263,22 +260,23 @@ public class Sintaxis {
         currentState = Estado.NONE;
     }
     private void DEC_VAR(){
+        classOVar = false;
         switch (tokenList.getFirst().getToken())
         {
-            case -1:
+            case -1: // id
                 memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"","variable",contieneParametro?memberString:"",ambitoStack.peek().getNumber(),contieneParametro?parametro+1:0,0,null));
                 if(contieneParametro)
                     parametro++;
                 break;
-            case -90:
-            case -91:
-            case -72:
-            case -61:
-            case -71:
+            case -90: // number
+            case -91: // string
+            case -72: // boolean
+            case -61: // null
+            case -71: // real
                 memberDetailsList.getLast().setType(tokenList.getFirst().getLexema());
                 currentState = Estado.NONE;
                 break;
-            case -58:
+            case -58: // #
                 memberPositionVar = memberDetailsList.size()-1;
                 currentState = Estado.CLASS_TYPE;
         }
@@ -291,25 +289,24 @@ public class Sintaxis {
             memberPositionClass = memberDetailsList.size()-1;
             memberString=letID;
             let = false;
-
             return;
         }
         switch (tokenList.getFirst().getToken())
         {
-            case -1:
+            case -1: // id
                 memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),m?"void":"",type,"",ambitoStack.peek().getNumber(),0,0,null));
                 memberPositionClass = memberDetailsList.size()-1;
                 memberString = tokenList.getFirst().getLexema();
                 break;
-            case -90: //number
-            case -91: //string
-            case -72: //
-            case -61: //
-            case -71: //
+            case -90: // number
+            case -91: // string
+            case -72: // boolean
+            case -61: // null
+            case -71: // real
                 memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema());
                 currentState = Estado.NONE;
                 break;
-            case -58:
+            case -58: // #
                 memberPositionClass = memberDetailsList.size()-1;
                 currentState = Estado.CLASS_TYPE;
                 break;
