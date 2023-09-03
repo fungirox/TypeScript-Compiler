@@ -34,6 +34,8 @@ public class Sintaxis {
     private String letID;
     private boolean let=false;
     private boolean classOVar=false;
+    private Estado oldState = Estado.NONE;
+
     public Sintaxis(final int [][]matriz,LinkedList<Errores> listErrores, LinkedList<Token>sintaxis){
         this.matrizSintactica = matriz;
         this.tokenList = sintaxis;
@@ -88,36 +90,36 @@ public class Sintaxis {
                         closeArea(false); // Cierra área de declaración
                         break;
                     case 1200: // Declaración de variable en DEC_VAR
-                        currentState = Estado.DEC_VAR;
+                        updateState(Estado.DEC_VAR);
                         break;
                     case 1201: // Declaración de variable en DEC_VAR
-                        currentState = Estado.NONE;
+                        updateState(Estado.NONE);
                         break;
                     case 1202: // Declaración de DEC_MET
-                        currentState = Estado.DEC_MET;
+                        updateState(Estado.DEC_MET);
                         break;
                     case 1204: // Declaraciond de DEC_FUN
-                        currentState = Estado.DEC_FUN;
+                        updateState(Estado.DEC_FUN);
                         break;
                     case 1206: // DEC_SET
-                        currentState = Estado.DEC_SET;
+                        updateState(Estado.DEC_SET);
                         break;
                     case 1208: // DEC_GET
-                        currentState = Estado.DEC_GET;
+                        updateState(Estado.DEC_GET);
                         break;
                     case 1210: // INTERFACE
-                        currentState = Estado.INTERFACE;
+                        updateState(Estado.INTERFACE);
                         break;
-                    case 1212:
-                        currentState = Estado.ANON_FUN;
+                    case 1212: // Funcion anonima
+                        updateState(Estado.ANON_FUN);
                         let = true;
                         break;
-                    case 1214:
-                        currentState = Estado.ARROW_FUN;
+                    case 1214: // Arrow fuction
+                        updateState(Estado.ARROW_FUN);
                         let = true;
                         break;
                     case 1216: // CLASS
-                        currentState = Estado.CLASS;
+                        updateState(Estado.CLASS);
                         break;
                     case 1203:
                     case 1205:
@@ -213,7 +215,13 @@ public class Sintaxis {
         Files.write(Paths.get(txtPath), stringTxt.getBytes(StandardCharsets.UTF_8),
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
-
+    private void updateState(Estado newState){
+        oldState = currentState;
+        currentState = newState;
+    }
+    private void setOldState(){
+        currentState = oldState;
+    }
     private void ARRAY(){
         if(let && (currentState==Estado.ARRAY)){
             memberDetailsList.addLast(new MemberDetails(letID,"","Array","",ambitoStack.peek().getNumber(),0,0,null));
