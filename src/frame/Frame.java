@@ -185,7 +185,7 @@ public class Frame extends JFrame{
                 new Object [][] {
                 },
                 new String [] {
-                        "Estado", "Lexema", "Linea"
+                        "State", "Lexema", "Linea"
                 }
         ));
         sclTokens.setViewportView(tblTokens);

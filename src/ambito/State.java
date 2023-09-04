@@ -1,6 +1,6 @@
 package ambito;
 
-public enum Estado {
+public enum State {
     NONE,
     DEC_VAR,
     CLASS_TYPE,
@@ -13,6 +13,9 @@ public enum Estado {
     ANON_FUN,
     ARROW_FUN,
     CLASS,
-    ARRAY
+    ARRAY,
 
+
+
+    STATUS
 }

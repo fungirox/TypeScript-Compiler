@@ -226,7 +226,7 @@ public class CargarRecursos {
             "Booleans","Nulls","Identificadores","Errores"
     };
     private static String [] rowHeadTokens={
-            "Estado","Lexema","Linea"
+            "State","Lexema","Linea"
     };
     private static String [] rowHeadErrores={
             "Token","Descripcion","Lexema","Tipo de error","Linea"

@@ -2,7 +2,7 @@ package sintaxis;
 
 import ambito.Ambito;
 import ambito.Area;
-import ambito.Estado;
+import ambito.State;
 import ambito.MemberDetails;
 import lexico.Errores;
 import lexico.Token;
@@ -25,9 +25,7 @@ public class Sintaxis {
     private String stringTxt ="";
     private final String txtPath ="src/resources/20130044_resultado.txt";
     private LinkedList<MemberDetails> memberDetailsList;
-    private Stack<Estado> stateStack ;
-//    private Estado currentState = Estado.NONE;
-    private Estado oldState = Estado.NONE;
+    private Stack<State> stateStack ;
     private int parametro=0;
     private boolean contieneParametro=false;
     private int memberPositionVar;
@@ -48,7 +46,7 @@ public class Sintaxis {
         this.memberDetailsList = new LinkedList<>();
         this.areasList = new LinkedList<>();
         syntacticStack.push(200);
-        stateStack.push(Estado.NONE);
+        stateStack.push(State.NONE);
     }
     public void analize() throws IOException {
         int matrizData;
@@ -70,141 +68,22 @@ public class Sintaxis {
                 }
 
             }
-            else if(syntacticStack.peek()>=1000 && syntacticStack.peek()<1300){ // Declaracion de miembros // Apertura de ambitos, areas de declaracion y ejecución
-                int topStack=syntacticStack.peek();
+            else if(syntacticStack.peek()>=1000 && syntacticStack.peek()<1300) { // Declaracion de miembros // Apertura de ambitos, areas de declaracion y ejecución
+                codeState(syntacticStack.peek());
                 syntacticStack.pop();
-                switch (topStack) {
-                    case 1000:
-                        gestionAmbito(true); // Creación de ámbito
-                        break;
-                    case 1001:
-                        gestionAmbito(false); // Eliminación de ámbito
-                        break;
-                    case 1002:
-                        addArea(true); // Abre área de ejecución
-                        break;
-                    case 1003:
-                        closeArea(true); // Cierra área de ejecución
-                        break;
-                    case 1004:
-                        addArea(false); // Abre área de declaración
-                        break;
-                    case 1005:
-                        closeArea(false); // Cierra área de declaración
-                        break;
-                    case 1200: // Declaración de variable en DEC_VAR
-                        updateState(Estado.DEC_VAR);
-                        break;
-                    case 1201: // Declaración de variable en DEC_VAR
-                        setOldState();
-                        break;
-                    case 1202: // Declaración de DEC_MET
-                        updateState(Estado.DEC_MET);
-                        break;
-                    case 1204: // Declaraciond de DEC_FUN
-                        updateState(Estado.DEC_FUN);
-                        break;
-                    case 1206: // DEC_SET
-                        updateState(Estado.DEC_SET);
-                        break;
-                    case 1208: // DEC_GET
-                        updateState(Estado.DEC_GET);
-                        break;
-                    case 1210: // INTERFACE
-                        updateState(Estado.INTERFACE);
-                        break;
-                    case 1212: // Funcion anonima
-                        updateState(Estado.ANON_FUN);
-                        let = true;
-                        break;
-                    case 1214: // Arrow fuction
-                        updateState(Estado.ARROW_FUN);
-                        let = true;
-                        break;
-                    case 1216: // CLASS
-                        updateState(Estado.CLASS);
-                        break;
-                    case 1203:
-                    case 1205:
-                    case 1207:
-                    case 1209:
-                    case 1213:
-                    case 1215: // Declaración de DEC_MET
-                        setOldState();
-                        memberDetailsList.get(memberPositionClass).setCantParametro(parametro);
-                        memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
-                        parametro = 0;
-                        contieneParametro = false;
-                        classOVar = false;
-                        break;
-                    case 1211:
-                    case 1217:
-                        setOldState();
-                        memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
-                        parametro = 0;
-                        classOVar = false;
-                        contieneParametro = false;
-                        break;
-                    case 1218: // ARRAY
-                        updateState(Estado.ARRAY);
-                        let = true;
-                        break;
-                    case 1219: // CIERRE ARRAY
-                        setOldState();
-                        break;
-                    case 1270:
-                        updateState(Estado.SAVEID);
-                        break;
-                    default:
-                        // Acción por defecto si el valor no coincide con ninguno de los casos anteriores
-                        break;
-                }
+
             }
             else if(syntacticStack.peek()<0){ //Esto quiere decir que es un token
                 if(tokenList.getFirst().getToken()==syntacticStack.peek()||(tokenList.getFirst().getToken()==(-47)&&syntacticStack.peek()==(-46))||(tokenList.getFirst().getToken()==(-57)&&syntacticStack.peek()==(-56))){//Si el token de la lista y pila son iguales y Caso especifico de cadenas -47 y reales -57
-                    switch(stateStack.peek()){
-                        case DEC_VAR:
-                            DEC_VAR();
-                            break;
-                        case CLASS_TYPE:
-                            CLASS_TYPE();
-                            break;
-                        case DEC_MET:
-                            DEC_MET_FUN("metodo",true);
-                            break;
-                        case DEC_FUN:
-                            DEC_MET_FUN("fuction",true);
-                            break;
-                        case DEC_SET:
-                            DEC_MET_FUN("set",true);
-                            break;
-                        case DEC_GET:
-                            DEC_MET_FUN("get",true);
-                            break;
-                        case INTERFACE:
-                            INTERFACE_CLASS(true);
-                            break;
-                        case CLASS:
-                            INTERFACE_CLASS(false);
-                            break;
-                        case ANON_FUN:
-                            DEC_MET_FUN("@fuction",true);
-                            break;
-                        case ARROW_FUN:
-                            DEC_MET_FUN("arrow fuction",true);
-                            break;
-                        case ARRAY:
-                            ARRAY();
-                            break;
-                        case SAVEID:
-                            if(tokenList.getFirst().getToken()==-1)
-                                letID=tokenList.getFirst().getLexema();
-                            setOldState();
-                            break;
+                    if(stateStack.peek()==State.STATUS){
+                        execute();
+                    }
+                    else {
+                        declaration();
                     }
                     delete();
                 }
-                else{
+                else {
                     System.out.println("Error de fuerza bruta, linea: "+ tokenList.getFirst().getLinea()+" lexema: "+ tokenList.getFirst().getLexema());
                     delete();
                 }
@@ -212,14 +91,144 @@ public class Sintaxis {
 
         }
 
-        if(!syntacticStack.isEmpty()){
+        if(!syntacticStack.isEmpty()) {
             System.out.println("Parece que no terminaste tu codigo");
         }
+        System.out.println();
         printDetailMember();
         Files.write(Paths.get(txtPath), stringTxt.getBytes(StandardCharsets.UTF_8),
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
-    private void updateState(Estado newState){
+    private void execute(){
+
+    }
+    private void declaration(){
+        switch(stateStack.peek()){
+            case DEC_VAR:
+                DEC_VAR();
+                break;
+            case CLASS_TYPE:
+                CLASS_TYPE();
+                break;
+            case DEC_MET:
+                DEC_MET_FUN("metodo",true);
+                break;
+            case DEC_FUN:
+                DEC_MET_FUN("fuction",true);
+                break;
+            case DEC_SET:
+                DEC_MET_FUN("set",true);
+                break;
+            case DEC_GET:
+                DEC_MET_FUN("get",true);
+                break;
+            case INTERFACE:
+                INTERFACE_CLASS(true);
+                break;
+            case CLASS:
+                INTERFACE_CLASS(false);
+                break;
+            case ANON_FUN:
+                DEC_MET_FUN("@fuction",true);
+                break;
+            case ARROW_FUN:
+                DEC_MET_FUN("arrow fuction",true);
+                break;
+            case ARRAY:
+                ARRAY();
+                break;
+            case SAVEID:
+                if(tokenList.getFirst().getToken()==-1)
+                    letID=tokenList.getFirst().getLexema();
+                setOldState();
+                break;
+        }
+    }
+    private void codeState(int topStack){
+        switch (topStack) {
+            case 1000:
+                gestionAmbito(true); // Creación de ámbito
+                break;
+            case 1001:
+                gestionAmbito(false); // Eliminación de ámbito
+                break;
+            case 1002:
+                addArea(true); // Abre área de ejecución
+                updateState(State.STATUS);
+                break;
+            case 1003:
+                closeArea(true); // Cierra área de ejecución
+                setOldState();
+                break;
+            case 1004:
+                addArea(false); // Abre área de declaración
+                break;
+            case 1005:
+                closeArea(false); // Cierra área de declaración
+                break;
+            case 1200: // Abre Declaración de variable en DEC_VAR
+                updateState(State.DEC_VAR);
+                break;
+            case 1201: // Cierra Declaración de variable en DEC_VAR
+                setOldState();
+                break;
+            case 1202: // DEC_MET
+                updateState(State.DEC_MET);
+                break;
+            case 1204: // DEC_FUN
+                updateState(State.DEC_FUN);
+                break;
+            case 1206: // DEC_SET
+                updateState(State.DEC_SET);
+                break;
+            case 1208: // DEC_GET
+                updateState(State.DEC_GET);
+                break;
+            case 1210: // INTERFACE
+                updateState(State.INTERFACE);
+                break;
+            case 1212: // Funcion anonima
+                updateState(State.ANON_FUN);
+                let = true;
+                break;
+            case 1214: // Arrow fuction
+                updateState(State.ARROW_FUN);
+                let = true;
+                break;
+            case 1216: // Class
+                updateState(State.CLASS);
+                break;
+            case 1203: // DEC_MET
+            case 1205: // DEC_FUN
+            case 1207: // DEC_SET
+            case 1209: // DEC_GET
+            case 1213: // Funcion anonima
+            case 1215: // Arrow fuction
+                memberDetailsList.get(memberPositionClass).setCantParametro(parametro);
+            case 1211: // Interface
+            case 1217: // Class
+                setOldState();
+                memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
+                parametro = 0;
+                classOVar = false;
+                contieneParametro = false;
+                break;
+            case 1218: // ARRAY
+                updateState(State.ARRAY);
+                let = true;
+                break;
+            case 1219: // CIERRE ARRAY
+                setOldState();
+                break;
+            case 1270: // Save ID para Let
+                updateState(State.SAVEID);
+                break;
+            default:
+                // Acción por defecto si el valor no coincide con ninguno de los casos anteriores
+                break;
+        }
+    }
+    private void updateState(State newState){
         stateStack.push(newState);
         switch (newState){
             case DEC_VAR, NONE, ARRAY -> classOVar = false;
@@ -233,7 +242,7 @@ public class Sintaxis {
     private void setOldState(){
         stateStack.pop();
         if(stateStack.isEmpty()){
-            stateStack.push(Estado.NONE);
+            stateStack.push(State.NONE);
             classOVar = false;
         }
         switch (stateStack.peek()){
@@ -245,27 +254,25 @@ public class Sintaxis {
         }
     }
     private void ARRAY(){
-        if(let && (stateStack.peek()==Estado.ARRAY)){
+        System.out.print(tokenList.getFirst().getLexema());
+        if(let && (stateStack.peek() == State.ARRAY)){
             memberDetailsList.addLast(new MemberDetails(letID,"","Array","",ambitoStack.peek().getNumber(),0,0,null));
             memberPositionClass = memberDetailsList.size()-1;
             let = false;
         }
-        else{
-            switch (tokenList.getFirst().getToken())
-            {
-                case -1:
-                case -90:
-                case -91:
-                case -72:
-                case -61:
-                case -71:
-                    memberDetailsList.getLast().setType(tokenList.getFirst().getLexema());
-                    break;
-                case -58:
-                    memberPositionClass = memberDetailsList.size()-1;
-                    updateState(Estado.CLASS_TYPE);
-                    break;
-            }
+        switch (tokenList.getFirst().getToken())
+        {
+           case -1: // id
+           case -90: // number
+           case -91: // string
+           case -72: // boolean
+           case -61: // null
+           case -71: // real
+                memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema());
+                break;
+           case -58: // #
+                updateState(State.CLASS_TYPE);
+                break;
         }
 
     }
@@ -305,12 +312,12 @@ public class Sintaxis {
                 break;
             case -58: // #
                 memberPositionVar = memberDetailsList.size()-1;
-                updateState(Estado.CLASS_TYPE);
+                updateState(State.CLASS_TYPE);
         }
     }
     private void DEC_MET_FUN(String type,boolean m){
         contieneParametro = true;
-        if(let && (stateStack.peek()==Estado.ANON_FUN||stateStack.peek()==Estado.ARROW_FUN)){
+        if(let && (stateStack.peek()== State.ANON_FUN||stateStack.peek()== State.ARROW_FUN)){
             memberDetailsList.addLast(new MemberDetails(letID,m?"void":"",type,"",ambitoStack.peek().getNumber(),0,0,null));
             memberPositionClass = memberDetailsList.size()-1;
             memberString = letID;
@@ -332,7 +339,7 @@ public class Sintaxis {
                 memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema());
                 break;
             case -58: // #
-                updateState(Estado.CLASS_TYPE);
+                updateState(State.CLASS_TYPE);
                 break;
         }
     }
@@ -454,13 +461,13 @@ public class Sintaxis {
             {1214,1000,-10,1004,246,226,1005,-11,1215,-33,1002,254,1003,1001}, 	                                                // 40 <----- Ambito ; Ejecución ; Declaración
             {-16,246,226}, 	                                                                                            // 41
             {-13,227}, 	                                                                                                // 42
-            {-73,-26,228,-40,-30,229}, 	                                                                                // 43
+            {-73,-26,1218,228,-40,-30,229}, 	                                                                                // 43
             {218}, 	                                                                                                    // 44
             {-1}, 	                                                                                                    // 45
-            {-17,230,-18},                                                                                              // 46
+            {-17,230,1219,-18},                                                                                              // 46
             {273,231}, 	                                                                                                // 47
             {-16,273,231}, 	                                                                                            // 48
-            {-74,-73,-10,-11}, 	                                                                                        // 49
+            {-74,-73,1219,-10,-11}, 	                                                                                        // 49
             {218,232}, 	                                                                                                // 50
             {-30,233}, 	                                                                                                // 51
             {219}, 	                                                                                                    // 52

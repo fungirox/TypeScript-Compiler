@@ -46,6 +46,6 @@ public class MemberDetails {
 
     @Override
     public String toString() {
-        return String.format("%10s%10s%15s%10d%15d%15s%15d", id, type, classId, ambito, cantParametro, typeParametro,arrayDimension);
+        return String.format("%10s%10s%15s%10d%15d%15s%15d%15s", id, type, classId, ambito, cantParametro, typeParametro,arrayDimension,arrayLength==null?"":arrayLength.toString());
     }
 }
