@@ -25,7 +25,9 @@ public class Sintaxis {
     private String stringTxt ="";
     private final String txtPath ="src/resources/20130044_resultado.txt";
     private LinkedList<MemberDetails> memberDetailsList;
-    private Estado currentState = Estado.NONE;
+    private Stack<Estado> stateStack ;
+//    private Estado currentState = Estado.NONE;
+    private Estado oldState = Estado.NONE;
     private int parametro=0;
     private boolean contieneParametro=false;
     private int memberPositionVar;
@@ -34,22 +36,23 @@ public class Sintaxis {
     private String letID;
     private boolean let=false;
     private boolean classOVar=false;
-    private Estado oldState = Estado.NONE;
+
 
     public Sintaxis(final int [][]matriz,LinkedList<Errores> listErrores, LinkedList<Token>sintaxis){
         this.matrizSintactica = matriz;
         this.tokenList = sintaxis;
         this.erroresList = listErrores;
         this.syntacticStack = new Stack<>();
+        this.stateStack = new Stack<>();
         this.ambitoStack = new Stack<>();
         this.memberDetailsList = new LinkedList<>();
         this.areasList = new LinkedList<>();
         syntacticStack.push(200);
+        stateStack.push(Estado.NONE);
     }
     public void analize() throws IOException {
         int matrizData;
         while(!tokenList.isEmpty()&&!syntacticStack.isEmpty()){
-
             if(syntacticStack.peek()>=200&&syntacticStack.peek()<=292){ // Esto quiere decir que es un NO terminal
 
                 matrizData=mapearToken();
@@ -93,7 +96,7 @@ public class Sintaxis {
                         updateState(Estado.DEC_VAR);
                         break;
                     case 1201: // Declaración de variable en DEC_VAR
-                        updateState(Estado.NONE);
+                        setOldState();
                         break;
                     case 1202: // Declaración de DEC_MET
                         updateState(Estado.DEC_MET);
@@ -127,7 +130,7 @@ public class Sintaxis {
                     case 1209:
                     case 1213:
                     case 1215: // Declaración de DEC_MET
-                        currentState = Estado.NONE;
+                        setOldState();
                         memberDetailsList.get(memberPositionClass).setCantParametro(parametro);
                         memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
                         parametro = 0;
@@ -136,20 +139,21 @@ public class Sintaxis {
                         break;
                     case 1211:
                     case 1217:
+                        setOldState();
+                        memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
                         parametro = 0;
                         classOVar = false;
-                        currentState = Estado.NONE;
-                        memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
+                        contieneParametro = false;
                         break;
                     case 1218: // ARRAY
-                        currentState = Estado.ARRAY;
+                        updateState(Estado.ARRAY);
+                        let = true;
                         break;
-                    case 1219:
-                        currentState = Estado.NONE;
-
-                        break; // CIERRE ARRAY
+                    case 1219: // CIERRE ARRAY
+                        setOldState();
+                        break;
                     case 1270:
-                        currentState = Estado.SAVEID;
+                        updateState(Estado.SAVEID);
                         break;
                     default:
                         // Acción por defecto si el valor no coincide con ninguno de los casos anteriores
@@ -158,7 +162,7 @@ public class Sintaxis {
             }
             else if(syntacticStack.peek()<0){ //Esto quiere decir que es un token
                 if(tokenList.getFirst().getToken()==syntacticStack.peek()||(tokenList.getFirst().getToken()==(-47)&&syntacticStack.peek()==(-46))||(tokenList.getFirst().getToken()==(-57)&&syntacticStack.peek()==(-56))){//Si el token de la lista y pila son iguales y Caso especifico de cadenas -47 y reales -57
-                    switch(currentState){
+                    switch(stateStack.peek()){
                         case DEC_VAR:
                             DEC_VAR();
                             break;
@@ -195,7 +199,7 @@ public class Sintaxis {
                         case SAVEID:
                             if(tokenList.getFirst().getToken()==-1)
                                 letID=tokenList.getFirst().getLexema();
-                            currentState = Estado.NONE;
+                            setOldState();
                             break;
                     }
                     delete();
@@ -216,14 +220,32 @@ public class Sintaxis {
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
     private void updateState(Estado newState){
-        oldState = currentState;
-        currentState = newState;
+        stateStack.push(newState);
+        switch (newState){
+            case DEC_VAR, NONE, ARRAY -> classOVar = false;
+            case CLASS_TYPE -> {
+                break;
+            }
+            default -> classOVar = true;
+        }
+
     }
     private void setOldState(){
-        currentState = oldState;
+        stateStack.pop();
+        if(stateStack.isEmpty()){
+            stateStack.push(Estado.NONE);
+            classOVar = false;
+        }
+        switch (stateStack.peek()){
+            case DEC_VAR, NONE, ARRAY -> classOVar = false;
+            case CLASS_TYPE -> {
+                break;
+            }
+            default -> classOVar = true;
+        }
     }
     private void ARRAY(){
-        if(let && (currentState==Estado.ARRAY)){
+        if(let && (stateStack.peek()==Estado.ARRAY)){
             memberDetailsList.addLast(new MemberDetails(letID,"","Array","",ambitoStack.peek().getNumber(),0,0,null));
             memberPositionClass = memberDetailsList.size()-1;
             let = false;
@@ -241,9 +263,8 @@ public class Sintaxis {
                     break;
                 case -58:
                     memberPositionClass = memberDetailsList.size()-1;
-                    currentState = Estado.CLASS_TYPE;
+                    updateState(Estado.CLASS_TYPE);
                     break;
-
             }
         }
 
@@ -265,10 +286,9 @@ public class Sintaxis {
                 memberDetailsList.get(memberPositionVar).setType("#"+tokenList.getFirst().getLexema());
             }
         }
-        currentState = Estado.NONE;
+        setOldState();
     }
     private void DEC_VAR(){
-        classOVar = false;
         switch (tokenList.getFirst().getToken())
         {
             case -1: // id
@@ -282,20 +302,18 @@ public class Sintaxis {
             case -61: // null
             case -71: // real
                 memberDetailsList.getLast().setType(tokenList.getFirst().getLexema());
-                currentState = Estado.NONE;
                 break;
             case -58: // #
                 memberPositionVar = memberDetailsList.size()-1;
-                currentState = Estado.CLASS_TYPE;
+                updateState(Estado.CLASS_TYPE);
         }
     }
     private void DEC_MET_FUN(String type,boolean m){
-        classOVar = true;
-        contieneParametro=true;
-        if(let && (currentState==Estado.ANON_FUN||currentState==Estado.ARROW_FUN)){
+        contieneParametro = true;
+        if(let && (stateStack.peek()==Estado.ANON_FUN||stateStack.peek()==Estado.ARROW_FUN)){
             memberDetailsList.addLast(new MemberDetails(letID,m?"void":"",type,"",ambitoStack.peek().getNumber(),0,0,null));
             memberPositionClass = memberDetailsList.size()-1;
-            memberString=letID;
+            memberString = letID;
             let = false;
             return;
         }
@@ -312,11 +330,9 @@ public class Sintaxis {
             case -61: // null
             case -71: // real
                 memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema());
-                currentState = Estado.NONE;
                 break;
             case -58: // #
-                memberPositionClass = memberDetailsList.size()-1;
-                currentState = Estado.CLASS_TYPE;
+                updateState(Estado.CLASS_TYPE);
                 break;
         }
     }
@@ -390,59 +406,10 @@ public class Sintaxis {
         parametro=0;
         memberDetailsList.clear();
     }
-    private final Map<Integer,String> errores_sintaxis=new HashMap<Integer,String>(){{
-            put(504,"Solo puedes comenzar un programa con let class fuction o interface");
-            put(505,"Se esperaba let, interface o class");
-            put(506,"Se esperaba fuction");
-            put(507,"Se esperaba class");
-            put(508,"Se esperaba ;");
-            put(509,"Se esperaba un identificador");
-            put(510,"Se esperaba ,");
-            put(511,"Se esperaba :");
-            put(512,"Se esperaba set o get");
-            put(513,"Se esperaba un tipo de variable o #");
-            put(514,"Se esperaba =");
-            put(515,"Se esperaba una constante");
-            put(516,"Se esperaba let");
-            put(517,"Se esperaba interface");
-            put(518,"Se esperaba : o =");
-            put(519,"Se esperaba ( o fuction");
-            put(520,"Se esperaba Array, identificador o tipo de variable");
-            put(521,"Se esperaba identificador o tipo de variable");
-            put(522,"Se esperaba [ o new");
-            put(523,"Se esperaba una función, constante, ++, --, ~, (, ! o identificador");
-            put(524,"Se esperaba { o constante");
-            put(525,"Se esperaba =, < o Map");
-            put(526,"Se esperaba Map");
-            put(527,"Se esperaba = += /= *= -= %= &= ^= <<= >>= o >>>=");
-            put(528,"Se esperaba Console, if, switch, while, return, do, for, una función, constante, ++, --, ~, {, (, ! o identificador");
-            put(529,"Se esperaba read o log");
-            put(530,"Se esperaba else");
-            put(531,"Se esperaba case");
-            put(532,"Se esperaba case o default");
-            put(533,"Se esperaba let, una función, constante, ++, --, ~, (, ! o identificador");
-            put(534,"Se esperaba of o in");
-            put(535,"Se esperaba un método para cadena");
-            put(536,"Se esperaba una función o un método para cadena");
-            put(537,"Se esperaba un [");
-            put(538,"Se esperaba || o |");
-            put(539,"Se esperaba && & o ^");
-            put(540,"Se esperaba < <= == != > >= === o !==");
-            put(541,"Se esperaba - + << >> o >>>");
-            put(542,"Se esperaba * / o %");
-            put(543,"Se esperaba **");
-            put(544,"Se esperaba ");
-            put(545,"Se esperaba ++ o --");
-            put(546,"Se esperaba [ o (");
-            put(547,"Se esperaba ?");
-            put(548,"Se esperaba ! o ~");
-    }};
-
 
     //Contenidos: del 200 a 292 son NO terminales (ver en matriz)
     //            del -1 al -124 son tokens, ver en pila
     //Longitud del arreglo: 0 al 182
-
     private final int[][] producciones = {//Siempre insertar al reves
             {1000,1004,201,1005,-19,1002,254,206,1003,1001,-20}, 	                                                    // 0 <----- Ambito ; Ejecución ; Declaración
             {247,201}, 	                                                                                                // 1
@@ -458,14 +425,14 @@ public class Sintaxis {
             {-94,1216,-1,1000,1217,1004,-19,246,208,249,209,1005,1001,-20}, 	                                                    // 11 <----- Ambito ; Declaración
             {-14,246,208}, 	                                                                                            // 12
             {249,209}, 	                                                                                                // 13
-            {-70,1204,-1,1000,1004,-10,246,211,1005,-11,1204,212,1205,-19,1002,254,213,1003,1001,-20}, 	                            // 14 <----- Ambito ; Ejecución ; Declaración
+            {-70,1204,-1,1000,1004,-10,246,211,1005,-11,212,1205,-19,1002,254,213,1003,1001,-20}, 	                            // 14 <----- Ambito ; Ejecución ; Declaración
             {-16,246,211}, 	                                                                                            // 15
             {-13,218}, 	                                                                                                // 16
             {-14,254,213}, 	                                                                                            // 17
             {-92,1206,-1,1000,-10,1004,246,215,1207,1005,-11,-19,1002,254,216,1003,1001,-20}, 	                                // 18 <----- Ambito ; Ejecución ; Declaración
             {-16,246,215}, 	                                                                                            // 19
             {-14,254,216}, 	                                                                                            // 20
-            {-93,1208,-1,1000,-10,1004,1005,-11,-13,1208,218,1209,-19,1002,254,217,1003,1001,-20}, 	                                // 21 <----- Ambito ; Ejecución ; Declaración
+            {-93,1208,-1,1000,-10,1004,1005,-11,-13,218,1209,-19,1002,254,217,1003,1001,-20}, 	                                // 21 <----- Ambito ; Ejecución ; Declaración
             {-14,254,217}, 	                                                                                            // 22
             {-91}, 	                                                                                                 	// 23 // string
             {-90},  	                                                                                            	// 24 // number
@@ -517,7 +484,7 @@ public class Sintaxis {
             {1200,-1,-13,218,1201}, 	                                                                                // 70 // DEC_VAR
             {-89,1210,-1,1000,1004,-19,246,248,1005,1211,1001,-20}, 	                                                            // 71 <----- Ambito ; Declaración
             {-14,246,248}, 	                                                                                            // 72
-            {1202,-1,1000,-10,1004,246,250,1005,-11,1202,251,1203,-19,1002,254,252,1003,1001,-20}, 	                                // 73 <----- Ambito ; Ejecución ; Declaración ; DEC_MET
+            {1202,-1,1000,-10,1004,246,250,1005,-11,251,1203,-19,1002,254,252,1003,1001,-20}, 	                                // 73 <----- Ambito ; Ejecución ; Declaración ; DEC_MET
             {-16,246,250}, 	                                                                                            // 74
             {-13,218}, 	                                                                                                // 75
             {-14,254,252}, 	                                                                                            // 76
@@ -629,8 +596,55 @@ public class Sintaxis {
             {253,273,289},                                                                                              // 181 FA1
             {-76,273,-13,268}                                                                                           // 182 case OR : S13
     };
-
+    private final Map<Integer,String> errores_sintaxis=new HashMap<Integer,String>(){{
+        put(504,"Solo puedes comenzar un programa con let class fuction o interface");
+        put(505,"Se esperaba let, interface o class");
+        put(506,"Se esperaba fuction");
+        put(507,"Se esperaba class");
+        put(508,"Se esperaba ;");
+        put(509,"Se esperaba un identificador");
+        put(510,"Se esperaba ,");
+        put(511,"Se esperaba :");
+        put(512,"Se esperaba set o get");
+        put(513,"Se esperaba un tipo de variable o #");
+        put(514,"Se esperaba =");
+        put(515,"Se esperaba una constante");
+        put(516,"Se esperaba let");
+        put(517,"Se esperaba interface");
+        put(518,"Se esperaba : o =");
+        put(519,"Se esperaba ( o fuction");
+        put(520,"Se esperaba Array, identificador o tipo de variable");
+        put(521,"Se esperaba identificador o tipo de variable");
+        put(522,"Se esperaba [ o new");
+        put(523,"Se esperaba una función, constante, ++, --, ~, (, ! o identificador");
+        put(524,"Se esperaba { o constante");
+        put(525,"Se esperaba =, < o Map");
+        put(526,"Se esperaba Map");
+        put(527,"Se esperaba = += /= *= -= %= &= ^= <<= >>= o >>>=");
+        put(528,"Se esperaba Console, if, switch, while, return, do, for, una función, constante, ++, --, ~, {, (, ! o identificador");
+        put(529,"Se esperaba read o log");
+        put(530,"Se esperaba else");
+        put(531,"Se esperaba case");
+        put(532,"Se esperaba case o default");
+        put(533,"Se esperaba let, una función, constante, ++, --, ~, (, ! o identificador");
+        put(534,"Se esperaba of o in");
+        put(535,"Se esperaba un método para cadena");
+        put(536,"Se esperaba una función o un método para cadena");
+        put(537,"Se esperaba un [");
+        put(538,"Se esperaba || o |");
+        put(539,"Se esperaba && & o ^");
+        put(540,"Se esperaba < <= == != > >= === o !==");
+        put(541,"Se esperaba - + << >> o >>>");
+        put(542,"Se esperaba * / o %");
+        put(543,"Se esperaba **");
+        put(544,"Se esperaba ");
+        put(545,"Se esperaba ++ o --");
+        put(546,"Se esperaba [ o (");
+        put(547,"Se esperaba ?");
+        put(548,"Se esperaba ! o ~");
+    }};
 }
+
 /**
  * 1200 : declaracion de variable
  * 1201 : cierra declaración de variable
