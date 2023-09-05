@@ -80,7 +80,6 @@ public class Sintaxis {
                         execute();
                     }
                     else {
-//                        System.out.println(syntacticStack.peek()+" l: "+tokenList.getFirst().getLexema()+" "+stateStack.peek());
                         declaration();
                     }
                     delete();
@@ -102,8 +101,21 @@ public class Sintaxis {
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
     private void execute(){
-
+        int ambito=ambitoStack.peek().getNumber();
+        if(tokenList.getFirst().getToken()==-1){ // Token
+            System.out.println(tokenList.getFirst().getLexema()+" "+isInMemberList(ambito,tokenList.getFirst().getLexema()));
+        }
     }
+    public boolean isInMemberList(int ambito,String id) {
+        for (MemberDetails member : memberDetailsList) {
+            if (member.getAmbito() == ambito && member.getId().equals(id)) {
+                return true; // El elemento existe en la lista
+            }
+        }
+        return false; // El elemento no existe en la lista
+    }
+
+
     private void declaration(){
         switch(stateStack.peek()){
             case DEC_VAR -> DEC_VAR();
@@ -227,10 +239,10 @@ public class Sintaxis {
             case 1224: // Abre clase anonima
                 setOldState();
                 updateState(State.CLASS_ANON);
+                memberDetailsList.addLast(new MemberDetails(memberDetailsList.getLast().getType(),"","@anonima","",ambitoStack.peek().getNumber(),0,0,null));
                 break;
             case 1225: // Cierra clase anonima
-                memberDetailsList.addLast(new MemberDetails(memberDetailsList.getLast().getType(),"","@anonima","",ambitoStack.peek().getNumber(),0,0,null));
-                memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
+                memberDetailsList.getLast().setTypeParametro(ambitoStack.peek().getNumber()+"");
                 setOldState();
                 break;
             case 1270: // Save ID para Let

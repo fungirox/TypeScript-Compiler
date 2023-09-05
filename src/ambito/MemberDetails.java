@@ -20,6 +20,10 @@ public class MemberDetails {
         this.arrayLength = arrayLength;
     }
 
+    public int getAmbito() {
+        return ambito;
+    }
+
     public String getId() {
         return id;
     }
