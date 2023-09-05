@@ -12,18 +12,18 @@ PPAL
 10 PP5 -> ; STATUS PP5 
 
 CLASE 
-11 CLASE → class id { ¿ ° DEC_VAR E0 DEC_MET E1 ° ¿ } <----- ambito <---- declaracion
+11 CLASE → class id { ¿ ° ♦ DEC_VAR E0 ♦ DEC_MET E1 ° ¿ } <----- ambito <---- declaracion
 12 E0 → ; DEC_VAR E0
 13 E1 → DEC_MET E1
 
 DEC_FUN 
-14 DEC_FUN → fuction id ( ¿ ° DEC_VAR F0 ° ) F1 { STATUS F2 ¿ } <----- ambito <---- area ejecucion <---- declaracion
+14 DEC_FUN → fuction id ( ¿ ° ♦  DEC_VAR F0 ♦ ° ) F1 { STATUS F2 ¿ } <----- ambito <---- area ejecucion <---- declaracion
 15 F0 → , DEC_VAR F0
 16 F1 → : TIPO
 17 F2 → ; STATUS F2
 
 DEC_GET_SET
-18 GS → set id ( ¿ ° DEC_VAR G0 ° ) { STATUS G1 ¿ } <----- ambito <---- area ejecucion <---- declaracion
+18 GS → set id ( ¿ ° ♦ DEC_VAR G0 ♦ ° ) { STATUS G1 ¿ } <----- ambito <---- area ejecucion <---- declaracion
 19 G0 → , DEC_VAR G0
 20 G1 → ; STATUS G1
 21 GS → get id ( ¿ ° ° ) : TIPO { STATUS G2 ¿ } <----- ambito <---- area ejecucion <---- declaracion
@@ -47,11 +47,11 @@ CONSTIPO
 LET
 34 LET → let id T0
 35 T0 → = T1
-36 T1 → fuction ( ¿ ° DEC_VAR T2 ° ) T3 { STATUS T4 ¿} <----- ambito <---- area ejecucion <---- declaracion
+36 T1 → fuction ( ¿ ° ♦ DEC_VAR T2 ♦ ° ) T3 { STATUS T4 ¿} <----- ambito <---- area ejecucion <---- declaracion
 37 T2 → , DEC_VAR T2
 38 T3 → : TIPO
 39 T4 → ; STATUS T4
-40 T1 → ( ¿ °  DEC_VAR T5 ° ) => STATUS ¿ <----- ambito <---- area ejecucion <---- declaracion
+40 T1 → ( ¿ °  ♦ DEC_VAR T5 ♦ ° ) => STATUS ¿ <----- ambito <---- area ejecucion <---- declaracion
 41 T5 → , DEC_VAR T5
 42 T0 → : T6
 43 T6 → Array <T7> = T8
@@ -64,14 +64,14 @@ LET
 50 T6 → TIPO T11
 51 T11 → = T12
 52 T12 → CONSTIPO
-53 T12 → { ¿ ° DEC_VAR , T13 DEC_GET_SET T14 DEC_MET T15 ° ¿ } <----- ambito <---- declaracion
+53 T12 → { ¿ ° ♦ DEC_VAR ♦ , T13 DEC_GET_SET T14 DEC_MET T15 ° ¿ } <----- ambito <---- declaracion
 54 T13 → DEC_VAR ,
 55 T14 → , DEC_GET_SET
 56 T15 → , DEC_MET
 57 T6 → id T16
 58 T16 → = T17
 59 T17 → CONSTIPO
-60 T17 → { ¿ ° DEC_VAR , T18 DEC_GET_SET T19 DEC_MET T20 ° ¿ } <----- ambito <---- declaracion
+60 T17 → { ¿ ° ♦ DEC_VAR ♦ , T18 DEC_GET_SET T19 DEC_MET T20 ° ¿ } <----- ambito <---- declaracion
 61 T18 → DEC_VAR ,
 62 T19 → , DEC_GET_SET
 63 T20 → , DEC_MET
@@ -86,11 +86,11 @@ DEC_VAR
 70 DEC_VAR → id : TIPO 
 
 INTERF
-71 INTERF → interface id {¿ ° DEC_VAR H0 ° ¿} <----- ambito <---- declaracion
+71 INTERF → interface id {¿ ° ♦ DEC_VAR H0 ♦ ° ¿} <----- ambito <---- declaracion
 72 H0 → ; DEC_VAR H0
 
 DEC_MET
-73 DM → id (¿ ° DEC_VAR I0 ° ) I1 { STATUS I2 ¿} <----- ambito <---- area ejecucion
+73 DM → $ id (¿ ° ♦ DEC_VAR I0 ♦ ° ) I1 $ { STATUS I2 ¿} <----- ambito <---- area ejecucion
 74 I0 → , DEC_VAR I0
 75 I1 → : TIPO
 76 I2 → ; STATUS I2

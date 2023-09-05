@@ -14,8 +14,8 @@ public enum State {
     ARROW_FUN,
     CLASS,
     ARRAY,
-
-
-
+    LET_VAR,
+    LET_ID,
+    CLASS_ANON,
     STATUS
 }
