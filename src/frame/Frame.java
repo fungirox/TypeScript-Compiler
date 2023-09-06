@@ -35,7 +35,7 @@ public class Frame extends JFrame{
     private final int [][] matrizSintactica;
     //Instancias de clase
     private Lexico lexico;
-
+    private int erroresAmbito;
     private int erroresLexico;
     private int erroresSintaxis;
     private DefaultTableModel mdTblErrores;
@@ -144,7 +144,8 @@ public class Frame extends JFrame{
         tblTipoError.setModel(new javax.swing.table.DefaultTableModel(
                 new Object [][] {
                         {"Lexico", null},
-                        {"Sintaxis", null}
+                        {"Sintaxis", null},
+                        {"Ambito", null}
                 },
                 new String [] {
                         "Tipos", ""
@@ -427,11 +428,11 @@ public class Frame extends JFrame{
                 copy = new LinkedList<>(tokenListSintaxis);
 
                 try {
-                    sintaxis.analize();
+                    erroresAmbito=sintaxis.analize();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-                erroresSintaxis=erroresList.size()-erroresLexico;
+                erroresSintaxis=erroresList.size()-erroresLexico-erroresAmbito;
 
                 llenarTablaErrores();
         }
@@ -449,6 +450,7 @@ public class Frame extends JFrame{
         mdTblContadores.setValueAt(erroresList.size(),20,1);
         mdTblTipoErrores.setValueAt(erroresLexico,0,1);
         mdTblTipoErrores.setValueAt(erroresSintaxis,1,1);
+        mdTblTipoErrores.setValueAt(erroresAmbito,2,1);
 
 
     }

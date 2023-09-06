@@ -11,10 +11,10 @@ public class Errores extends Elemento {
         establecerError(token);
         this.tipo="Error léxico";
     }
-    public Errores(final String lexema, final int token, final int linea,final String desc) {
+    public Errores(final String lexema, final int token, final int linea,final String desc,final String tipo) {
         super(lexema,token,linea);
-        this.desc=desc;
-        this.tipo="Error sintáctico";
+        this.desc = desc;
+        this.tipo = tipo;
     }
     private void establecerError(final int token){
         switch (token){
