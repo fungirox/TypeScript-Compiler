@@ -49,7 +49,7 @@ LET
 35 T0 → = T1
 36 T1 → fuction ( ¿ ° ♦ DEC_VAR T2 ♦ ° ) T3 { STATUS T4 ¿} <----- ambito <---- area ejecucion <---- declaracion
 37 T2 → , DEC_VAR T2
-38 T3 → : TIPO
+38 T3 → : ¿ TIPO ¿
 39 T4 → ; STATUS T4
 40 T1 → ( ¿ °  ♦ DEC_VAR T5 ♦ ° ) => STATUS ¿ <----- ambito <---- area ejecucion <---- declaracion
 41 T5 → , DEC_VAR T5

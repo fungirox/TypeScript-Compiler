@@ -1,76 +1,90 @@
 Creacion ambito: [#0, #1]
 Pila -> [0]
 1, declaracion, apertura
-Creacion ambito: [#1, #7]
+Creacion ambito: [#1, #1]
 Pila -> [0, 1]
-7, declaracion, apertura
-Creacion ambito: [#2, #8]
-Pila -> [0, 1, 2]
-8, declaracion, apertura
-8, declaracion, cerradura
-10, ejecucion, apertura
-11, ejecucion, cerradura
-Eliminacion ambito: [#2, #11]
-Pila -> [0, 1]
-Creacion ambito: [#3, #12]
-Pila -> [0, 1, 3]
-12, declaracion, apertura
-12, declaracion, cerradura
-14, ejecucion, apertura
-15, ejecucion, cerradura
-Eliminacion ambito: [#3, #15]
-Pila -> [0, 1]
-Creacion ambito: [#4, #16]
-Pila -> [0, 1, 4]
-16, declaracion, apertura
-16, declaracion, cerradura
-18, ejecucion, apertura
-20, ejecucion, cerradura
-Eliminacion ambito: [#4, #20]
-Pila -> [0, 1]
-21, declaracion, cerradura
-Eliminacion ambito: [#1, #21]
-Pila -> [0]
-22, declaracion, cerradura
-23, ejecucion, apertura
-24, ejecucion, cerradura
-Eliminacion ambito: [#0, #24]
-	La pila esta vacia
-Creacion ambito: [#0, #1]
-Pila -> [0]
 1, declaracion, apertura
-Creacion ambito: [#1, #7]
-Pila -> [0, 1]
-7, declaracion, apertura
-Creacion ambito: [#2, #8]
-Pila -> [0, 1, 2]
-8, declaracion, apertura
-8, declaracion, cerradura
-10, ejecucion, apertura
-11, ejecucion, cerradura
-Eliminacion ambito: [#2, #11]
-Pila -> [0, 1]
-Creacion ambito: [#3, #12]
-Pila -> [0, 1, 3]
-12, declaracion, apertura
-12, declaracion, cerradura
-14, ejecucion, apertura
-15, ejecucion, cerradura
-Eliminacion ambito: [#3, #15]
-Pila -> [0, 1]
-Creacion ambito: [#4, #16]
-Pila -> [0, 1, 4]
-16, declaracion, apertura
-16, declaracion, cerradura
-18, ejecucion, apertura
-20, ejecucion, cerradura
-Eliminacion ambito: [#4, #20]
-Pila -> [0, 1]
-21, declaracion, cerradura
-Eliminacion ambito: [#1, #21]
+4, declaracion, cerradura
+Eliminacion ambito: [#1, #4]
 Pila -> [0]
+Creacion ambito: [#2, #5]
+Pila -> [0, 2]
+5, declaracion, apertura
+Creacion ambito: [#3, #10]
+Pila -> [0, 2, 3]
+10, declaracion, apertura
+10, declaracion, cerradura
+12, ejecucion, apertura
+14, ejecucion, cerradura
+Eliminacion ambito: [#3, #14]
+Pila -> [0, 2]
+Creacion ambito: [#4, #15]
+Pila -> [0, 2, 4]
+15, declaracion, apertura
+15, declaracion, cerradura
+17, ejecucion, apertura
+18, ejecucion, cerradura
+Eliminacion ambito: [#4, #18]
+Pila -> [0, 2]
+19, declaracion, cerradura
+Eliminacion ambito: [#2, #19]
+Pila -> [0]
+Creacion ambito: [#5, #21]
+Pila -> [0, 5]
+21, declaracion, apertura
+Creacion ambito: [#6, #22]
+Pila -> [0, 5, 6]
+22, declaracion, apertura
 22, declaracion, cerradura
-23, ejecucion, apertura
-24, ejecucion, cerradura
-Eliminacion ambito: [#0, #24]
+24, ejecucion, apertura
+25, ejecucion, cerradura
+Eliminacion ambito: [#6, #25]
+Pila -> [0, 5]
+Creacion ambito: [#7, #26]
+Pila -> [0, 5, 7]
+26, declaracion, apertura
+26, declaracion, cerradura
+28, ejecucion, apertura
+29, ejecucion, cerradura
+Eliminacion ambito: [#7, #29]
+Pila -> [0, 5]
+Creacion ambito: [#8, #30]
+Pila -> [0, 5, 8]
+30, declaracion, apertura
+30, declaracion, cerradura
+32, ejecucion, apertura
+34, ejecucion, cerradura
+Eliminacion ambito: [#8, #34]
+Pila -> [0, 5]
+35, declaracion, cerradura
+Eliminacion ambito: [#5, #35]
+Pila -> [0]
+Creacion ambito: [#9, #36]
+Pila -> [0, 9]
+36, declaracion, apertura
+36, declaracion, cerradura
+38, ejecucion, apertura
+40, ejecucion, cerradura
+Eliminacion ambito: [#9, #40]
+Pila -> [0]
+Creacion ambito: [#10, #41]
+Pila -> [0, 10]
+41, declaracion, apertura
+41, declaracion, cerradura
+41, ejecucion, apertura
+43, ejecucion, cerradura
+Eliminacion ambito: [#10, #43]
+Pila -> [0]
+Creacion ambito: [#11, #43]
+Pila -> [0, 11]
+43, declaracion, apertura
+43, declaracion, cerradura
+45, ejecucion, apertura
+51, ejecucion, cerradura
+Eliminacion ambito: [#11, #51]
+Pila -> [0]
+52, declaracion, cerradura
+53, ejecucion, apertura
+54, ejecucion, cerradura
+Eliminacion ambito: [#0, #54]
 	La pila esta vacia

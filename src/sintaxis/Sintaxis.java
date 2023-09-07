@@ -37,6 +37,7 @@ public class Sintaxis {
     private boolean classOVar=false;
     private ArrayList<Integer> arrayLength;
     private boolean anon = false;
+    private boolean error = false;
     public Sintaxis(final int [][]matriz,LinkedList<Errores> listErrores, LinkedList<Token>sintaxis){
         this.matrizSintactica = matriz;
         this.tokenList = sintaxis;
@@ -81,7 +82,9 @@ public class Sintaxis {
                         execute();
                     }
                     else {
-                        declaration();
+                        if (!error){
+                            declaration();
+                        }
                     }
                     delete();
                 }
@@ -112,25 +115,6 @@ public class Sintaxis {
             }
         }
     }
-    private boolean isAmbito(Stack<Ambito> stack,String id){
-        Stack<Ambito> copyStack = (Stack<Ambito>)stack.clone();
-        while (!copyStack.isEmpty()){
-            if (isInMemberList(copyStack.pop().getNumber(),id)){
-                return true;
-            }
-        }
-        return false;
-    }
-    public boolean isInMemberList(int ambito,String id) {
-        for (MemberDetails member : memberDetailsList) {
-            if (member.getAmbito() == ambito && member.getId().equals(id)) {
-                return true; // El elemento existe en la lista
-            }
-        }
-        return false; // El elemento no existe en la lista
-    }
-
-
     private void declaration(){
         switch(stateStack.peek()){
             case DEC_VAR -> DEC_VAR();
@@ -155,6 +139,23 @@ public class Sintaxis {
             }
 
         }
+    }
+    private boolean isAmbito(Stack<Ambito> stack,String id){
+        Stack<Ambito> copyStack = (Stack<Ambito>)stack.clone();
+        while (!copyStack.isEmpty()){
+            if (isInMemberList(copyStack.pop().getNumber(),id)){
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean isInMemberList(int ambito,String id) {
+        for (MemberDetails member : memberDetailsList) {
+            if (member.getAmbito() == ambito && member.getId().equals(id)) {
+                return true; // El elemento existe en la lista
+            }
+        }
+        return false; // El elemento no existe en la lista
     }
     private void codeState(int topStack){
         switch (topStack) {
@@ -299,6 +300,7 @@ public class Sintaxis {
             if(isInMemberList(ambitoStack.peek().getNumber(),letID)){
                 erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito"));
                 erroresAmbito++;
+                error = true;
             }
             else{
                 memberDetailsList.addLast(new MemberDetails(letID,"","variable let","",ambitoStack.peek().getNumber(),0,0,null));
@@ -319,6 +321,7 @@ public class Sintaxis {
             if(isInMemberList(ambitoStack.peek().getNumber(),letID)){
                 erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito"));
                 erroresAmbito++;
+                error = true;
             }
             else{
                 memberDetailsList.addLast(new MemberDetails(letID,"","variable let","",ambitoStack.peek().getNumber(),0,0,null));
@@ -429,8 +432,23 @@ public class Sintaxis {
         {
             case -1 -> { // id
                 if(isInMemberList(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())){
-                    erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito"));
-                    erroresAmbito++;
+
+                    if(stateStack.peek()==State.DEC_SET||stateStack.peek()==State.DEC_GET){ // Es un set
+                        if(memberGetSet(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema(),stateStack.peek()==State.DEC_GET?"get":"set")){
+                            erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito"));
+                            erroresAmbito++;
+                        }
+                        else {
+                            memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),m?"void":"",type,"",ambitoStack.peek().getNumber(),0,0,null));
+                            memberPositionClass = memberDetailsList.size()-1;
+                            memberString = tokenList.getFirst().getLexema();
+                        }
+                    }
+                    else{
+                        erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito"));
+                        erroresAmbito++;
+                    }
+
                 }
                 else{
                     memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),m?"void":"",type,"",ambitoStack.peek().getNumber(),0,0,null));
@@ -446,6 +464,14 @@ public class Sintaxis {
             }
 
         }
+    }
+    private boolean memberGetSet(int ambito,String id,String type){
+        for (MemberDetails member : memberDetailsList) {
+            if (member.getAmbito() == ambito && member.getId().equals(id) && member.getType().equals(type)) {
+                return true; // El elemento existe en la lista
+            }
+        }
+        return false;
     }
     private void printDetailMember() {
         System.out.printf("%10s%10s%15s%10s%15s%15s%15s%15s\n","id", "type", "classId","ambito", "cantParametro", "typeParametro","arrayDimension","arrayLength");
