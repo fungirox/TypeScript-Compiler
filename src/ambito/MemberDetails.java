@@ -68,6 +68,10 @@ public class MemberDetails {
         this.typeParametro = typeParametro;
     }
 
+    public String getClassId() {
+        return classId;
+    }
+
     @Override
     public String toString() {
         String arrayLengthStr = (arrayLength == null) ? "" : Arrays.toString(arrayLength);

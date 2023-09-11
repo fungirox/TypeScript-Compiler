@@ -6,15 +6,22 @@ import java.util.Map;
 public class Errores extends Elemento {
     private String desc;
     private final String tipo;//es temporal
-    public Errores(final String lexema, final int token, final int linea) {
+    private int ambito;
+    public Errores(final String lexema, final int token, final int linea) { // Error lexico
         super(lexema,token,linea);
         establecerError(token);
         this.tipo="Error léxico";
     }
-    public Errores(final String lexema, final int token, final int linea,final String desc,final String tipo) {
+    public Errores(final String lexema, final int token, final int linea,final String desc,final String tipo) { // Error sintaxis
         super(lexema,token,linea);
         this.desc = desc;
         this.tipo = tipo;
+    }
+    public Errores(final String lexema, final int token, final int linea,final String desc,final String tipo,final int ambito) { // Error sintaxis
+        super(lexema,token,linea);
+        this.desc = desc;
+        this.tipo = tipo;
+        this.ambito = ambito;
     }
     private void establecerError(final int token){
         switch (token){

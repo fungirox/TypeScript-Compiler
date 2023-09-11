@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class CargarRecursos {
-    //private static String excelPath="E:/USER/Documents/2.  CODES/Intellij ide/Compi/compi/src/resources/out.xlsx";
     public static BufferedImage compatibleImageOPAQUE(final String ruta){
         Image imagen;
         BufferedImage imagenBuff=null;
@@ -147,8 +146,8 @@ public class CargarRecursos {
         }
         //data rows
         for(int i=0;i<listaToken.size();i++){
-            Row dataRow=tokenSheet.createRow(i+1);
-            Token aux= (Token) listaToken.get(i);
+            Row dataRow = tokenSheet.createRow(i+1);
+            Token aux = (Token) listaToken.get(i);
             dataRow.createCell(0).setCellValue(aux.getToken());
             dataRow.createCell(1).setCellValue(aux.getLexema());
             dataRow.createCell(2).setCellValue(aux.getLinea());
@@ -165,7 +164,7 @@ public class CargarRecursos {
         }
         //data rows
         for(int i=0;i<listaErrores.size();i++){
-            Row dataRow=erroresSheet.createRow(i+1);
+            Row dataRow = erroresSheet.createRow(i+1);
             Errores aux1 = (Errores) listaErrores.get(i);
             dataRow.createCell(0).setCellValue(aux1.getToken());
             dataRow.createCell(1).setCellValue(aux1.getDesc());
@@ -188,7 +187,7 @@ public class CargarRecursos {
         for(int i=0;i<contadores.length;i++){
             dataRow.createCell(i).setCellValue(contadores[i]);
         }
-        /*
+        /**
          * Tipos de error
          */
         XSSFSheet tiposErrorSheet=book.createSheet("Tipos de error");
@@ -198,10 +197,25 @@ public class CargarRecursos {
             Cell cell=tiposErrorR.createCell(i);
             cell.setCellValue(rowHeadTER[i]);
         }
+
         //data rows
-        Row dataRowTER=tiposErrorSheet.createRow(1);
+        Row dataRowTER = tiposErrorSheet.createRow(1);
             dataRowTER.createCell(0).setCellValue(lexico);
             dataRowTER.createCell(1).setCellValue(sintaxis);
+
+        /**
+         * Ambito
+         * */
+        XSSFSheet ambitoSheet=book.createSheet("Tipos de error");
+        Row ambitoRows=ambitoSheet.createRow(0);
+        //headers
+        for(int i=0;i<rowHeadAmbito.length;i++){
+            Cell cell=ambitoRows.createCell(i);
+            cell.setCellValue(rowHeadAmbito[i]);
+        }
+
+
+
         /*
          *  Escribir archivo
          */
@@ -217,7 +231,7 @@ public class CargarRecursos {
 
 
 
-    public static String [] rowHeadContadores={
+    public final static String [] rowHeadContadores={
             "Postfix","Binarios","Control","Matemáticos",
             "Exponentes","Turno","Relacionales",
             "Sin igualdad","Lógicos","Ternario",
@@ -225,16 +239,17 @@ public class CargarRecursos {
             "Comentarios","Cadenas","Enteros","Reales",
             "Booleans","Nulls","Identificadores","Errores"
     };
-    private static String [] rowHeadTokens={
+    private final static String [] rowHeadTokens={
             "State","Lexema","Linea"
     };
-    private static String [] rowHeadErrores={
+    private final static String [] rowHeadErrores={
             "Token","Descripcion","Lexema","Tipo de error","Linea"
     };
-    private static String [] rowHeadAmbito={
-            "ambito","string","number","boolean","real","null","# id","class","interface","@fuction","errores","total"
+    private final static String [] rowHeadAmbito={
+            "ambito","string","number","boolean","real","null",
+            "# id","class","interface","voids","Array","errores","total"
     };
-    private static String [] rowHeadTER={
+    private final static String [] rowHeadTER={
             "Lexico","Sintaxis"
     };
 

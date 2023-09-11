@@ -1,6 +1,7 @@
 package sintaxis;
 
 import ambito.Ambito;
+import ambito.AmbitoOut;
 import ambito.Area;
 import ambito.State;
 import ambito.MemberDetails;
@@ -22,22 +23,23 @@ public class Sintaxis {
     private final LinkedList<Area> areasList;
     private final Stack<Integer> syntacticStack;
     private final Stack<Ambito> ambitoStack;
-    private int ambito=0;
+    private int ambito;
     private String stringTxt ="";
     private final String txtPath ="src/resources/20130044_resultado.txt";
     private final LinkedList<MemberDetails> memberDetailsList;
     private final Stack<State> stateStack ;
-    private int parametro=0;
-    private boolean contieneParametro=false;
+    private int parametro = 0;
+    private boolean contieneParametro = false;
     private int memberPositionVar;
     private int memberPositionClass;
     private String memberString;
     private String letID;
-    private boolean let=false;
-    private boolean classOVar=false;
-    private ArrayList<Integer> arrayLength;
+    private boolean let = false;
+    private boolean classOVar = false;
+    private final ArrayList<Integer> arrayLength;
     private boolean anon = false;
     private boolean error = false;
+    private final LinkedList<AmbitoOut> ambitoOutLinkedList;
     public Sintaxis(final int [][]matriz,LinkedList<Errores> listErrores, LinkedList<Token>sintaxis){
         this.matrizSintactica = matriz;
         this.tokenList = sintaxis;
@@ -48,13 +50,15 @@ public class Sintaxis {
         this.memberDetailsList = new LinkedList<>();
         this.areasList = new LinkedList<>();
         this.arrayLength = new ArrayList<>();
+        this.ambitoOutLinkedList = new LinkedList<>();
         syntacticStack.push(200);
         stateStack.push(State.NONE);
+        ambito = 0;
     }
     public int analize() throws IOException {
         int matrizData;
         while(!tokenList.isEmpty()&&!syntacticStack.isEmpty()){
-            System.out.println(tokenList.getFirst().getLexema()+" l: "+tokenList.getFirst().getLinea()+" "+stateStack.peek()+" "+error);
+            System.out.println(tokenList.getFirst().getLexema()+" l: "+tokenList.getFirst().getLinea()+" "+stateStack.peek()+" "+error+" "+syntacticStack.peek());
             if(syntacticStack.peek()>=200&&syntacticStack.peek()<=292){ // Esto quiere decir que es un NO terminal
 
                 matrizData=mapearToken();
@@ -103,8 +107,9 @@ public class Sintaxis {
         }
         System.out.println();
         printDetailMember();
-        Files.write(Paths.get(txtPath), stringTxt.getBytes(StandardCharsets.UTF_8),
-                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        printAmbitoOut();
+//        Files.write(Paths.get(txtPath), stringTxt.getBytes(StandardCharsets.UTF_8),
+//                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
 
         return erroresAmbito;
@@ -249,17 +254,21 @@ public class Sintaxis {
                 }
             case 1211: // Interface
                 State temp = stateStack.peek();
+                setOldState();
                 if(!error){
-                    setOldState();
                     memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
                 }
                 parametro = 0;
                 classOVar = false;
                 contieneParametro = false;
-//                if(!(error && (stateStack.peek() == State.CLASS || stateStack.peek() == State.CLASS_ANON ))){
-//                    error = false;
-//                }
-
+                if(!(stateStack.peek() == State.CLASS || stateStack.peek() == State.CLASS_ANON )){
+                    error = false;
+                }
+                if(! (stateStack.peek() == State.CLASS_ANON)){
+                    anon = false;
+                }
+                getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType(memberDetailsList.get(memberPositionClass).getType());
+                let = false ;
                 break;
             case 1217: // Class
                 if(!error){
@@ -283,7 +292,7 @@ public class Sintaxis {
                 setOldState();
                 if(!error){
                     memberDetailsList.get(memberPositionClass).setArrayDimension(arrayLength.size());
-                    memberDetailsList.get(memberPositionClass).setArrayLength(arrayLength.size()>0?arrayLength.stream().mapToInt(Integer::intValue).toArray():null);
+                    memberDetailsList.get(memberPositionClass).setArrayLength(!arrayLength.isEmpty() ?arrayLength.stream().mapToInt(Integer::intValue).toArray():null);
                 }
                 error = false;
                 arrayLength.clear();
@@ -315,6 +324,7 @@ public class Sintaxis {
                 if(!error){
                     updateState(State.CLASS_ANON);
                     memberDetailsList.addLast(new MemberDetails(memberDetailsList.getLast().getType(),"","@anonima","",ambitoStack.peek().getNumber(),0,0,null));
+                    getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType("anon");
                 }
                 break;
             case 1225: // Cierra clase anonima 1
@@ -324,6 +334,7 @@ public class Sintaxis {
                 break;
             case 1226:
                 error = false;
+                anon = false;
                 setOldState();
                 break;
             case 1270: // Save ID para Let
@@ -363,7 +374,7 @@ public class Sintaxis {
     private void LET_ID(){
         if(let && (stateStack.peek() == State.LET_ID)){
             if(isInMemberList(ambitoStack.peek().getNumber(),letID)){
-                erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito"));
+                erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
                 error = true;
             }
@@ -378,13 +389,14 @@ public class Sintaxis {
         {
             case -1 -> {
                 memberDetailsList.get(memberPositionClass).setType("@"+tokenList.getFirst().getLexema()); // id
+                getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType("anon");
             }
         }
     }
     private void LET_VAR(){
         if(let && (stateStack.peek() == State.LET_VAR)){
             if(isInMemberList(ambitoStack.peek().getNumber(),letID)){
-                erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito"));
+                erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
                 error = true;
             }
@@ -396,29 +408,35 @@ public class Sintaxis {
         }
         switch (tokenList.getFirst().getToken())
         {
-            case -90,-91,-72,-61,-71 -> memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema()); // number // string // boolean // null // real
+            case -90,-91,-72,-61,-71 -> {
+                memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema()); // number // string // boolean // null // real
+                getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType(memberDetailsList.get(memberPositionClass).getType());
+            }
             case -58 -> { // #
                 updateState(State.CLASS_TYPE);
-                break;
             }
         }
     }
     private void ARRAY(){
         if(let && (stateStack.peek() == State.ARRAY)){
             if(isInMemberList(ambitoStack.peek().getNumber(),letID)){
-                erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito"));
+                erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
                 error = true;
             }
             else{
                 memberDetailsList.addLast(new MemberDetails(letID,"","Array","",ambitoStack.peek().getNumber(),0,0,null));
                 memberPositionClass = memberDetailsList.size()-1;
+                getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType("Array");
             }
             let = false;
         }
         switch (tokenList.getFirst().getToken())
         {
-            case -1,-90,-91,-72,-61,-71 -> memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema()); // id // number // string // boolean // null // real
+            case -1,-90,-91,-72,-61,-71 -> {
+                memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema()); // id // number // string // boolean // null // real
+                getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType(memberDetailsList.get(memberPositionClass).getType());
+            }
             case -58 -> { // #
                 updateState(State.CLASS_TYPE);
                 break;
@@ -434,13 +452,14 @@ public class Sintaxis {
         if(tokenList.getFirst().getToken()==-1)
         {
             if(isInMemberList(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())){
-                erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito"));
+                erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
                 error = true;
             }
             else{
                 memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"",m?"interface":"class","",ambitoStack.peek().getNumber(),0,0,null));
                 memberPositionClass = memberDetailsList.size()-1;
+                getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType(memberDetailsList.getLast().getClassId());
             }
 
         }
@@ -454,6 +473,7 @@ public class Sintaxis {
             else{
                 memberDetailsList.get(memberPositionVar).setType("#"+tokenList.getFirst().getLexema());
             }
+            getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType("classType");
         }
         setOldState();
     }
@@ -462,7 +482,7 @@ public class Sintaxis {
         {
             case -1 -> { // id
                 if(isInMemberList(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())){
-                    erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito"));
+                    erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
                     erroresAmbito++;
                     error = true;
                 }
@@ -471,9 +491,11 @@ public class Sintaxis {
                     if(contieneParametro)
                         parametro++;
                 }
-                break;
             }
-            case -90,-91,-72,-61,-71 -> memberDetailsList.getLast().setType(tokenList.getFirst().getLexema()); // number // string // boolean // null // real
+            case -90,-91,-72,-61,-71 -> {
+                memberDetailsList.getLast().setType(tokenList.getFirst().getLexema()); // number // string // boolean // null // real
+                getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType(memberDetailsList.getLast().getType());
+            }
             case -58 -> { // #
                 memberPositionVar = memberDetailsList.size()-1;
                 updateState(State.CLASS_TYPE);
@@ -483,9 +505,9 @@ public class Sintaxis {
     }
     private void DEC_MET_FUN(String type,boolean m){
         contieneParametro = true;
-        if(let && (stateStack.peek()== State.ANON_FUN||stateStack.peek() == State.ARROW_FUN)){
+        if(let && (stateStack.peek() == State.ANON_FUN||stateStack.peek() == State.ARROW_FUN)){
             if(isInMemberList(ambitoStack.peek().getNumber(),letID)){
-                erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito"));
+                erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
                 error = true;
             }
@@ -504,7 +526,7 @@ public class Sintaxis {
 
                     if(stateStack.peek()==State.DEC_SET||stateStack.peek()==State.DEC_GET){ // Es un set
                         if(memberGetSet(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema(),stateStack.peek()==State.DEC_GET?"get":"set")){
-                            erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito"));
+                            erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
                             erroresAmbito++;
                             error = true;
                         }
@@ -515,7 +537,7 @@ public class Sintaxis {
                         }
                     }
                     else{
-                        erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito"));
+                        erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
                         erroresAmbito++;
                         error = true;
                     }
@@ -531,7 +553,6 @@ public class Sintaxis {
             case -90,-91,-72,-61,-71 -> memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema()); // number // string // boolean // null // real
             case -58 -> { // #
                 updateState(State.CLASS_TYPE);
-                break;
             }
 
         }
@@ -550,6 +571,21 @@ public class Sintaxis {
         while (iterator.hasNext()) {
             System.out.println(iterator.next());
         }
+    }
+    private void printAmbitoOut() {
+        System.out.printf("\n%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s\n","ambito","strings","numbers","booleans","reals","nulls","classType","classes","interfaces","voids","arrays","errors","anons","total");
+        Iterator<AmbitoOut> iterator = ambitoOutLinkedList.iterator();
+        while (iterator.hasNext()) {
+            System.out.println(iterator.next());
+        }
+    }
+    public AmbitoOut getAmbitoOutPosition(int a) {
+        for (AmbitoOut ambit : ambitoOutLinkedList) {
+            if (ambit.getAmbito() == a ) {
+                return ambit; // El elemento existe en la lista
+            }
+        }
+        return null; // El elemento no existe en la lista
     }
     private void addArea(boolean m){ //true:ejecucion false:declaracion
         areasList.add(new Area(tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(),0,m));
@@ -578,11 +614,13 @@ public class Sintaxis {
         if (m){
             ambitoStack.push(new Ambito(ambito,tokenList.getFirst().getLinea(),0,"placeholder"));
             stringTxt += "Creacion ambito: [#"+ambitoStack.peek().getNumber()+", #"+ ambitoStack.peek().getLineStart()+"]\n";
+            ambitoOutLinkedList.add(new AmbitoOut(ambitoStack.peek().getNumber()));
             ambito++;
         }
         else{
             ambitoStack.peek().setLineFinish(tokenList.getFirst().getLinea());
             stringTxt += "Eliminacion ambito: [#"+ambitoStack.peek().getNumber()+", #"+ ambitoStack.peek().getLineFinish()+"]\n";
+            getAmbitoOutPosition(ambitoStack.peek().getNumber()).calcuteTotal();
             ambitoStack.pop();
         }
         printStackAmbito(ambitoStack);
@@ -652,7 +690,7 @@ public class Sintaxis {
             {-94,1216,-1,1000,1004,1217,-19,246,208,249,209,1227,1005,1001,-20}, 	                                                    // 11 <----- Ambito ; Declaración
             {-14,246,208}, 	                                                                                            // 12
             {249,209}, 	                                                                                                // 13
-            {-70,1204,-1,1000,1004,-10,246,211,1005,-11,212,-19,1002,254,213,1003,1001,1205,-20}, 	                            // 14 <----- Ambito ; Ejecución ; Declaración
+            {-70,1204,-1,1000,1004,-10,246,211,1005,-11,212,-19,1002,254,213,1003,1205,1001,-20}, 	                            // 14 <----- Ambito ; Ejecución ; Declaración
             {-16,246,211}, 	                                                                                            // 15
             {-13,218}, 	                                                                                                // 16
             {-14,254,213}, 	                                                                                            // 17
@@ -674,11 +712,11 @@ public class Sintaxis {
             {-61}, 	 	                                                                                                // 33
             {-88,1270,-1,221}, 	 	                                                                                        // 34
             {-30,222}, 	                                                                                                // 35
-            {1212,-70,1000,-10,1004,246,223,1005,-11,224,1213,-19,1002,254,225,1003,1001,-20}, 	                                // 36 <----- Ambito ; Ejecución ; Declaración
+            {1212,-70,1000,-10,1004,246,223,1005,-11,224,-19,1002,254,225,1003,1213,1001,-20}, 	                                // 36 <----- Ambito ; Ejecución ; Declaración
             {-16,246,223}, 	                                                                                            // 37
             {-13,218}, 	                                                                                                // 38
             {-14,254,226}, 	                                                                                            // 39
-            {1214,-10,1000,1004,246,226,1005,-11,1215,-33,1002,254,1003,1001}, 	                                                // 40 <----- Ambito ; Ejecución ; Declaración // Arrow fuction
+            {1214,-10,1000,1004,246,226,1005,-11,-33,1002,254,1003,1215,1001}, 	                                                // 40 <----- Ambito ; Ejecución ; Declaración // Arrow fuction
             {-16,246,226}, 	                                                                                            // 41
             {-13,227}, 	                                                                                                // 42
             {-73,-26,1218,228,-40,-30,229}, 	                                                                                // 43
