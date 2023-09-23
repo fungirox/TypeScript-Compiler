@@ -10,5 +10,6 @@
     <orderEntry type="library" name="flatlaf-3.0" level="project" />
     <orderEntry type="library" name="poi-3.16" level="project" />
     <orderEntry type="library" name="xmlbeans-2.6.0" level="project" />
+    <orderEntry type="library" name="mysql-connector-j-8.1.0" level="project" />
   </component>
 </module>

@@ -5,6 +5,7 @@ import lexico.Lexico;
 import lexico.Token;
 import resources.CargarRecursos;
 import resources.Line;
+import resources.SqlQuerys;
 import sintaxis.Sintaxis;
 
 import javax.swing.*;
@@ -60,7 +61,8 @@ public class Frame extends JFrame{
         matrizLexico=CargarRecursos.openExcelFileLexico(excelLexicoPath);
         matrizSintactica=CargarRecursos.openExcelFileSintaxis(excelSintaxisPath);
 
-//        CargarRecursos.llenarContadores();
+        CargarRecursos.connectionSQL.tryConnection();
+        CargarRecursos.connectionSQL.truncateTable();
     }
     private void initImages(){
         BufferedImage imagen= CargarRecursos.compatibleImageTRANSLUCENT(iconPath);
@@ -77,7 +79,6 @@ public class Frame extends JFrame{
         setIconImage(icon.getImage());
         numLine=new Line(txtCodigo);
 
-//        setLayout(new BorderLayout());
         setLocationRelativeTo(null);
 
         mdTblErrores=(DefaultTableModel) tblError.getModel();
@@ -438,7 +439,6 @@ public class Frame extends JFrame{
         }
 
 
-//        txtCodigo.get
     }
 
     private void llenarTablaErrores(){

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class CargarRecursos {
+    public static SqlQuerys connectionSQL = new SqlQuerys();
     public static BufferedImage compatibleImageOPAQUE(final String ruta){
         Image imagen;
         BufferedImage imagenBuff=null;
@@ -206,15 +207,19 @@ public class CargarRecursos {
         /**
          * Ambito
          * */
-        XSSFSheet ambitoSheet=book.createSheet("Tipos de error");
+        XSSFSheet ambitoSheet=book.createSheet("Ambito");
         Row ambitoRows=ambitoSheet.createRow(0);
         //headers
         for(int i=0;i<rowHeadAmbito.length;i++){
             Cell cell=ambitoRows.createCell(i);
             cell.setCellValue(rowHeadAmbito[i]);
         }
+        writeAmbitoExcel(ambitoSheet);
 
-
+                /**= ambitoSheet.createRow(1);
+        dataRowAmbito.createCell(0).setCellValue(lexico);
+        dataRowAmbito.createCell(1).setCellValue(sintaxis);
+            */
 
         /*
          *  Escribir archivo
@@ -229,6 +234,23 @@ public class CargarRecursos {
         }
     }
 
+    private static void writeAmbitoExcel(XSSFSheet ambitoSheet){
+        Row dataRow;
+        int ambitos=connectionSQL.ambitos();
+        for(int i=0;i<ambitos;i++){
+            //Añadir ambito
+            dataRow = ambitoSheet.createRow(i+1);
+            dataRow.createCell(0).setCellValue(i);
+            dataRow.createCell(1).setCellValue(connectionSQL.calculateType("string",i));
+            dataRow.createCell(2).setCellValue(connectionSQL.calculateType("number",i));
+            dataRow.createCell(3).setCellValue(connectionSQL.calculateType("boolean",i));
+            dataRow.createCell(4).setCellValue(connectionSQL.calculateType("real",i));
+            dataRow.createCell(5).setCellValue(connectionSQL.calculateType("null",i));
+            dataRow.createCell(6).setCellValue(connectionSQL.calculateType("void",i));
+            dataRow.createCell(7).setCellValue(connectionSQL.classType(i));
+        }
+
+    }
 
 
     public final static String [] rowHeadContadores={
@@ -247,7 +269,7 @@ public class CargarRecursos {
     };
     private final static String [] rowHeadAmbito={
             "ambito","string","number","boolean","real","null",
-            "# id","class","interface","voids","Array","errores","total"
+            "void","# id","errores","total"
     };
     private final static String [] rowHeadTER={
             "Lexico","Sintaxis"

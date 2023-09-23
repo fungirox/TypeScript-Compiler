@@ -7,6 +7,8 @@ import ambito.State;
 import ambito.MemberDetails;
 import lexico.Errores;
 import lexico.Token;
+import resources.CargarRecursos;
+import resources.SqlQuerys;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,18 +18,19 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public class Sintaxis {
+    private final SqlQuerys sqlQuerys;
     private int erroresAmbito;
     private final int[][] matrizSintactica;
-    private final LinkedList<Token> tokenList;
-    private final LinkedList<Errores> erroresList;
-    private final LinkedList<Area> areasList;
-    private final Stack<Integer> syntacticStack;
-    private final Stack<Ambito> ambitoStack;
+    private final LinkedList <Token> tokenList;
+    private final LinkedList <Errores> erroresList;
+    private final LinkedList <Area> areasList;
+    private final Stack <Integer> syntacticStack;
+    private final Stack <Ambito> ambitoStack;
     private int ambito;
     private String stringTxt ="";
     private final String txtPath ="src/resources/20130044_resultado.txt";
-    private final LinkedList<MemberDetails> memberDetailsList;
-    private final Stack<State> stateStack ;
+    private final LinkedList <MemberDetails> memberDetailsList;
+    private final Stack <State> stateStack ;
     private int parametro = 0;
     private boolean contieneParametro = false;
     private int memberPositionVar;
@@ -36,11 +39,10 @@ public class Sintaxis {
     private String letID;
     private boolean let = false;
     private boolean classOVar = false;
-    private final ArrayList<Integer> arrayLength;
+    private final ArrayList <Integer> arrayLength;
     private boolean anon = false;
     private boolean error = false;
-    private final LinkedList<AmbitoOut> ambitoOutLinkedList;
-    public Sintaxis(final int [][]matriz,LinkedList<Errores> listErrores, LinkedList<Token>sintaxis){
+    public Sintaxis(final int [][]matriz,final LinkedList<Errores> listErrores,final LinkedList<Token>sintaxis){
         this.matrizSintactica = matriz;
         this.tokenList = sintaxis;
         this.erroresList = listErrores;
@@ -50,10 +52,12 @@ public class Sintaxis {
         this.memberDetailsList = new LinkedList<>();
         this.areasList = new LinkedList<>();
         this.arrayLength = new ArrayList<>();
-        this.ambitoOutLinkedList = new LinkedList<>();
+//        this.ambitoOutLinkedList = new LinkedList<>();
+        this.sqlQuerys = CargarRecursos.connectionSQL;
         syntacticStack.push(200);
         stateStack.push(State.NONE);
         ambito = 0;
+
     }
     public int analize() throws IOException {
         int matrizData;
@@ -107,7 +111,11 @@ public class Sintaxis {
         }
         System.out.println();
         printDetailMember();
-        printAmbitoOut();
+
+        System.out.println(sqlQuerys.ambitos());
+
+
+
 //        Files.write(Paths.get(txtPath), stringTxt.getBytes(StandardCharsets.UTF_8),
 //                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
@@ -126,23 +134,22 @@ public class Sintaxis {
         switch(stateStack.peek()){
             case DEC_VAR -> DEC_VAR();
             case CLASS_TYPE -> CLASS_TYPE();
-            case DEC_MET -> DEC_MET_FUN("metodo",true);
-            case DEC_FUN -> DEC_MET_FUN("fuction",true);
-            case DEC_SET -> DEC_MET_FUN("set",true);
-            case DEC_GET -> DEC_MET_FUN("get",true);
+            case DEC_MET -> DEC_MET_FUN("metodo");
+            case DEC_FUN -> DEC_MET_FUN("fuction");
+            case DEC_SET -> DEC_MET_FUN("set");
+            case DEC_GET -> DEC_MET_FUN("get");
             case INTERFACE -> INTERFACE_CLASS(true);
             case CLASS -> INTERFACE_CLASS(false);
-            case ANON_FUN -> DEC_MET_FUN("@fuction",true);
-            case ARROW_FUN -> DEC_MET_FUN("arrow fuction",true);
+            case ANON_FUN -> DEC_MET_FUN("@fuction");
+            case ARROW_FUN -> DEC_MET_FUN("arrow fuction");
             case ARRAY -> ARRAY();
             case LET_VAR -> LET_VAR();
             case LET_ID -> LET_ID();
             case CLASS_ANON -> CLASS_ANON();
             case SAVEID -> {
                 if(tokenList.getFirst().getToken()==-1)
-                    letID=tokenList.getFirst().getLexema();
+                    letID = tokenList.getFirst().getLexema();
                 setOldState();
-                break;
             }
 
         }
@@ -150,20 +157,13 @@ public class Sintaxis {
     private boolean isAmbito(Stack<Ambito> stack,String id){
         Stack<Ambito> copyStack = (Stack<Ambito>)stack.clone();
         while (!copyStack.isEmpty()){
-            if (isInMemberList(copyStack.pop().getNumber(),id)){
+            if (sqlQuerys.isDeclarated(copyStack.pop().getNumber(),id)){
                 return true;
             }
         }
         return false;
     }
-    public boolean isInMemberList(int ambito,String id) {
-        for (MemberDetails member : memberDetailsList) {
-            if (member.getAmbito() == ambito && member.getId().equals(id)) {
-                return true; // El elemento existe en la lista
-            }
-        }
-        return false; // El elemento no existe en la lista
-    }
+
     private void codeState(int topStack){
         switch (topStack) {
             case 1000:
@@ -175,7 +175,6 @@ public class Sintaxis {
                 if(!error){
                     gestionAmbito(false); // Eliminación de ámbito
                 }
-
                 break;
             case 1002:
                 addArea(true); // Abre área de ejecución
@@ -199,6 +198,10 @@ public class Sintaxis {
             case 1201: // Cierra Declaración de variable en DEC_VAR
                 if(!error){
                     setOldState();
+                    sqlQuerys.addMember(memberDetailsList.getLast());
+                }
+                if(!classOVar){
+                    error = false;
                 }
                 break;
             case 1202: // DEC_MET
@@ -253,26 +256,27 @@ public class Sintaxis {
                     memberDetailsList.get(memberPositionClass).setCantParametro(parametro);
                 }
             case 1211: // Interface
-                State temp = stateStack.peek();
-                setOldState();
+
                 if(!error){
                     memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
+                    sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 }
                 parametro = 0;
                 classOVar = false;
                 contieneParametro = false;
                 if(!(stateStack.peek() == State.CLASS || stateStack.peek() == State.CLASS_ANON )){
                     error = false;
+                    setOldState();
                 }
-                if(! (stateStack.peek() == State.CLASS_ANON)){
+                if(!(stateStack.peek() == State.CLASS_ANON)){
                     anon = false;
                 }
-                getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType(memberDetailsList.get(memberPositionClass).getType());
-                let = false ;
+                let = false;
                 break;
             case 1217: // Class
                 if(!error){
                     memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
+                    sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 }
                 parametro = 0;
                 classOVar = false;
@@ -280,6 +284,7 @@ public class Sintaxis {
                 break;
             case 1227:
                 setOldState();
+                sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 error = false;
                 break;
             case 1218: // ARRAY
@@ -292,7 +297,8 @@ public class Sintaxis {
                 setOldState();
                 if(!error){
                     memberDetailsList.get(memberPositionClass).setArrayDimension(arrayLength.size());
-                    memberDetailsList.get(memberPositionClass).setArrayLength(!arrayLength.isEmpty() ?arrayLength.stream().mapToInt(Integer::intValue).toArray():null);
+                    memberDetailsList.get(memberPositionClass).setArrayLength(!arrayLength.isEmpty() ? arrayLength.stream().mapToInt(Integer::intValue).toArray():null);
+                    sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 }
                 error = false;
                 arrayLength.clear();
@@ -305,6 +311,9 @@ public class Sintaxis {
                 break;
             case 1221: // Cierra LET VAR
                 setOldState();
+                if(!error){
+                    sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
+                }
                 break;
             case 1222: // LET ID (SIN CLASS)
                 if(!error){
@@ -315,7 +324,8 @@ public class Sintaxis {
                 break;
             case 1223: // CIERRA LET ID (SIN CLASS)
                 if(!error){
-                    memberDetailsList.addLast(new MemberDetails(memberDetailsList.getLast().getType(),"constante","@anonima","",ambitoStack.peek().getNumber(),0,0,null));
+                    memberDetailsList.addLast(new MemberDetails(memberDetailsList.getLast().getType(),"","@anonima","",ambitoStack.peek().getNumber(),0,0,null));
+                    sqlQuerys.addMember(memberDetailsList.getLast());
                 }
                 setOldState();
                 break;
@@ -324,17 +334,18 @@ public class Sintaxis {
                 if(!error){
                     updateState(State.CLASS_ANON);
                     memberDetailsList.addLast(new MemberDetails(memberDetailsList.getLast().getType(),"","@anonima","",ambitoStack.peek().getNumber(),0,0,null));
-                    getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType("anon");
                 }
                 break;
             case 1225: // Cierra clase anonima 1
                 if(!error){
                     memberDetailsList.getLast().setTypeParametro(ambitoStack.peek().getNumber()+"");
+                    sqlQuerys.addMember(memberDetailsList.getLast());
                 }
                 break;
             case 1226:
                 error = false;
                 anon = false;
+                sqlQuerys.addMember(memberDetailsList.getLast());
                 setOldState();
                 break;
             case 1270: // Save ID para Let
@@ -353,7 +364,6 @@ public class Sintaxis {
             }
             default -> classOVar = true;
         }
-
     }
     private void setOldState(){
         stateStack.pop();
@@ -371,46 +381,40 @@ public class Sintaxis {
     private void CLASS_ANON(){
 
     }
+
+    private void isDuplicateLet(String classID){
+        if(isAmbito(ambitoStack,letID)){
+            erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
+            erroresAmbito++;
+            error = true;
+        }
+        else{
+            memberDetailsList.addLast(new MemberDetails(letID,"",classID,"",ambitoStack.peek().getNumber(),0,0,null));
+            memberPositionClass = memberDetailsList.size()-1;
+        }
+        let = false;
+    }
+
     private void LET_ID(){
         if(let && (stateStack.peek() == State.LET_ID)){
-            if(isInMemberList(ambitoStack.peek().getNumber(),letID)){
-                erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
-                erroresAmbito++;
-                error = true;
-            }
-            else{
-                memberDetailsList.addLast(new MemberDetails(letID,"","variable let","",ambitoStack.peek().getNumber(),0,0,null));
-                memberPositionClass = memberDetailsList.size()-1;
-            }
-
-            let = false;
+            isDuplicateLet("var let");
         }
         switch (tokenList.getFirst().getToken())
         {
             case -1 -> {
                 memberDetailsList.get(memberPositionClass).setType("@"+tokenList.getFirst().getLexema()); // id
-                getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType("anon");
+                sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
             }
         }
     }
     private void LET_VAR(){
         if(let && (stateStack.peek() == State.LET_VAR)){
-            if(isInMemberList(ambitoStack.peek().getNumber(),letID)){
-                erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
-                erroresAmbito++;
-                error = true;
-            }
-            else{
-                memberDetailsList.addLast(new MemberDetails(letID,"","variable let","",ambitoStack.peek().getNumber(),0,0,null));
-                memberPositionClass = memberDetailsList.size()-1;
-            }
-            let = false;
+            isDuplicateLet("var let");
         }
         switch (tokenList.getFirst().getToken())
         {
             case -90,-91,-72,-61,-71 -> {
                 memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema()); // number // string // boolean // null // real
-                getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType(memberDetailsList.get(memberPositionClass).getType());
             }
             case -58 -> { // #
                 updateState(State.CLASS_TYPE);
@@ -419,27 +423,15 @@ public class Sintaxis {
     }
     private void ARRAY(){
         if(let && (stateStack.peek() == State.ARRAY)){
-            if(isInMemberList(ambitoStack.peek().getNumber(),letID)){
-                erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
-                erroresAmbito++;
-                error = true;
-            }
-            else{
-                memberDetailsList.addLast(new MemberDetails(letID,"","Array","",ambitoStack.peek().getNumber(),0,0,null));
-                memberPositionClass = memberDetailsList.size()-1;
-                getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType("Array");
-            }
-            let = false;
+            isDuplicateLet("Array");
         }
         switch (tokenList.getFirst().getToken())
         {
             case -1,-90,-91,-72,-61,-71 -> {
                 memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema()); // id // number // string // boolean // null // real
-                getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType(memberDetailsList.get(memberPositionClass).getType());
             }
             case -58 -> { // #
                 updateState(State.CLASS_TYPE);
-                break;
             }
             case -55 -> { // constante number
                 arrayLength.add(Integer.valueOf(tokenList.getFirst().getLexema()));
@@ -451,7 +443,7 @@ public class Sintaxis {
         classOVar = true;
         if(tokenList.getFirst().getToken()==-1)
         {
-            if(isInMemberList(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())){
+            if(isAmbito(ambitoStack,tokenList.getFirst().getLexema())){
                 erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
                 error = true;
@@ -459,7 +451,6 @@ public class Sintaxis {
             else{
                 memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"",m?"interface":"class","",ambitoStack.peek().getNumber(),0,0,null));
                 memberPositionClass = memberDetailsList.size()-1;
-                getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType(memberDetailsList.getLast().getClassId());
             }
 
         }
@@ -469,11 +460,12 @@ public class Sintaxis {
             if(classOVar){
                 String aux=anon?"@ #":"#";
                 memberDetailsList.get(memberPositionClass).setType(aux+tokenList.getFirst().getLexema());
+
             }
             else{
                 memberDetailsList.get(memberPositionVar).setType("#"+tokenList.getFirst().getLexema());
             }
-            getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType("classType");
+
         }
         setOldState();
     }
@@ -481,7 +473,7 @@ public class Sintaxis {
         switch (tokenList.getFirst().getToken())
         {
             case -1 -> { // id
-                if(isInMemberList(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())){
+                if(isAmbito(ambitoStack,tokenList.getFirst().getLexema())){
                     erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
                     erroresAmbito++;
                     error = true;
@@ -494,7 +486,6 @@ public class Sintaxis {
             }
             case -90,-91,-72,-61,-71 -> {
                 memberDetailsList.getLast().setType(tokenList.getFirst().getLexema()); // number // string // boolean // null // real
-                getAmbitoOutPosition(ambitoStack.peek().getNumber()).setInType(memberDetailsList.getLast().getType());
             }
             case -58 -> { // #
                 memberPositionVar = memberDetailsList.size()-1;
@@ -503,16 +494,16 @@ public class Sintaxis {
 
         }
     }
-    private void DEC_MET_FUN(String type,boolean m){
+    private void DEC_MET_FUN(String classFun){
         contieneParametro = true;
         if(let && (stateStack.peek() == State.ANON_FUN||stateStack.peek() == State.ARROW_FUN)){
-            if(isInMemberList(ambitoStack.peek().getNumber(),letID)){
+            if(isAmbito(ambitoStack,letID)){
                 erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
                 error = true;
             }
             else{
-                memberDetailsList.addLast(new MemberDetails(letID,m?"void":"",type,"",ambitoStack.peek().getNumber(),0,0,null));
+                memberDetailsList.addLast(new MemberDetails(letID,"void",classFun,"",ambitoStack.peek().getNumber(),0,0,null));
                 memberPositionClass = memberDetailsList.size()-1;
                 memberString = letID;
             }
@@ -522,16 +513,16 @@ public class Sintaxis {
         switch (tokenList.getFirst().getToken())
         {
             case -1 -> { // id
-                if(isInMemberList(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())){
+                if(isAmbito(ambitoStack,tokenList.getFirst().getLexema())){
 
-                    if(stateStack.peek()==State.DEC_SET||stateStack.peek()==State.DEC_GET){ // Es un set
-                        if(memberGetSet(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema(),stateStack.peek()==State.DEC_GET?"get":"set")){
+                    if(stateStack.peek()==State.DEC_SET||stateStack.peek() == State.DEC_GET){ // Es un set
+                        if(memberGetSet(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema(),stateStack.peek() == State.DEC_GET?"get":"set")){
                             erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
                             erroresAmbito++;
                             error = true;
                         }
                         else {
-                            memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),m?"void":"",type,"",ambitoStack.peek().getNumber(),0,0,null));
+                            memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"void",classFun,"",ambitoStack.peek().getNumber(),0,0,null));
                             memberPositionClass = memberDetailsList.size()-1;
                             memberString = tokenList.getFirst().getLexema();
                         }
@@ -544,26 +535,23 @@ public class Sintaxis {
 
                 }
                 else{
-                    memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),m?"void":"",type,"",ambitoStack.peek().getNumber(),0,0,null));
+                    memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"void",classFun,"",ambitoStack.peek().getNumber(),0,0,null));
                     memberPositionClass = memberDetailsList.size()-1;
                     memberString = tokenList.getFirst().getLexema();
                 }
                 break;
             }
-            case -90,-91,-72,-61,-71 -> memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema()); // number // string // boolean // null // real
+            case -90,-91,-72,-61,-71 -> {
+                memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema()); // number // string // boolean // null // real
+            }
             case -58 -> { // #
                 updateState(State.CLASS_TYPE);
             }
 
         }
     }
-    private boolean memberGetSet(int ambito,String id,String type){
-        for (MemberDetails member : memberDetailsList) {
-            if (member.getAmbito() == ambito && member.getId().equals(id) && member.getType().equals(type)) {
-                return true; // El elemento existe en la lista
-            }
-        }
-        return false;
+    private boolean memberGetSet(int ambito,String id,String classId){
+        return sqlQuerys.isDeclaratedGetSet(ambito,id,classId);
     }
     private void printDetailMember() {
         System.out.printf("%10s%10s%15s%10s%15s%15s%15s%15s\n","id", "type", "classId","ambito", "cantParametro", "typeParametro","arrayDimension","arrayLength");
@@ -571,21 +559,6 @@ public class Sintaxis {
         while (iterator.hasNext()) {
             System.out.println(iterator.next());
         }
-    }
-    private void printAmbitoOut() {
-        System.out.printf("\n%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s\n","ambito","strings","numbers","booleans","reals","nulls","classType","classes","interfaces","voids","arrays","errors","anons","total");
-        Iterator<AmbitoOut> iterator = ambitoOutLinkedList.iterator();
-        while (iterator.hasNext()) {
-            System.out.println(iterator.next());
-        }
-    }
-    public AmbitoOut getAmbitoOutPosition(int a) {
-        for (AmbitoOut ambit : ambitoOutLinkedList) {
-            if (ambit.getAmbito() == a ) {
-                return ambit; // El elemento existe en la lista
-            }
-        }
-        return null; // El elemento no existe en la lista
     }
     private void addArea(boolean m){ //true:ejecucion false:declaracion
         areasList.add(new Area(tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(),0,m));
@@ -614,13 +587,13 @@ public class Sintaxis {
         if (m){
             ambitoStack.push(new Ambito(ambito,tokenList.getFirst().getLinea(),0,"placeholder"));
             stringTxt += "Creacion ambito: [#"+ambitoStack.peek().getNumber()+", #"+ ambitoStack.peek().getLineStart()+"]\n";
-            ambitoOutLinkedList.add(new AmbitoOut(ambitoStack.peek().getNumber()));
+            System.out.println("abre "+ambitoStack.peek().getNumber());
             ambito++;
         }
         else{
             ambitoStack.peek().setLineFinish(tokenList.getFirst().getLinea());
             stringTxt += "Eliminacion ambito: [#"+ambitoStack.peek().getNumber()+", #"+ ambitoStack.peek().getLineFinish()+"]\n";
-            getAmbitoOutPosition(ambitoStack.peek().getNumber()).calcuteTotal();
+            System.out.println("cierra "+ambitoStack.peek().getNumber());
             ambitoStack.pop();
         }
         printStackAmbito(ambitoStack);
@@ -644,23 +617,6 @@ public class Sintaxis {
         }
         stringTxt +="]\n";
     }
-    private void printStackAmbitoConsole(Stack<Ambito> stack){
-        if (stack.isEmpty()){
-            System.out.println("\tLa pila esta vacia\n");
-            return;
-        }
-        String stringTxt="";
-        Iterator<Ambito> iterator = stack.iterator();
-        stringTxt +="Pila -> [";
-        while (iterator.hasNext()) {
-            String a= String.valueOf(iterator.next().getNumber());
-            stringTxt +=a;
-            if(iterator.hasNext())
-                stringTxt +=", ";
-        }
-        stringTxt +="]\n";
-        System.out.println(stringTxt);
-    }
     public void clean(){
         syntacticStack.clear();
         syntacticStack.push(200);
@@ -670,6 +626,8 @@ public class Sintaxis {
         memberDetailsList.clear();
         erroresAmbito = 0;
         error = false;
+        sqlQuerys.truncateTable();
+
     }
 
     //Contenidos: del 200 a 292 son NO terminales (ver en matriz)
@@ -687,14 +645,14 @@ public class Sintaxis {
             {-14,210,205}, 	                                                                                            // 8
             {-14,254,206}, 	                                                                                            // 9
             {-14,254,206}, 	                                                                                            // 10
-            {-94,1216,-1,1000,1004,1217,-19,246,208,249,209,1227,1005,1001,-20}, 	                                                    // 11 <----- Ambito ; Declaración
+            {-94,1216,-1,1000,1004,1217,-19,246,208,249,209,1227,1001,1005,-20}, 	                                                    // 11 <----- Ambito ; Declaración
             {-14,246,208}, 	                                                                                            // 12
             {249,209}, 	                                                                                                // 13
-            {-70,1204,-1,1000,1004,-10,246,211,1005,-11,212,-19,1002,254,213,1003,1205,1001,-20}, 	                            // 14 <----- Ambito ; Ejecución ; Declaración
+            {-70,1204,-1,1000,1004,-10,246,211,1005,-11,212,-19,1002,254,213,1003,1001,1205,-20}, 	                            // 14 <----- Ambito ; Ejecución ; Declaración
             {-16,246,211}, 	                                                                                            // 15
             {-13,218}, 	                                                                                                // 16
             {-14,254,213}, 	                                                                                            // 17
-            {-92,1206,-1,1000,-10,1004,246,215,1207,1005,-11,-19,1002,254,216,1003,1001,-20}, 	                                // 18 <----- Ambito ; Ejecución ; Declaración
+            {-92,1206,-1,1000,-10,1004,246,215,1005,-11,-19,1002,254,216,1003,1001,1207,-20}, 	                                // 18 <----- Ambito ; Ejecución ; Declaración
             {-16,246,215}, 	                                                                                            // 19
             {-14,254,216}, 	                                                                                            // 20
             {-93,1208,-1,1000,-10,1004,1005,-11,-13,218,1209,-19,1002,254,217,1003,1001,-20}, 	                                // 21 <----- Ambito ; Ejecución ; Declaración
@@ -712,11 +670,11 @@ public class Sintaxis {
             {-61}, 	 	                                                                                                // 33
             {-88,1270,-1,221}, 	 	                                                                                        // 34
             {-30,222}, 	                                                                                                // 35
-            {1212,-70,1000,-10,1004,246,223,1005,-11,224,-19,1002,254,225,1003,1213,1001,-20}, 	                                // 36 <----- Ambito ; Ejecución ; Declaración
+            {1212,-70,1000,-10,1004,246,223,1005,-11,224,-19,1002,254,225,1003,1001,1213,-20}, 	                                // 36 <----- Ambito ; Ejecución ; Declaración
             {-16,246,223}, 	                                                                                            // 37
             {-13,218}, 	                                                                                                // 38
             {-14,254,226}, 	                                                                                            // 39
-            {1214,-10,1000,1004,246,226,1005,-11,-33,1002,254,1003,1215,1001}, 	                                                // 40 <----- Ambito ; Ejecución ; Declaración // Arrow fuction
+            {1214,-10,1000,1004,246,226,1005,-11,-33,1002,254,1003,1001,1215}, 	                                                // 40 <----- Ambito ; Ejecución ; Declaración // Arrow fuction
             {-16,246,226}, 	                                                                                            // 41
             {-13,227}, 	                                                                                                // 42
             {-73,-26,1218,228,-40,-30,229}, 	                                                                                // 43
@@ -729,14 +687,14 @@ public class Sintaxis {
             {1220,218,1221,232}, 	                                                                                                // 50
             {-30,233}, 	                                                                                                // 51
             {219}, 	                                                                                                    // 52
-            {-19,1224,1000,1004,1225,246,-16,234,214,235,249,236,1226,1005,1001,-20}, 	                                                // 53 <----- Ambito ; Declaración
+            {-19,1224,1000,1004,1225,246,-16,234,214,235,249,236,1001,1005,1226,-20}, 	                                                // 53 <----- Ambito ; Declaración
             {246,-16}, 	                                                                                                // 54
             {-16,214}, 	                                                                                                // 55
             {-16,249}, 	                                                                                                // 56
             {1222,-1,237}, 	                                                                                                // 57
             {-30,238}, 	                                                                                                // 58
             {1223,219}, 	                                                                                                    // 59
-            {-19,1224,1000,1004,1225,246,-16,239,214,240,249,241,1226,1005,1001,-20}, 	                                                // 60 <----- Ambito ; Declaración
+            {-19,1224,1000,1004,1225,246,-16,239,214,240,249,241,1001,1005,1226,-20}, 	                                                // 60 <----- Ambito ; Declaración
             {246,-16}, 	                                                                                                // 61
             {-16,214}, 	                                                                                                // 62
             {-16,249}, 	                                                                                                // 63
@@ -747,7 +705,7 @@ public class Sintaxis {
             {273,245}, 	                                                                                                // 68
             {-16,273,245}, 	                                                                                            // 69
             {1200,-1,-13,218,1201}, 	                                                                                // 70 // DEC_VAR
-            {-89,1210,-1,1000,1004,-19,246,248,1005,1211,1001,-20}, 	                                                            // 71 <----- Ambito ; Declaración
+            {-89,1210,-1,1000,1004,-19,246,248,1005,1001,1211,-20}, 	                                                            // 71 <----- Ambito ; Declaración
             {-14,246,248}, 	                                                                                            // 72
             {1202,-1,1000,-10,1004,246,250,1005,-11,251,1203,-19,1002,254,252,1003,1001,-20}, 	                                // 73 <----- Ambito ; Ejecución ; Declaración ; DEC_MET
             {-16,246,250}, 	                                                                                            // 74
