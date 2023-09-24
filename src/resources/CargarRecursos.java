@@ -133,7 +133,7 @@ public class CargarRecursos {
         }
         return matriz;
     }
-    public static void writeToExcel(final LinkedList listaToken,final LinkedList listaErrores,final int[] contadores,final int lexico, final int sintaxis,final String path){
+    public static void writeToExcel(final LinkedList<Token> listaToken,final LinkedList<Errores> listaErrores,final int[] contadores,final int lexico, final int sintaxis,final String path){
         XSSFWorkbook book=new XSSFWorkbook();
         XSSFSheet tokenSheet=book.createSheet("Token");
         Row headerRow1=tokenSheet.createRow(0);
@@ -214,12 +214,8 @@ public class CargarRecursos {
             Cell cell=ambitoRows.createCell(i);
             cell.setCellValue(rowHeadAmbito[i]);
         }
-        writeAmbitoExcel(ambitoSheet);
+        writeAmbitoExcel(ambitoSheet,listaErrores);
 
-                /**= ambitoSheet.createRow(1);
-        dataRowAmbito.createCell(0).setCellValue(lexico);
-        dataRowAmbito.createCell(1).setCellValue(sintaxis);
-            */
 
         /*
          *  Escribir archivo
@@ -234,10 +230,10 @@ public class CargarRecursos {
         }
     }
 
-    private static void writeAmbitoExcel(XSSFSheet ambitoSheet){
+    private static void writeAmbitoExcel(XSSFSheet ambitoSheet,final LinkedList<Errores> listaErrores){
         Row dataRow;
         int ambitos=connectionSQL.ambitos();
-        for(int i=0;i<ambitos;i++){
+        for(int i=0;i<=ambitos;i++){
             //Añadir ambito
             dataRow = ambitoSheet.createRow(i+1);
             dataRow.createCell(0).setCellValue(i);
@@ -247,11 +243,40 @@ public class CargarRecursos {
             dataRow.createCell(4).setCellValue(connectionSQL.calculateType("real",i));
             dataRow.createCell(5).setCellValue(connectionSQL.calculateType("null",i));
             dataRow.createCell(6).setCellValue(connectionSQL.calculateType("void",i));
-            dataRow.createCell(7).setCellValue(connectionSQL.classType(i));
+            dataRow.createCell(7).setCellValue(connectionSQL.classType(i)); // Class type
+            dataRow.createCell(8).setCellValue(errorsPerAmbit(listaErrores,i)); // Errores
+            double total =  dataRow.getCell(1).getNumericCellValue() + dataRow.getCell(2).getNumericCellValue() + dataRow.getCell(3).getNumericCellValue()
+                    + dataRow.getCell(4).getNumericCellValue() + dataRow.getCell(5).getNumericCellValue() + dataRow.getCell(6).getNumericCellValue()
+                    + dataRow.getCell(7).getNumericCellValue() + dataRow.getCell(8).getNumericCellValue();
+            dataRow.createCell(9).setCellValue(total); // Total
         }
-
+        ambitoSheet.createRow(ambitoSheet.getLastRowNum()+1);
+        dataRow = ambitoSheet.createRow(ambitoSheet.getLastRowNum()+1);
+        totalAmbito(dataRow,ambitoSheet);
     }
-
+    private static void totalAmbito(Row dataRow,XSSFSheet ambitoSheet){
+        int cantRows=ambitoSheet.getLastRowNum();
+        int cantCells0=ambitoSheet.getRow(0).getLastCellNum();
+        for(int j=0;j<cantCells0;j++){
+            dataRow.createCell(j);
+        }
+        dataRow.getCell(0).setCellValue("Totales");
+        for(int i=1;i<cantRows;i++){
+            int cantCells=ambitoSheet.getRow(i).getLastCellNum();
+            for(int j=1;j<cantCells;j++){
+                dataRow.getCell(j).setCellValue(
+                        dataRow.getCell(j).getNumericCellValue() + ambitoSheet.getRow(i).getCell(j).getNumericCellValue()
+                );
+            }
+        }
+    }
+    private static int errorsPerAmbit(final LinkedList<Errores> listaErrores,final int ambito){
+        int suma = 0;
+        for(int i=0;i<listaErrores.size();i++){
+            suma = listaErrores.get(i).getAmbito() == ambito ? suma+1 : suma ;
+        }
+        return suma;
+    }
 
     public final static String [] rowHeadContadores={
             "Postfix","Binarios","Control","Matemáticos",

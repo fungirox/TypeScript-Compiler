@@ -1,6 +1,6 @@
 package ambito;
 
-import java.util.Arrays;
+
 
 public class AmbitoOut {
     private int strings,numbers,booleans,reals,nulls,classType,voids,errors,total;

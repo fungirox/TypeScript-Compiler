@@ -62,7 +62,7 @@ public class Sintaxis {
     public int analize() throws IOException {
         int matrizData;
         while(!tokenList.isEmpty()&&!syntacticStack.isEmpty()){
-            System.out.println(tokenList.getFirst().getLexema()+" l: "+tokenList.getFirst().getLinea()+" "+stateStack.peek()+" "+error+" "+syntacticStack.peek());
+            System.out.println(tokenList.getFirst().getLexema()+" l: "+tokenList.getFirst().getLinea()+" "+stateStack.peek()+" "+error+" "+syntacticStack.peek()+" classOVar: "+classOVar);
             if(syntacticStack.peek()>=200&&syntacticStack.peek()<=292){ // Esto quiere decir que es un NO terminal
 
                 matrizData=mapearToken();
@@ -125,7 +125,7 @@ public class Sintaxis {
     private void execute(){
         if(tokenList.getFirst().getToken()==-1){ // Token
             if (!isAmbito(ambitoStack,tokenList.getFirst().getLexema())){
-                erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento no está declarado en el ambito actual o inferiores","Error de ámbito"));
+                erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento no está declarado en el ambito actual o inferiores","Error de ámbito",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
             }
         }
@@ -197,12 +197,17 @@ public class Sintaxis {
                 break;
             case 1201: // Cierra Declaración de variable en DEC_VAR
                 if(!error){
-                    setOldState();
+
+                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.getLast().getId());
                     sqlQuerys.addMember(memberDetailsList.getLast());
                 }
                 if(!classOVar){
                     error = false;
                 }
+                boolean classOvarAnt = classOVar;
+                setOldState();
+                classOVar = classOvarAnt;
+//                if(error&&classOvarAnt) error = true;
                 break;
             case 1202: // DEC_MET
                 if(!error){
@@ -256,9 +261,9 @@ public class Sintaxis {
                     memberDetailsList.get(memberPositionClass).setCantParametro(parametro);
                 }
             case 1211: // Interface
-
                 if(!error){
                     memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
+                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.get(memberPositionClass).getId());
                     sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 }
                 parametro = 0;
@@ -276,6 +281,7 @@ public class Sintaxis {
             case 1217: // Class
                 if(!error){
                     memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
+                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.get(memberPositionClass).getId());
                     sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 }
                 parametro = 0;
@@ -284,7 +290,8 @@ public class Sintaxis {
                 break;
             case 1227:
                 setOldState();
-                sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
+                System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.get(memberPositionClass).getId());
+//                sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 error = false;
                 break;
             case 1218: // ARRAY
@@ -299,6 +306,7 @@ public class Sintaxis {
                     memberDetailsList.get(memberPositionClass).setArrayDimension(arrayLength.size());
                     memberDetailsList.get(memberPositionClass).setArrayLength(!arrayLength.isEmpty() ? arrayLength.stream().mapToInt(Integer::intValue).toArray():null);
                     sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
+                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.get(memberPositionClass).getId());
                 }
                 error = false;
                 arrayLength.clear();
@@ -313,6 +321,7 @@ public class Sintaxis {
                 setOldState();
                 if(!error){
                     sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
+                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.get(memberPositionClass).getId());
                 }
                 break;
             case 1222: // LET ID (SIN CLASS)
@@ -326,6 +335,7 @@ public class Sintaxis {
                 if(!error){
                     memberDetailsList.addLast(new MemberDetails(memberDetailsList.getLast().getType(),"","@anonima","",ambitoStack.peek().getNumber(),0,0,null));
                     sqlQuerys.addMember(memberDetailsList.getLast());
+                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.getLast().getId());
                 }
                 setOldState();
                 break;
@@ -338,14 +348,21 @@ public class Sintaxis {
                 break;
             case 1225: // Cierra clase anonima 1
                 if(!error){
+
                     memberDetailsList.getLast().setTypeParametro(ambitoStack.peek().getNumber()+"");
                     sqlQuerys.addMember(memberDetailsList.getLast());
+                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.getLast().getId());
+                }
+                else{
+                    classOVar = true;
                 }
                 break;
             case 1226:
                 error = false;
                 anon = false;
-                sqlQuerys.addMember(memberDetailsList.getLast());
+//                sqlQuerys.addMember(memberDetailsList.getLast());
+//                System.out.println("jotaro");
+//                System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.getLast().getId());
                 setOldState();
                 break;
             case 1270: // Save ID para Let
@@ -372,7 +389,7 @@ public class Sintaxis {
             classOVar = false;
         }
         switch (stateStack.peek()){
-            case DEC_VAR, NONE, ARRAY -> classOVar = false;
+            case DEC_VAR, NONE, ARRAY, STATUS-> classOVar = false;
             case CLASS_TYPE -> {
             }
             default -> classOVar = true;
@@ -427,8 +444,9 @@ public class Sintaxis {
         }
         switch (tokenList.getFirst().getToken())
         {
-            case -1,-90,-91,-72,-61,-71 -> {
-                memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema()); // id // number // string // boolean // null // real
+            case -1 -> memberDetailsList.get(memberPositionClass).setType("#"+tokenList.getFirst().getLexema()); // id
+            case -90,-91,-72,-61,-71 -> {
+                memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema()); // number // string // boolean // null // real
             }
             case -58 -> { // #
                 updateState(State.CLASS_TYPE);

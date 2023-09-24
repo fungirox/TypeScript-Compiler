@@ -1,16 +1,11 @@
 package resources;
 
-import ambito.Ambito;
-import ambito.AmbitoOut;
 import ambito.MemberDetails;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class SqlQuerys {
 
@@ -18,14 +13,12 @@ public class SqlQuerys {
     final String username = "root";
     final String password  = "root";
     Connection connection;
-    public boolean tryConnection(){
+    public void tryConnection(){
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             connection = DriverManager.getConnection(url,username,password);
-            return true;
         } catch (ClassNotFoundException | SQLException e) {
             System.out.printf(String.valueOf(e));
-            return false;
         }
     }
     public void truncateTable(){
@@ -36,18 +29,17 @@ public class SqlQuerys {
             System.out.println(e);
         }
     }
-    public boolean addMember(MemberDetails mb){
+    public void addMember(MemberDetails mb){
         try {
             Statement statement =  connection.createStatement();
             statement.execute("INSERT INTO a20130044.ambito (nameId,typeId,classId,ambito,cantParametro," +
                     "typeParametro,arrayDimension,arrayLength) VALUES ('"+mb.getId()+"','"+mb.getType()+"'," +
                     "'"+mb.getClassId()+"','"+mb.getAmbito()+"','"+mb.getCantParametro()+"','"+mb.getTypeParametro()+"" +
                     "','"+mb.getArrayDimension()+"','"+mb.getArrayLength()+"');");
-            return true;
+            System.out.println(mb.getType());
         } catch (SQLException e) {
             System.out.println(e);
         }
-        return false;
     }
     public boolean isDeclarated(final int ambito,final String id){
         try {

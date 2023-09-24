@@ -60,4 +60,8 @@ public class Errores extends Elemento {
     public String getTipo() {
         return tipo;
     }
+
+    public int getAmbito() {
+        return ambito;
+    }
 }
