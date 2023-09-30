@@ -36,7 +36,7 @@ public class SqlQuerys {
                     "typeParametro,arrayDimension,arrayLength) VALUES ('"+mb.getId()+"','"+mb.getType()+"'," +
                     "'"+mb.getClassId()+"','"+mb.getAmbito()+"','"+mb.getCantParametro()+"','"+mb.getTypeParametro()+"" +
                     "','"+mb.getArrayDimension()+"','"+mb.getArrayLength()+"');");
-            System.out.println(mb.getType());
+//            System.out.println(mb.getType());
         } catch (SQLException e) {
             System.out.println(e);
         }

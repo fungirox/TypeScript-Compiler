@@ -133,6 +133,35 @@ public class CargarRecursos {
         }
         return matriz;
     }
+    public static int [][][] openExcelFileSemantica(final String filePath){
+        int [][][] matriz=new int[10][6][6];
+        try {
+            FileInputStream fileInputStream=new FileInputStream(new File(filePath));
+            XSSFWorkbook workBook = new XSSFWorkbook(fileInputStream);
+            for(int i=0;i<workBook.getNumberOfSheets();i++){
+                XSSFSheet hssfSheet=workBook.getSheet(i+1+"");
+                int rows=hssfSheet.getLastRowNum();
+
+                for (int j=1;j<=rows;j++){
+                    Row fila = hssfSheet.getRow(j);
+                    int col=fila.getLastCellNum();
+                    for (int k=1;k<col;k++){
+                        Cell cell=fila.getCell(k);
+                        switch (cell.getCellTypeEnum().toString()){
+                            case "NUMERIC":
+                                int aux=(int)cell.getNumericCellValue();
+                                matriz[i][j-1][k-1]=aux;
+                                break;
+                        }
+                    }
+                }
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return matriz;
+    }
     public static void writeToExcel(final LinkedList<Token> listaToken,final LinkedList<Errores> listaErrores,final int[] contadores,final int lexico, final int sintaxis,final String path){
         XSSFWorkbook book=new XSSFWorkbook();
         XSSFSheet tokenSheet=book.createSheet("Token");

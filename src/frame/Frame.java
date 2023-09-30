@@ -25,6 +25,7 @@ public class Frame extends JFrame{
     private final String dirPath="src/resources/images/carpeta.png";
     private final String excelLexicoPath="src/resources/matrizLexico.xlsx";
     private final String excelSintaxisPath="src/resources/matrizSintaxis.xlsx";
+    private final String excelSemanticaPath="src/resources/matrizSemantica.xlsx";
     //Icono
     private ImageIcon icon;
     private ImageIcon iconCompi;
@@ -34,6 +35,7 @@ public class Frame extends JFrame{
     private Line numLine;
     private final int [][] matrizLexico;
     private final int [][] matrizSintactica;
+    private final int [][][] matrizSemantica;
     //Instancias de clase
     private Lexico lexico;
     private int erroresAmbito;
@@ -60,6 +62,7 @@ public class Frame extends JFrame{
         //Cargar excel de léxico
         matrizLexico=CargarRecursos.openExcelFileLexico(excelLexicoPath);
         matrizSintactica=CargarRecursos.openExcelFileSintaxis(excelSintaxisPath);
+        matrizSemantica =  CargarRecursos.openExcelFileSemantica(excelSemanticaPath);
 
         CargarRecursos.connectionSQL.tryConnection();
         CargarRecursos.connectionSQL.truncateTable();
@@ -420,21 +423,20 @@ public class Frame extends JFrame{
                     lexico.setText(txtCodigo.getText()+" ");
                 }
                 else{
-                    lexico=new Lexico(matrizLexico,txtCodigo.getText()+'\n',tblTokens/*,tblError*/,tblContadores,erroresList,tokenListSintaxis,contadores);
-                    compilo=true;
-                    sintaxis=new Sintaxis(matrizSintactica,erroresList,tokenListSintaxis);
+                    lexico = new Lexico(matrizLexico,txtCodigo.getText()+'\n',tblTokens/*,tblError*/,tblContadores,erroresList,tokenListSintaxis,contadores);
+                    compilo = true;
+                    sintaxis = new Sintaxis(matrizSintactica,erroresList,tokenListSintaxis,matrizSemantica);
                 }
                 lexico.compilar();
-                erroresLexico=erroresList.size();
+                erroresLexico = erroresList.size();
                 copy = new LinkedList<>(tokenListSintaxis);
 
                 try {
-                    erroresAmbito=sintaxis.analize();
+                    erroresAmbito = sintaxis.analize();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
                 erroresSintaxis=erroresList.size()-erroresLexico-erroresAmbito;
-
                 llenarTablaErrores();
         }
 
