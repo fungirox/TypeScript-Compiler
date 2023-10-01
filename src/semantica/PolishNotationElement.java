@@ -3,12 +3,18 @@ package semantica;
 public class PolishNotationElement {
     final private String lexema;
     final private int token;
-    final private short type;
+    final private int type;
+    final private int line;
 
-    public PolishNotationElement(final String lexema, final int token, final short type) {
+    public PolishNotationElement(String lexema, int token, int type, int line) {
         this.lexema = lexema;
         this.token = token;
         this.type = type;
+        this.line = line;
+    }
+
+    public int getLine() {
+        return line;
     }
 
     public String getLexema() {
@@ -19,7 +25,7 @@ public class PolishNotationElement {
         return token;
     }
 
-    public short getType() {
+    public int getType() {
         return type;
     }
 }

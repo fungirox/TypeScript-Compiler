@@ -36,7 +36,6 @@ public class SqlQuerys {
                     "typeParametro,arrayDimension,arrayLength) VALUES ('"+mb.getId()+"','"+mb.getType()+"'," +
                     "'"+mb.getClassId()+"','"+mb.getAmbito()+"','"+mb.getCantParametro()+"','"+mb.getTypeParametro()+"" +
                     "','"+mb.getArrayDimension()+"','"+mb.getArrayLength()+"');");
-//            System.out.println(mb.getType());
         } catch (SQLException e) {
             System.out.println(e);
         }
@@ -58,6 +57,25 @@ public class SqlQuerys {
         }
         return false;
     }
+    public String getOneIDType(final int ambito,final String id){
+        String type="";
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT typeId FROM ambito WHERE nameId = '" + id + "' AND ambito = " + ambito;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+            if (rs.next()) {
+                type = rs.getString("typeId");
+                // Cerrar el ResultSet y el Statement después de su uso
+                rs.close();
+                statement.close();
+            }
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return type;
+    }
     public boolean isDeclaratedGetSet(final int ambito,final String id,final String classId){
         try {
             Statement statement = connection.createStatement();
@@ -75,7 +93,7 @@ public class SqlQuerys {
         }
         return false;
     }
-    public int calculateType(final String type,final int ambito) {
+    public int getType(final String type, final int ambito) {
         int countType = 0;
         try {
             Statement statement = connection.createStatement();

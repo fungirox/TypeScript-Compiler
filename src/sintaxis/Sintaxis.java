@@ -8,6 +8,7 @@ import lexico.Errores;
 import lexico.Token;
 import resources.CargarRecursos;
 import resources.SqlQuerys;
+import semantica.Operand;
 import semantica.StatusState;
 
 import java.io.IOException;
@@ -41,6 +42,7 @@ public class Sintaxis {
     private boolean anon = false;
     private boolean error = false;
     private String lexemaOR;
+    private final Stack<Operand> operandsStack;
     public Sintaxis(final int [][]matriz,final LinkedList<Errores> listErrores,final LinkedList<Token>sintaxis,final int [][][]matrizSemantica){
         this.matrizSintactica = matriz;
         this.tokenList = sintaxis;
@@ -54,6 +56,7 @@ public class Sintaxis {
         this.matrizSemantica=matrizSemantica;
         this.sqlQuerys = CargarRecursos.connectionSQL;
         this.statusState = StatusState.NONE;
+        this.operandsStack = new Stack<>();
         syntacticStack.push(200);
         stateStack.push(State.NONE);
         ambito = 0;
@@ -62,7 +65,7 @@ public class Sintaxis {
     public int analize() throws IOException {
         int matrizData;
         while(!tokenList.isEmpty()&&!syntacticStack.isEmpty()){
-//            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" generalState: "+stateStack.peek()+" error: "+error+" topStack: "+syntacticStack.peek()+" classOVar: "+classOVar);
+            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" generalState: "+stateStack.peek()+" statusState "+statusState+" error: "+error+" topStack: "+syntacticStack.peek()+" classOVar: "+classOVar);
             if(syntacticStack.peek()>=200&&syntacticStack.peek()<=292){ // Esto quiere decir que es un NO terminal
 
                 matrizData = mapearToken();
@@ -103,37 +106,78 @@ public class Sintaxis {
                     delete();
                 }
             }
-
+            System.out.println("------------------------------------------------------------------------------------------------------------------------");
         }
 
         if(!syntacticStack.isEmpty()) {
             System.out.println("Parece que no terminaste tu codigo");
         }
         System.out.println();
-        printDetailMember();
-
-        System.out.println(sqlQuerys.ambitos());
+        printOperandStack();
+//        printDetailMember();
 
         return erroresAmbito;
     }
     private void execute(){
-        if(tokenList.getFirst().getToken()==-1){ // Token
-            if (!isAmbito(ambitoStack,tokenList.getFirst().getLexema())){
+        if (tokenList.getFirst().getToken() == -1) { // Si es ID
+            if (!findMember(ambitoStack,tokenList.getFirst().getLexema())){
                 erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento no declarado","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
                 return;
             }
-            System.out.println("Semantica: token "+tokenList.getFirst().getToken()+" lexema "+tokenList.getFirst().getLexema()+" line "+tokenList.getFirst().getLinea());
-            lexemaOR = tokenList.getFirst().getLexema();
-            // Empieza semantica
-            switch (statusState){
-                case START -> {
-//                    System.out.println("\tDentro de OR");
-                }
-                case END -> {
 
-                }
+        }
+        System.out.println("Semantica: token "+tokenList.getFirst().getToken()+" lexema "+tokenList.getFirst().getLexema()+" line "+tokenList.getFirst().getLinea());
+        lexemaOR = tokenList.getFirst().getLexema();
+        // Empieza semantica
+        switch (statusState){
+            case OPERAND -> {
+//                System.out.println("jojo "+findMemberType(ambitoStack,tokenList.getFirst().getLexema()));
 
+                int operandType;
+                operandType =  tokenList.getFirst().getToken() == -1 ? findMemberType(ambitoStack,tokenList.getFirst().getLexema()) : idTypeToken(tokenList.getFirst().getToken());
+                /* *
+                 * 0 : number
+                 * 1 : real
+                 * 2 : boolean
+                 * 3 : string
+                 * 4 : null
+                 * 5 : var
+                * */
+
+                operandsStack.push(new Operand(tokenList.getFirst().getLexema(),tokenList.getFirst().getToken(),operandType,tokenList.getFirst().getLinea()));
+            }
+            case END -> {
+
+            }
+
+        }
+    }
+    private int idTypeToken(int token){
+        switch(token) {
+            case -55 -> { // number
+                System.out.println("number");
+                return 0;
+            }
+            case -56,-57 -> { // real
+                System.out.println("real");
+                return 1;
+            }
+            case -59,-60 -> { // boolean
+                System.out.println("boolean");
+                return 2;
+            }
+            case -46,47 -> { // string
+                System.out.println("string");
+                return 3;
+            }
+            case -61 -> { // null
+                System.out.println("null");
+                return 4;
+            }
+            default -> {
+                System.out.println("another type (VAR) ...");
+                return 5;
             }
         }
     }
@@ -161,7 +205,7 @@ public class Sintaxis {
 
         }
     }
-    private boolean isAmbito(Stack<Ambito> stack,String id){
+    private boolean findMember(Stack<Ambito> stack, String id){
         Stack<Ambito> copyStack = (Stack<Ambito>)stack.clone();
         while (!copyStack.isEmpty()){
             if (sqlQuerys.isDeclarated(copyStack.pop().getNumber(),id)){
@@ -378,7 +422,7 @@ public class Sintaxis {
                  * */
 
             case 1300: // Abre 'dato'
-                statusState = StatusState.START;
+                statusState = StatusState.OPERAND;
                 System.out.println("\tAbre OR "+tokenList.getFirst().getLexema());
                 break;
             case 1301: // Cierra 'dato'
@@ -416,7 +460,7 @@ public class Sintaxis {
 
     }
     private void isDuplicateLet(String classID){
-        if(isAmbito(ambitoStack,letID)){
+        if(findMember(ambitoStack,letID)){
             erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
             erroresAmbito++;
             error = true;
@@ -476,7 +520,7 @@ public class Sintaxis {
         classOVar = true;
         if(tokenList.getFirst().getToken()==-1)
         {
-            if(isAmbito(ambitoStack,tokenList.getFirst().getLexema())){
+            if(findMember(ambitoStack,tokenList.getFirst().getLexema())){
                 erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
                 error = true;
@@ -506,7 +550,7 @@ public class Sintaxis {
         switch (tokenList.getFirst().getToken())
         {
             case -1 -> { // id
-                if(isAmbito(ambitoStack,tokenList.getFirst().getLexema())){
+                if(findMember(ambitoStack,tokenList.getFirst().getLexema())){
                     erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                     erroresAmbito++;
                     error = true;
@@ -530,7 +574,7 @@ public class Sintaxis {
     private void DEC_MET_FUN(String classFun){
         contieneParametro = true;
         if(let && (stateStack.peek() == State.ANON_FUN||stateStack.peek() == State.ARROW_FUN)){
-            if(isAmbito(ambitoStack,letID)){
+            if(findMember(ambitoStack,letID)){
                 erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
                 error = true;
@@ -546,7 +590,7 @@ public class Sintaxis {
         switch (tokenList.getFirst().getToken())
         {
             case -1 -> { // id
-                if(isAmbito(ambitoStack,tokenList.getFirst().getLexema())){
+                if(findMember(ambitoStack,tokenList.getFirst().getLexema())){
 
                     if(stateStack.peek()==State.DEC_SET||stateStack.peek() == State.DEC_GET){ // Es un set
                         if(memberGetSet(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema(),stateStack.peek() == State.DEC_GET?"get":"set")){
@@ -650,6 +694,7 @@ public class Sintaxis {
         }
         stringTxt +="]\n";
     }
+
     public void clean(){
         syntacticStack.clear();
         syntacticStack.push(200);
@@ -662,7 +707,39 @@ public class Sintaxis {
         sqlQuerys.truncateTable();
 
     }
+    private void printOperandStack() {
+        System.out.printf("%15s%15s%15s%15s%15s\n","lexema","token","num tipo","tipo string","line");
+        Iterator<Operand> iterator = operandsStack.iterator();
+        while (iterator.hasNext()) {
+            System.out.println(iterator.next());
+        }
+    }
+    private int findMemberType(Stack<Ambito> stack, String id){
+        Stack<Ambito> copyStack = (Stack<Ambito>)stack.clone();
+        while (!copyStack.isEmpty()){
+            String type = String.valueOf(sqlQuerys.getOneIDType(copyStack.pop().getNumber(),id));
+            switch (type){
+                case "number" -> {
+                    return 0;
+                }
+                case "real" -> {
+                    return 1;
+                }
+                case "boolean" -> { // por ahora se usara el valor true pero
+                    return 2;
+                }
+                case "string" -> {
+                    return 3;
+                }
+                case "null" -> {
+                    return 4;
+                }
 
+            }
+
+        }
+        return 5;
+    }
     //Contenidos: del 200 a 292 son NO terminales (ver en matriz)
     //            del -1 al -124 son tokens, ver en pila
     //Longitud del arreglo: 0 al 182

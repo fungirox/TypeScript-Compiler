@@ -12,7 +12,6 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class CargarRecursos {
@@ -266,12 +265,12 @@ public class CargarRecursos {
             //Añadir ambito
             dataRow = ambitoSheet.createRow(i+1);
             dataRow.createCell(0).setCellValue(i);
-            dataRow.createCell(1).setCellValue(connectionSQL.calculateType("string",i));
-            dataRow.createCell(2).setCellValue(connectionSQL.calculateType("number",i));
-            dataRow.createCell(3).setCellValue(connectionSQL.calculateType("boolean",i));
-            dataRow.createCell(4).setCellValue(connectionSQL.calculateType("real",i));
-            dataRow.createCell(5).setCellValue(connectionSQL.calculateType("null",i));
-            dataRow.createCell(6).setCellValue(connectionSQL.calculateType("void",i));
+            dataRow.createCell(1).setCellValue(connectionSQL.getType("string",i));
+            dataRow.createCell(2).setCellValue(connectionSQL.getType("number",i));
+            dataRow.createCell(3).setCellValue(connectionSQL.getType("boolean",i));
+            dataRow.createCell(4).setCellValue(connectionSQL.getType("real",i));
+            dataRow.createCell(5).setCellValue(connectionSQL.getType("null",i));
+            dataRow.createCell(6).setCellValue(connectionSQL.getType("void",i));
             dataRow.createCell(7).setCellValue(connectionSQL.classType(i)); // Class type
             dataRow.createCell(8).setCellValue(errorsPerAmbit(listaErrores,i)); // Errores
             double total =  dataRow.getCell(1).getNumericCellValue() + dataRow.getCell(2).getNumericCellValue() + dataRow.getCell(3).getNumericCellValue()

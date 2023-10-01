@@ -2,7 +2,7 @@ package semantica;
 
 public enum StatusState {
     NONE,
-    START,
+    OPERAND,
     END,
     OR,
     AND
