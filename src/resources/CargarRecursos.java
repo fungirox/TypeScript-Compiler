@@ -12,6 +12,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class CargarRecursos {
@@ -244,6 +245,17 @@ public class CargarRecursos {
         }
         writeAmbitoExcel(ambitoSheet,listaErrores);
 
+        /**
+         * Semantica 1
+         * */
+        XSSFSheet sm1Sheet=book.createSheet("Semantica 1");
+        Row sm1Rows=sm1Sheet.createRow(0);
+        //headers
+        for(int i=0;i<rowHeadSm1.length;i++){
+            Cell cell=sm1Rows.createCell(i);
+            cell.setCellValue(rowHeadSm1[i]);
+        }
+        writeSemantica1Excel(sm1Sheet);
 
         /*
          *  Escribir archivo
@@ -257,10 +269,34 @@ public class CargarRecursos {
             e.printStackTrace();
         }
     }
+    private static void writeSemantica1Excel(XSSFSheet semanticaSheet){
+        Row dataRow;
+        ArrayList<Integer> linesSem = connectionSQL.getLinesSemantica();
+        int i = 1;
+        for (Integer line : linesSem) {
+            dataRow = semanticaSheet.createRow(i);
+            dataRow.createCell(0).setCellValue(line);
+            dataRow.createCell(1).setCellValue(connectionSQL.getTempTypeLine(line,0));
+            dataRow.createCell(2).setCellValue(connectionSQL.getTempTypeLine(line,1));
+            dataRow.createCell(3).setCellValue(connectionSQL.getTempTypeLine(line,2));
+            dataRow.createCell(4).setCellValue(connectionSQL.getTempTypeLine(line,3));
+            dataRow.createCell(5).setCellValue(connectionSQL.getTempTypeLine(line,4));
+            dataRow.createCell(6).setCellValue(connectionSQL.getTempTypeLine(line,6));
+            dataRow.createCell(7).setCellValue(connectionSQL.getFinalTempString(line));
+            dataRow.createCell(8).setCellValue(connectionSQL.getTempTypeLine(line,6));
 
+            dataRow.getCell(8).setCellValue(connectionSQL.getErrorSemantica(line)?dataRow.getCell(8).getNumericCellValue()+1:dataRow.getCell(8).getNumericCellValue());
+
+            i++;
+        }
+
+        semanticaSheet.createRow(semanticaSheet.getLastRowNum()+1);
+        dataRow = semanticaSheet.createRow(semanticaSheet.getLastRowNum()+1);
+        totalAmbito(dataRow,semanticaSheet);
+    }
     private static void writeAmbitoExcel(XSSFSheet ambitoSheet,final LinkedList<Errores> listaErrores){
         Row dataRow;
-        int ambitos=connectionSQL.ambitos();
+        int ambitos=connectionSQL.getAmbitos();
         for(int i=0;i<=ambitos;i++){
             //Añadir ambito
             dataRow = ambitoSheet.createRow(i+1);
@@ -271,7 +307,7 @@ public class CargarRecursos {
             dataRow.createCell(4).setCellValue(connectionSQL.getType("real",i));
             dataRow.createCell(5).setCellValue(connectionSQL.getType("null",i));
             dataRow.createCell(6).setCellValue(connectionSQL.getType("void",i));
-            dataRow.createCell(7).setCellValue(connectionSQL.classType(i)); // Class type
+            dataRow.createCell(7).setCellValue(connectionSQL.getClassType(i)); // Class type
             dataRow.createCell(8).setCellValue(errorsPerAmbit(listaErrores,i)); // Errores
             double total =  dataRow.getCell(1).getNumericCellValue() + dataRow.getCell(2).getNumericCellValue() + dataRow.getCell(3).getNumericCellValue()
                     + dataRow.getCell(4).getNumericCellValue() + dataRow.getCell(5).getNumericCellValue() + dataRow.getCell(6).getNumericCellValue()
@@ -290,8 +326,9 @@ public class CargarRecursos {
         }
         dataRow.getCell(0).setCellValue("Totales");
         for(int i=1;i<cantRows;i++){
-            int cantCells=ambitoSheet.getRow(i).getLastCellNum();
+            int cantCells = ambitoSheet.getRow(i).getLastCellNum();
             for(int j=1;j<cantCells;j++){
+                if (j==7) continue;
                 dataRow.getCell(j).setCellValue(
                         dataRow.getCell(j).getNumericCellValue() + ambitoSheet.getRow(i).getCell(j).getNumericCellValue()
                 );
@@ -301,7 +338,7 @@ public class CargarRecursos {
     private static int errorsPerAmbit(final LinkedList<Errores> listaErrores,final int ambito){
         int suma = 0;
         for(int i=0;i<listaErrores.size();i++){
-            suma = listaErrores.get(i).getAmbito() == ambito ? suma+1 : suma ;
+            suma = listaErrores.get(i).getAmbito() == ambito ? suma + 1 : suma ;
         }
         return suma;
     }
@@ -327,5 +364,8 @@ public class CargarRecursos {
     private final static String [] rowHeadTER={
             "Lexico","Sintaxis"
     };
-
+    private final static String [] rowHeadSm1={
+            "Linea","T number","T real","T boolean","T string","T null","T var","Asignaciones","Errores"
+    };
 }
+// Linea	Tstring	Tnum	Tbool	Treal	T#	Tvoid	Tvariants	Asignaciones	Errores

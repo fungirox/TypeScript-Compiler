@@ -9,6 +9,7 @@ import lexico.Token;
 import resources.CargarRecursos;
 import resources.SqlQuerys;
 import semantica.Operand;
+import semantica.Operator;
 import semantica.StatusState;
 
 import java.io.IOException;
@@ -41,8 +42,13 @@ public class Sintaxis {
     private final ArrayList <Integer> arrayLength;
     private boolean anon = false;
     private boolean error = false;
-    private String lexemaOR;
     private final Stack<Operand> operandsStack;
+    private final Stack<Operator> operatorStack;
+    private int excelSheetOperator;
+    private int operatorPriority;
+    Operator operator;
+    private String plusminus = "temp";
+    private boolean asig = false;
     public Sintaxis(final int [][]matriz,final LinkedList<Errores> listErrores,final LinkedList<Token>sintaxis,final int [][][]matrizSemantica){
         this.matrizSintactica = matriz;
         this.tokenList = sintaxis;
@@ -53,10 +59,11 @@ public class Sintaxis {
         this.memberDetailsList = new LinkedList<>();
         this.areasList = new LinkedList<>();
         this.arrayLength = new ArrayList<>();
-        this.matrizSemantica=matrizSemantica;
+        this.matrizSemantica = matrizSemantica;
         this.sqlQuerys = CargarRecursos.connectionSQL;
         this.statusState = StatusState.NONE;
         this.operandsStack = new Stack<>();
+        this.operatorStack = new Stack<>();
         syntacticStack.push(200);
         stateStack.push(State.NONE);
         ambito = 0;
@@ -106,6 +113,10 @@ public class Sintaxis {
                     delete();
                 }
             }
+            System.out.println("O P E R A N D S   S T A C K");
+            printOperandStack();
+            System.out.println("O P E R A T O R S   S T A C K");
+            printOperatorStack();
             System.out.println("------------------------------------------------------------------------------------------------------------------------");
         }
 
@@ -113,8 +124,6 @@ public class Sintaxis {
             System.out.println("Parece que no terminaste tu codigo");
         }
         System.out.println();
-        printOperandStack();
-//        printDetailMember();
 
         return erroresAmbito;
     }
@@ -123,63 +132,83 @@ public class Sintaxis {
             if (!findMember(ambitoStack,tokenList.getFirst().getLexema())){
                 erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento no declarado","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
+                operandsStack.push(new Operand("No declarado",tokenList.getFirst().getToken(),6,tokenList.getFirst().getLinea()));
                 return;
             }
 
         }
         System.out.println("Semantica: token "+tokenList.getFirst().getToken()+" lexema "+tokenList.getFirst().getLexema()+" line "+tokenList.getFirst().getLinea());
-        lexemaOR = tokenList.getFirst().getLexema();
+
         // Empieza semantica
+
+        // Añade a la pila de operadores y operandos elementos
+
         switch (statusState){
             case OPERAND -> {
-//                System.out.println("jojo "+findMemberType(ambitoStack,tokenList.getFirst().getLexema()));
-
                 int operandType;
                 operandType =  tokenList.getFirst().getToken() == -1 ? findMemberType(ambitoStack,tokenList.getFirst().getLexema()) : idTypeToken(tokenList.getFirst().getToken());
-                /* *
-                 * 0 : number
-                 * 1 : real
-                 * 2 : boolean
-                 * 3 : string
-                 * 4 : null
-                 * 5 : var
-                * */
-
+                if(operandsStack.isEmpty() && !operatorStack.isEmpty() && operatorStack.peek().getPriority() == 0 && !plusminus.equals("temp")){
+                    sqlQuerys.addAsignations(tokenList.getFirst().getLexema(),plusminus,operandType,tokenList.getFirst().getLinea());
+                }
+                plusminus = "temp";
                 operandsStack.push(new Operand(tokenList.getFirst().getLexema(),tokenList.getFirst().getToken(),operandType,tokenList.getFirst().getLinea()));
             }
-            case END -> {
+            case NONE -> {
+
+            }
+            // OPERATORS
+            case OPERATOR -> { // temporal
+                operator = new Operator(tokenList.getFirst().getLexema(),tokenList.getFirst().getToken(),excelSheetOperator,tokenList.getFirst().getLinea(),operatorPriority);
+
+                if (operatorStack.isEmpty()){ // Si la pila de operadores está vacia
+                    operatorStack.push(operator);
+                }
+                else {
+                    // Hay que recorrer la pila aquí
+                    while (!operatorStack.isEmpty()){
+                        if(operator.getPriority() <= operatorStack.peek().getPriority()){
+                            // Se mete a la pila pq al final al vaciarla se realizarian primero
+                            operatorStack.push(operator);
+                            break;
+                        }
+                        else {
+                            // Operator se queda intacto pq después se metera a la pila
+                            // Se necesita obtener los ultimos 2 operandos para realizar las "comparaciones"
+                            // temporalmente ignoraremos las de prioridad 0 pq solo necesitan un elemento para interactuar ++ -- ! ~
+
+                                Operand op1 = operandsStack.pop();
+                                Operand op2 = operatorStack.peek().getPriority() == 0 ? new Operand("temp number",-90,0,op1.getLine()) : operandsStack.pop();
+                                System.out.println(op1.getType()+" row");
+                                System.out.println(op2.getType()+" colum");
+                                System.out.println(operatorStack.peek().getType()+" sheet");
+                            int returnExcel = matrizSemantica[operatorStack.peek().getType()][op1.getType()==6?5:op1.getType()][op2.getType()==6?5:op2.getType()];
+                                op2 = switch (returnExcel){
+                                    case -90 -> new Operand("temp number",-90,0,op1.getLine());   // NUMBER
+                                    case -71 -> new Operand("temp real",-71,1,op1.getLine());   // REAL
+                                    case -72 -> new Operand("temp boolean",-72,2,op1.getLine());   // boolean
+                                    case -91 -> new Operand("temp string",-91,3,op1.getLine());   // string
+                                    case -61 -> new Operand("temp null",-61,4,op1.getLine());   // null
+                                    default -> new Operand("temp var",-200,6,op1.getLine());   // var
+                                };
+                                sqlQuerys.addTemporal(op2);
+                                operandsStack.push(op2);
+                                System.out.println(returnExcel);
+                                operatorStack.pop();
+
+                        }
+                    }
+                    if (operatorStack.isEmpty()){ // Si la pila de operadores está vacia
+                        operatorStack.push(operator);
+                    }
+                    System.out.println("holis");
+                    statusState = StatusState.NONE;
+                }
 
             }
 
         }
-    }
-    private int idTypeToken(int token){
-        switch(token) {
-            case -55 -> { // number
-                System.out.println("number");
-                return 0;
-            }
-            case -56,-57 -> { // real
-                System.out.println("real");
-                return 1;
-            }
-            case -59,-60 -> { // boolean
-                System.out.println("boolean");
-                return 2;
-            }
-            case -46,47 -> { // string
-                System.out.println("string");
-                return 3;
-            }
-            case -61 -> { // null
-                System.out.println("null");
-                return 4;
-            }
-            default -> {
-                System.out.println("another type (VAR) ...");
-                return 5;
-            }
-        }
+
+
     }
     private void declaration(){
         switch(stateStack.peek()){
@@ -229,10 +258,16 @@ public class Sintaxis {
             case 1002:
                 addArea(true); // Abre área de ejecución
                 updateState(State.STATUS);
+                operatorStack.clear();
+                operandsStack.clear();
+                statusState = StatusState.NONE;
                 break;
             case 1003:
                 closeArea(true); // Cierra área de ejecución
                 setOldState();
+                operatorStack.clear();
+                operandsStack.clear();
+                statusState = StatusState.NONE;
                 break;
             case 1004:
                 addArea(false); // Abre área de declaración
@@ -247,7 +282,6 @@ public class Sintaxis {
                 break;
             case 1201: // Cierra Declaración de variable en DEC_VAR
                 if(!error){
-
 //                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.getLast().getId());
                     sqlQuerys.addMember(memberDetailsList.getLast());
                 }
@@ -313,7 +347,6 @@ public class Sintaxis {
             case 1211: // Interface
                 if(!error){
                     memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
-//                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.get(memberPositionClass).getId());
                     sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 }
                 parametro = 0;
@@ -331,7 +364,6 @@ public class Sintaxis {
             case 1217: // Class
                 if(!error){
                     memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
-//                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.get(memberPositionClass).getId());
                     sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 }
                 parametro = 0;
@@ -340,8 +372,6 @@ public class Sintaxis {
                 break;
             case 1227:
                 setOldState();
-//                System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.get(memberPositionClass).getId());
-//                sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 error = false;
                 break;
             case 1218: // ARRAY
@@ -356,7 +386,6 @@ public class Sintaxis {
                     memberDetailsList.get(memberPositionClass).setArrayDimension(arrayLength.size());
                     memberDetailsList.get(memberPositionClass).setArrayLength(!arrayLength.isEmpty() ? arrayLength.stream().mapToInt(Integer::intValue).toArray():null);
                     sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
-//                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.get(memberPositionClass).getId());
                 }
                 error = false;
                 arrayLength.clear();
@@ -371,7 +400,6 @@ public class Sintaxis {
                 setOldState();
                 if(!error){
                     sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
-//                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.get(memberPositionClass).getId());
                 }
                 break;
             case 1222: // LET ID (SIN CLASS)
@@ -385,7 +413,6 @@ public class Sintaxis {
                 if(!error){
                     memberDetailsList.addLast(new MemberDetails(memberDetailsList.getLast().getType(),"","@anonima","",ambitoStack.peek().getNumber(),0,0,null));
                     sqlQuerys.addMember(memberDetailsList.getLast());
-//                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.getLast().getId());
                 }
                 setOldState();
                 break;
@@ -400,7 +427,6 @@ public class Sintaxis {
                 if(!error){
                     memberDetailsList.getLast().setTypeParametro(ambitoStack.peek().getNumber()+"");
                     sqlQuerys.addMember(memberDetailsList.getLast());
-//                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.getLast().getId());
                 }
                 else{
                     classOVar = true;
@@ -409,8 +435,6 @@ public class Sintaxis {
             case 1226:
                 error = false;
                 anon = false;
-//                sqlQuerys.addMember(memberDetailsList.getLast());
-//                System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.getLast().getId());
                 setOldState();
                 break;
             case 1270: // Save ID para Let
@@ -420,14 +444,128 @@ public class Sintaxis {
                 /**
                  * Semantica
                  * */
+            case 1399: // INICIA UN NUEVO CICLO OR
+                // Vaciar pila
+                if (asig){
+                    while (!operatorStack.isEmpty()){
+                        Operand op1 = operandsStack.pop();
+                        Operand op2 = operatorStack.peek().getPriority() == 0 ? new Operand("temp number",-90,0,op1.getLine()) : operandsStack.pop();
+                        System.out.println(op1.getType()+" row");
+                        System.out.println(op2.getType()+" colum");
+                        System.out.println(operatorStack.peek().getType()+" sheet");
+                        int returnExcel = matrizSemantica[operatorStack.peek().getType()][op1.getType()==6?5:op1.getType()][op2.getType()==6?5:op2.getType()];
+                        op2 = switch (returnExcel){
+                            case -90 -> new Operand("temp number",-90,0,op1.getLine());   // NUMBER
+                            case -71 -> new Operand("temp real",-71,1,op1.getLine());   // REAL
+                            case -72 -> new Operand("temp boolean",-72,2,op1.getLine());   // boolean
+                            case -91 -> new Operand("temp string",-91,3,op1.getLine());   // string
+                            case -61 -> new Operand("temp null",-61,4,op1.getLine());   // null
+                            default -> new Operand("temp var",-200,6,op1.getLine());   // var
+                        };
+                        sqlQuerys.addTemporal(op2);
+                        operandsStack.push(op2);
 
-            case 1300: // Abre 'dato'
-                statusState = StatusState.OPERAND;
-                System.out.println("\tAbre OR "+tokenList.getFirst().getLexema());
+                        System.out.println(returnExcel);
+                        operatorStack.pop();
+
+                        System.out.println("O P E R A N D S   S T A C K");
+                        printOperandStack();
+                        System.out.println("O P E R A T O R S   S T A C K");
+                        printOperatorStack();
+                    }
+                    // Siempre queda un operando
+                    if(!operandsStack.isEmpty())
+                        sqlQuerys.updateAsignations(operandsStack.peek().getLexema(),operandsStack.peek().getType());
+                }
+                operandsStack.clear();
+                statusState = StatusState.NONE;
+                asig = false;
                 break;
-            case 1301: // Cierra 'dato'
-                System.out.println("\tCierra OR "+lexemaOR);
-                statusState = StatusState.END;
+            case 1371:
+                if (sqlQuerys.isAsigInThisLine(tokenList.getFirst().getLinea()))
+                    plusminus = "++";
+                statusState = StatusState.ASIG;
+                asig = true;
+                break;
+            case 1372:
+                if (sqlQuerys.isAsigInThisLine(tokenList.getFirst().getLinea()))
+                    plusminus = "--";
+                statusState = StatusState.ASIG;
+                asig = true;
+                break;
+            case 1370: // =
+                statusState = StatusState.ASIG;
+                asig = true;
+                sqlQuerys.addAsignations(operandsStack.peek().getLexema(),tokenList.getFirst().getLexema(),operandsStack.peek().getType(),tokenList.getFirst().getLinea());
+                operandsStack.pop();
+                break;
+            case 1300:  // Abre operando
+                statusState = StatusState.OPERAND;
+                break;
+            case 1301:  // Cierra operando
+                statusState = StatusState.NONE;
+                break;
+            case 1302:  // Operadores lógicos && ||
+                statusState = StatusState.OPERATOR;
+                excelSheetOperator = 8;
+                break;
+            case 1303:  // ADD
+                statusState = StatusState.OPERATOR;
+                excelSheetOperator = 0;
+                break;
+            case 1304:  // MINUS
+                statusState = StatusState.OPERATOR;
+                excelSheetOperator = 1;
+                break;
+            case 1305:  // MULTI
+                statusState = StatusState.OPERATOR;
+                excelSheetOperator = 2;
+                break;
+            case 1306:  // DIVISION
+                statusState = StatusState.OPERATOR;
+                excelSheetOperator = 3;
+                break;
+            case 1307:  // NUMBERS
+                statusState = StatusState.OPERATOR;
+                excelSheetOperator = 4;
+                break;
+            case 1308:  // COMPARISON
+                statusState = StatusState.OPERATOR;
+                excelSheetOperator = 5;
+                break;
+            case 1309:  // EQUALS
+                statusState = StatusState.OPERATOR;
+                excelSheetOperator = 6;
+                break;
+            case 1310:  // EQUALTYPE
+                statusState = StatusState.OPERATOR;
+                excelSheetOperator = 7;
+                break;
+            case 1311:  // TURN
+                statusState = StatusState.OPERATOR;
+                excelSheetOperator = 9;
+                break;
+
+            case 1350: // FACTOR
+                operatorPriority = 0;
+                break;
+            case 1351: // ELEV
+                operatorPriority = 1;
+                break;
+            case 1352: // TP
+                operatorPriority = 2;
+                break;
+            case 1353: // SEP
+                operatorPriority = 3;
+                break;
+            case 1354: // EP
+                operatorPriority = 4;
+                break;
+            case 1355: // AND
+                operatorPriority = 5;
+                break;
+            case 1356: // OR
+                operatorPriority = 6;
                 break;
             default:
                 // Acción por defecto si el valor no coincide con ninguno de los casos anteriores
@@ -705,17 +843,26 @@ public class Sintaxis {
         erroresAmbito = 0;
         error = false;
         sqlQuerys.truncateTable();
+        operandsStack.clear();
+        operatorStack.clear();
 
     }
     private void printOperandStack() {
-        System.out.printf("%15s%15s%15s%15s%15s\n","lexema","token","num tipo","tipo string","line");
+        System.out.printf("%15s%15s%15s%15s%15s\n","lexema","token","excel column","tipo string","line");
         Iterator<Operand> iterator = operandsStack.iterator();
         while (iterator.hasNext()) {
             System.out.println(iterator.next());
         }
     }
+    private void printOperatorStack() {
+        System.out.printf("%15s%15s%15s%15s%15s\n","lexema","token","excel sheet","priority","line");
+        Iterator<Operator> iterator = operatorStack.iterator();
+        while (iterator.hasNext()) {
+            System.out.println(iterator.next());
+        }
+    }
     private int findMemberType(Stack<Ambito> stack, String id){
-        Stack<Ambito> copyStack = (Stack<Ambito>)stack.clone();
+        Stack<Ambito> copyStack = (Stack<Ambito>) stack.clone();
         while (!copyStack.isEmpty()){
             String type = String.valueOf(sqlQuerys.getOneIDType(copyStack.pop().getNumber(),id));
             switch (type){
@@ -740,9 +887,32 @@ public class Sintaxis {
         }
         return 5;
     }
-    //Contenidos: del 200 a 292 son NO terminales (ver en matriz)
-    //            del -1 al -124 son tokens, ver en pila
-    //Longitud del arreglo: 0 al 182
+    private int idTypeToken(int token){
+        switch(token) {
+            case -55 -> { // number
+                return 0;
+            }
+            case -56,-57 -> { // real
+                return 1;
+            }
+            case -59,-60 -> { // boolean
+                return 2;
+            }
+            case -46,47 -> { // string
+                return 3;
+            }
+            case -61 -> { // null
+                return 4;
+            }
+            default -> {
+                return 5;
+            }
+        }
+    }
+
+    // Contenidos: del 200 a 292 son NO terminales (ver en matriz)
+    //             del -1 al -124 son tokens, ver en pila
+    // Longitud del arreglo: 0 al 182
     private final int[][] producciones = { // Siempre insertar al reves
             {1000,1004,201,1005,-19,1002,254,206,1003,1001,-20}, 	                                                    // 0 <----- Ambito ; Ejecución ; Declaración
             {247,201}, 	                                                                                                // 1
@@ -821,17 +991,19 @@ public class Sintaxis {
             {-16,246,250}, 	                                                                                            // 74
             {-13,218}, 	                                                                                                // 75
             {-14,254,252}, 	                                                                                            // 76
-            {-30}, 	                                                                                                    // 77
-            {-35}, 	                                                                                                    // 78
-            {-52}, 	                                                                                                    // 79
-            {-50}, 	                                                                                                    // 80
-            {-38}, 	                                                                                                    // 81
-            {-9}, 	                                                                                                    // 82
-            {-7}, 	                                                                                                    // 83
-            {-23}, 	                                                                                                    // 84
-            {-28}, 	                                                                                                    // 85
-            {-45}, 	                                                                                                    // 86
-            {-44}, 	                                                                                                    // 87
+            // ASIG
+            {1370,-30,1301}, 	                                                                                                    // 77
+            {1370,-35,1301}, 	                                                                                                    // 78
+            {1370,-52,1301}, 	                                                                                                    // 79
+            {1370,-50,1301}, 	                                                                                                    // 80
+            {1370,-38,1301}, 	                                                                                                    // 81
+            {1370,-9,1301}, 	                                                                                                    // 82
+            {1370,-7,1301}, 	                                                                                                    // 83
+            {1370,-23,1301}, 	                                                                                                    // 84
+            {1370,-28,1301}, 	                                                                                                    // 85
+            {1370,-45,1301}, 	                                                                                                    // 86
+            {1370,-44,1301}, 	                                                                                                    // 87
+            // STATUS
             {-68,-12,255}, 	                                                                                            // 88
             {-62,-10,273,-11,254,257}, 	                                                                                // 89
             {-64,-10,273,-11,-19,-76,273,-13,258,254,259,-87,260,-20}, 	                                                // 90
@@ -882,48 +1054,55 @@ public class Sintaxis {
             {269},                                                                                                      // 135
             {-17,273,272,-18},                                                                                          // 136
             {-16,273,272},                                                                                              // 137
-            {1300,275,274},                                                                                                  // 138
-            {-25,275,274},                                                                                              // 139
-            {-24,275,274},                                                                                              // 140
+            // OR
+            {275,274,1399},                                                                                                  // 138
+            {1302,1356,-25,1301,275,274},                                                                               // 139
+            {1307,1356,-24,275,274},                                                                                         // 140
+            // AND
             {277,276},                                                                                                  // 141
-            {-6,277,276},                                                                                               // 142
-            {-5,277,276},                                                                                               // 143
-            {-22,277,276},                                                                                              // 144
+            {1302,1355,-6/*,1301*/,277,276},                                                                                // 142
+            {1307,1355,-5,277,276},                                                                                          // 143
+            {1307,1355,-22,277,276},                                                                                         // 144
+            // EXP_PAS EP
             {279,278},                                                                                                  // 145
-            {-26,279,278},                                                                                              // 146
-            {-29,279,278},                                                                                              // 147
-            {-31,279,278},                                                                                              // 148
-            {-3,279,278},                                                                                               // 149
-            {-42,279,278},                                                                                              // 150
-            {-40,279,278},                                                                                              // 151
-            {-32,279,278},                                                                                              // 152
-            {-4,279,278},                                                                                               // 153
+            {1308,1354,-26/*,1301*/,279,278},                                                                                              // 146
+            {1308,1354,-29/*,1301*/,279,278},                                                                                              // 147
+            {1309,1354,-31/*,1301*/,279,278},                                                                                              // 148
+            {1309,1354,-3/*,1301*/,279,278},                                                                                               // 149
+            {1308,1354,-42/*,1301*/,279,278},                                                                                              // 150
+            {1308,1354,-40/*,1301*/,279,278},                                                                                              // 151
+            {1310,1354,-32/*,1301*/,279,278},                                                                                              // 152
+            {1310,1354,-4/*,1301*/,279,278},                                                                                               // 153
+            // SIMPLE EXP_PAS SEP
             {281,280},                                                                                                  // 154
-            {-37,281,280},                                                                                              // 155
-            {-34,281,280},                                                                                              // 156
-            {-27,281,280},                                                                                              // 157
-            {-41,281,280},                                                                                              // 158
-            {-43,281,280},                                                                                              // 159
+            {1304,1353,-37/*,1301*/,281,280},                                                                                              // 155
+            {1303,1353,-34/*,1301*/,281,280},                                                                                              // 156
+            {1311,1353,-27/*,1301*/,281,280},                                                                                              // 157
+            {1311,1353,-41/*,1301*/,281,280},                                                                                              // 158
+            {1311,1353,-43/*,1301*/,281,280},                                                                                              // 159
+            // TERMINO PASCAL TP
             {283,282},                                                                                                  // 160
-            {-48,283,282},                                                                                              // 161
-            {-51,283,282},                                                                                              // 162
-            {-8,283,282},                                                                                               // 163
+            {1305,1352,-48,/*1301,*/283,282},                                                                                              // 161
+            {1306,1352,-51,/*1301,*/283,282},                                                                                              // 162
+            {1307,1352,-8,/*1301,*/283,282},                                                                                               // 163
+            // ELEV
             {285,284},                                                                                                  // 164
-            {-49,285,284},                                                                                              // 165
-            {219,1301},                                                                                                      // 166
-            {286,-1,287,1301},                                                                                               // 167
-            {292,-10,273,-11,1301},                                                                                          // 168
-            {270,1301},                                                                                                      // 169
-            {-36},                                                                                                      // 170
-            {-39},                                                                                                      // 171
+            {1307,1351,-49,/*1301,*/285,284},                                                                                              // 165
+            // FACTOR
+            {1300,219,1301},                                                                                                      // 166
+            {286,1300,-1,1301,287},                                                                                               // 167
+            {292,-10,273,-11},                                                                                          // 168
+            {270},                                                                                                      // 169
+            {1371,1304,1350,-36,1301},                                                                                                      // 170
+            {1372,1304,1350,-39,1301},                                                                                                      // 171
             {271,288},                                                                                                  // 172
-            {-10,290,-11},                                                                                              // 173
+            {1350,1371,-10,1301,290,-11},                                                                                              // 173
             {253,273,289},                                                                                              // 174
             {-15,273,-13,273},                                                                                          // 175
             {273,291},                                                                                                  // 176
             {-16,273,291},                                                                                              // 177
-            {-2},                                                                                                       // 178
-            {-21},                                                                                                      // 179
+            {1302,1350,-2,1301},                                                                                                       // 178
+            {1307,1350,-21,1301},                                                                                                      // 179
 
             {-58,-1},                                                                                                   // 180 TIPO
             {253,273,289},                                                                                              // 181 FA1
@@ -978,7 +1157,7 @@ public class Sintaxis {
     }};
 }
 
-/**
+/* *
  * 1200 : declaracion de variable
  * 1201 : cierra declaración de variable
  * 1202 : abre declaracion de metodo o funcion
@@ -986,5 +1165,3 @@ public class Sintaxis {
  * 1204 : abre declaracion de metodo o funcion
  * 1205 : cierra declaracion de metodo o funcion
  */
-
-

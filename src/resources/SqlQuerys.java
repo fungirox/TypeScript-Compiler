@@ -1,11 +1,10 @@
 package resources;
 
 import ambito.MemberDetails;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import semantica.Operand;
+
+import java.sql.*;
+import java.util.ArrayList;
 
 public class SqlQuerys {
 
@@ -25,6 +24,8 @@ public class SqlQuerys {
         try {
             Statement statement =  connection.createStatement();
             statement.execute("TRUNCATE TABLE ambito");
+            statement.execute("TRUNCATE TABLE temporals");
+            statement.execute("TRUNCATE TABLE asignations");
         } catch (SQLException e) {
             System.out.println(e);
         }
@@ -36,6 +37,25 @@ public class SqlQuerys {
                     "typeParametro,arrayDimension,arrayLength) VALUES ('"+mb.getId()+"','"+mb.getType()+"'," +
                     "'"+mb.getClassId()+"','"+mb.getAmbito()+"','"+mb.getCantParametro()+"','"+mb.getTypeParametro()+"" +
                     "','"+mb.getArrayDimension()+"','"+mb.getArrayLength()+"');");
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+    }
+    public void addTemporal(Operand operand){
+        try {
+            Statement statement =  connection.createStatement();
+            statement.execute("INSERT INTO a20130044.temporals (lexeme,typeString,typeNumber,line) VALUES ('"+operand.getLexema()+"','"+operand.getDataType()+"'," +
+                    "'"+operand.getType()+"','"+operand.getLine()+"');");
+
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+    }
+    public void addAsignations(final String name,final String symbol,final int type,final int line){
+        try {
+            Statement statement =  connection.createStatement();
+            statement.execute("INSERT INTO a20130044.asignations (nameId,symbol,type,line) VALUES ('"+name+"','"+symbol+"'," +
+                    "'"+type+"','"+line+"');");
         } catch (SQLException e) {
             System.out.println(e);
         }
@@ -112,7 +132,7 @@ public class SqlQuerys {
         }
         return countType;
     }
-    public int classType(final int ambito) {
+    public int getClassType(final int ambito) {
         int countType = 0;
         try {
             Statement statement = connection.createStatement();
@@ -131,7 +151,7 @@ public class SqlQuerys {
         }
         return countType;
     }
-    public int ambitos(){
+    public int getAmbitos(){
         int ambitos=0;
         try {
             Statement statement = connection.createStatement();
@@ -150,12 +170,131 @@ public class SqlQuerys {
         }
         return ambitos;
     }
-    public boolean declarationError(){
 
-        return false;
+    public void updateAsignations(final String temp,final int finalDataType){
+
+        System.out.println("fungirox");
+        try {
+            Statement statement =  connection.createStatement();
+            statement.execute("UPDATE asignations SET finalData = '"+temp+"', finalDataType ="+finalDataType+" WHERE asignationsID = "+ getLastIdAsignations()+";");
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
     }
-    public boolean executeError(){
+    private int getLastIdAsignations(){
+        int lastId = 0;
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT MAX(asignationsID) AS last_id FROM asignations";
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
 
-        return false;
+            while (rs.next()) {
+                lastId = rs.getInt("last_id");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return lastId;
+    }
+    public int getTempTypeLine(final int line, final int type){
+        int typePerLine = 0;
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT COUNT(temporals.typeNumber) AS count_temporals_type FROM asignations INNER JOIN temporals ON asignations.line = temporals.line " +
+                    "WHERE temporals.typeNumber = '"+type+"' AND asignations.line = '"+line+"' GROUP BY asignations.type,temporals.typeNumber;";
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+
+            while (rs.next()) {
+                typePerLine = rs.getInt("count_temporals_type");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return typePerLine;
+    }
+    public ArrayList<Integer> getLinesSemantica(){
+        ArrayList<Integer> lines=new ArrayList<>();
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT line FROM asignations";
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+
+            while (rs.next()) {
+                lines.add(rs.getInt("line"));
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return lines;
+    }
+    public String getFinalTempString(final int line){
+        String finalTemp = "";
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT finalData,symbol,nameId FROM asignations WHERE line = "+line;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+
+            while (rs.next()) {
+                finalTemp = rs.getString("nameId");
+                finalTemp += " " + rs.getString("symbol");
+                finalTemp += " " + rs.getString("finalData");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+
+        return finalTemp;
+    }
+    public boolean getErrorSemantica(final int line){
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT * FROM asignations WHERE type = finalDataType AND line = "+line;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+
+            if (rs.next()) {
+                return false;
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return true;
+    }
+    public boolean isAsigInThisLine(final int line){
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT * FROM asignations WHERE line = "+line;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+
+            if (rs.next()) {
+                return false;
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return true;
     }
 }
