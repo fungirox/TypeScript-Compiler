@@ -147,10 +147,7 @@ public class Sintaxis {
             case OPERAND -> {
                 int operandType;
                 operandType =  tokenList.getFirst().getToken() == -1 ? findMemberType(ambitoStack,tokenList.getFirst().getLexema()) : idTypeToken(tokenList.getFirst().getToken());
-                if(operandsStack.isEmpty() && !operatorStack.isEmpty() && operatorStack.peek().getPriority() == 0 && !plusminus.equals("temp")){
-                    sqlQuerys.addAsignations(tokenList.getFirst().getLexema(),plusminus,operandType,tokenList.getFirst().getLinea());
-                }
-                plusminus = "temp";
+
                 operandsStack.push(new Operand(tokenList.getFirst().getLexema(),tokenList.getFirst().getToken(),operandType,tokenList.getFirst().getLinea()));
             }
             case NONE -> {
@@ -481,18 +478,7 @@ public class Sintaxis {
                 statusState = StatusState.NONE;
                 asig = false;
                 break;
-            case 1371:
-                if (sqlQuerys.isAsigInThisLine(tokenList.getFirst().getLinea()))
-                    plusminus = "++";
-                statusState = StatusState.ASIG;
-                asig = true;
-                break;
-            case 1372:
-                if (sqlQuerys.isAsigInThisLine(tokenList.getFirst().getLinea()))
-                    plusminus = "--";
-                statusState = StatusState.ASIG;
-                asig = true;
-                break;
+
             case 1370: // =
                 statusState = StatusState.ASIG;
                 asig = true;
@@ -1093,8 +1079,8 @@ public class Sintaxis {
             {286,1300,-1,1301,287},                                                                                               // 167
             {292,-10,273,-11},                                                                                          // 168
             {270},                                                                                                      // 169
-            {1371,1304,1350,-36,1301},                                                                                                      // 170
-            {1372,1304,1350,-39,1301},                                                                                                      // 171
+            {1304,1350,-36,1301},                                                                                                      // 170
+            {1304,1350,-39,1301},                                                                                                      // 171
             {271,288},                                                                                                  // 172
             {1350,1371,-10,1301,290,-11},                                                                                              // 173
             {253,273,289},                                                                                              // 174
