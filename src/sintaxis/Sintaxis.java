@@ -48,6 +48,7 @@ public class Sintaxis {
     private int operatorPriority;
     Operator operator;
     private String plusminus = "temp";
+    private boolean posfix = false;
     private boolean asig = false;
     public Sintaxis(final int [][]matriz,final LinkedList<Errores> listErrores,final LinkedList<Token>sintaxis,final int [][][]matrizSemantica){
         this.matrizSintactica = matriz;
@@ -72,7 +73,8 @@ public class Sintaxis {
     public int analize() throws IOException {
         int matrizData;
         while(!tokenList.isEmpty()&&!syntacticStack.isEmpty()){
-            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" generalState: "+stateStack.peek()+" statusState "+statusState+" error: "+error+" topStack: "+syntacticStack.peek()+" classOVar: "+classOVar);
+//            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" generalState: "+stateStack.peek()+" statusState "+statusState+" error: "+error+" topStack: "+syntacticStack.peek()+" classOVar: "+classOVar);
+            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" statusState "+statusState+" error: "+error+" topStack: "+syntacticStack.peek()+" asig: "+asig);
             if(syntacticStack.peek()>=200&&syntacticStack.peek()<=292){ // Esto quiere decir que es un NO terminal
 
                 matrizData = mapearToken();
@@ -146,6 +148,27 @@ public class Sintaxis {
         switch (statusState){
             case OPERAND -> {
                 int operandType;
+                if (posfix && tokenList.getFirst().getToken() == -1) {
+                    sqlQuerys.addAsignations(tokenList.getFirst().getLexema(),plusminus,findMemberType(ambitoStack,tokenList.getFirst().getLexema()),tokenList.getFirst().getLinea());
+
+                    int returnExcel = matrizSemantica[1][0][findMemberType(ambitoStack,tokenList.getFirst().getLexema())];
+                    Operand op  = switch (returnExcel){
+                        case -90 -> new Operand("temp number",-90,0,tokenList.getFirst().getLinea());   // NUMBER
+                        case -71 -> new Operand("temp real",-71,1,tokenList.getFirst().getLinea());   // REAL
+                        case -72 -> new Operand("temp boolean",-72,2,tokenList.getFirst().getLinea());   // boolean
+                        case -91 -> new Operand("temp string",-91,3,tokenList.getFirst().getLinea());   // string
+                        case -61 -> new Operand("temp null",-61,4,tokenList.getFirst().getLinea());   // null
+                        default -> new Operand("temp var",-200,6,tokenList.getFirst().getLinea());   // var
+                    };
+                    sqlQuerys.addTemporal(op);
+                    sqlQuerys.updateAsignations(op.getLexema(),op.getType());
+
+                    operatorStack.clear();
+                    asig = false;
+                    statusState = StatusState.NONE;
+                    posfix = false;
+                    break;
+                }
                 operandType =  tokenList.getFirst().getToken() == -1 ? findMemberType(ambitoStack,tokenList.getFirst().getLexema()) : idTypeToken(tokenList.getFirst().getToken());
 
                 operandsStack.push(new Operand(tokenList.getFirst().getLexema(),tokenList.getFirst().getToken(),operandType,tokenList.getFirst().getLinea()));
@@ -173,31 +196,13 @@ public class Sintaxis {
                             // Se necesita obtener los ultimos 2 operandos para realizar las "comparaciones"
                             // temporalmente ignoraremos las de prioridad 0 pq solo necesitan un elemento para interactuar ++ -- ! ~
 
-                                Operand op1 = operandsStack.pop();
-                                Operand op2 = operatorStack.peek().getPriority() == 0 ? new Operand("temp number",-90,0,op1.getLine()) : operandsStack.pop();
-                                System.out.println(op1.getType()+" row");
-                                System.out.println(op2.getType()+" colum");
-                                System.out.println(operatorStack.peek().getType()+" sheet");
-                            int returnExcel = matrizSemantica[operatorStack.peek().getType()][op1.getType()==6?5:op1.getType()][op2.getType()==6?5:op2.getType()];
-                                op2 = switch (returnExcel){
-                                    case -90 -> new Operand("temp number",-90,0,op1.getLine());   // NUMBER
-                                    case -71 -> new Operand("temp real",-71,1,op1.getLine());   // REAL
-                                    case -72 -> new Operand("temp boolean",-72,2,op1.getLine());   // boolean
-                                    case -91 -> new Operand("temp string",-91,3,op1.getLine());   // string
-                                    case -61 -> new Operand("temp null",-61,4,op1.getLine());   // null
-                                    default -> new Operand("temp var",-200,6,op1.getLine());   // var
-                                };
-                                sqlQuerys.addTemporal(op2);
-                                operandsStack.push(op2);
-                                System.out.println(returnExcel);
-                                operatorStack.pop();
+                            pushOperatorPerPriority();
 
                         }
                     }
                     if (operatorStack.isEmpty()){ // Si la pila de operadores está vacia
                         operatorStack.push(operator);
                     }
-                    System.out.println("holis");
                     statusState = StatusState.NONE;
                 }
 
@@ -207,6 +212,29 @@ public class Sintaxis {
 
 
     }
+
+    private void pushOperatorPerPriority() {
+        Operand op1 = operandsStack.pop();
+        Operand op2 = operatorStack.peek().getPriority() == 0 ? new Operand("temp number",-90,0,op1.getLine()) : operandsStack.pop();
+//        System.out.println(op1.getType()+" row");
+//        System.out.println(op2.getType()+" colum");
+//        System.out.println(operatorStack.peek().getType()+" sheet");
+        int returnExcel = matrizSemantica[operatorStack.peek().getType()][op1.getType()==6?5:op1.getType()][op2.getType()==6?5:op2.getType()];
+        op2 = switch (returnExcel){
+            case -90 -> new Operand("temp number",-90,0,op1.getLine());   // NUMBER
+            case -71 -> new Operand("temp real",-71,1,op1.getLine());   // REAL
+            case -72 -> new Operand("temp boolean",-72,2,op1.getLine());   // boolean
+            case -91 -> new Operand("temp string",-91,3,op1.getLine());   // string
+            case -61 -> new Operand("temp null",-61,4,op1.getLine());   // null
+            default -> new Operand("temp var",-200,6,op1.getLine());   // var
+        };
+        sqlQuerys.addTemporal(op2);
+        operandsStack.push(op2);
+        operatorStack.pop();
+//        System.out.println(returnExcel);
+
+    }
+
     private void declaration(){
         switch(stateStack.peek()){
             case DEC_VAR -> DEC_VAR();
@@ -279,7 +307,6 @@ public class Sintaxis {
                 break;
             case 1201: // Cierra Declaración de variable en DEC_VAR
                 if(!error){
-//                    System.out.println("Añadirá uno a la base de datos "+stateStack.peek()+" "+memberDetailsList.getLast().getId());
                     sqlQuerys.addMember(memberDetailsList.getLast());
                 }
                 if(!classOVar){
@@ -288,7 +315,6 @@ public class Sintaxis {
                 boolean classOvarAnt = classOVar;
                 setOldState();
                 classOVar = classOvarAnt;
-//                if(error&&classOvarAnt) error = true;
                 break;
             case 1202: // DEC_MET
                 if(!error){
@@ -445,25 +471,7 @@ public class Sintaxis {
                 // Vaciar pila
                 if (asig){
                     while (!operatorStack.isEmpty()){
-                        Operand op1 = operandsStack.pop();
-                        Operand op2 = operatorStack.peek().getPriority() == 0 ? new Operand("temp number",-90,0,op1.getLine()) : operandsStack.pop();
-                        System.out.println(op1.getType()+" row");
-                        System.out.println(op2.getType()+" colum");
-                        System.out.println(operatorStack.peek().getType()+" sheet");
-                        int returnExcel = matrizSemantica[operatorStack.peek().getType()][op1.getType()==6?5:op1.getType()][op2.getType()==6?5:op2.getType()];
-                        op2 = switch (returnExcel){
-                            case -90 -> new Operand("temp number",-90,0,op1.getLine());   // NUMBER
-                            case -71 -> new Operand("temp real",-71,1,op1.getLine());   // REAL
-                            case -72 -> new Operand("temp boolean",-72,2,op1.getLine());   // boolean
-                            case -91 -> new Operand("temp string",-91,3,op1.getLine());   // string
-                            case -61 -> new Operand("temp null",-61,4,op1.getLine());   // null
-                            default -> new Operand("temp var",-200,6,op1.getLine());   // var
-                        };
-                        sqlQuerys.addTemporal(op2);
-                        operandsStack.push(op2);
-
-                        System.out.println(returnExcel);
-                        operatorStack.pop();
+                        pushOperatorPerPriority();
 
                         System.out.println("O P E R A N D S   S T A C K");
                         printOperandStack();
@@ -480,10 +488,26 @@ public class Sintaxis {
                 break;
 
             case 1370: // =
-                statusState = StatusState.ASIG;
                 asig = true;
                 sqlQuerys.addAsignations(operandsStack.peek().getLexema(),tokenList.getFirst().getLexema(),operandsStack.peek().getType(),tokenList.getFirst().getLinea());
                 operandsStack.pop();
+                break;
+            case 1371: // ++
+                if (!asig && operandsStack.empty() && operatorStack.isEmpty() ){
+                    plusminus = "++";
+                    posfix = true;
+                    System.out.println("owo");
+                    statusState = StatusState.ASIG;
+                }
+
+                break;
+            case 1372: // --
+                if (!asig && operandsStack.empty() && operatorStack.isEmpty() ){
+                    plusminus = "--";
+                    posfix = true;
+                    System.out.println("owo");
+                    statusState = StatusState.ASIG;
+                }
                 break;
             case 1300:  // Abre operando
                 statusState = StatusState.OPERAND;
@@ -492,44 +516,34 @@ public class Sintaxis {
                 statusState = StatusState.NONE;
                 break;
             case 1302:  // Operadores lógicos && ||
-                statusState = StatusState.OPERATOR;
-                excelSheetOperator = 8;
+                setExcelSheetOperator(8);
                 break;
             case 1303:  // ADD
-                statusState = StatusState.OPERATOR;
-                excelSheetOperator = 0;
+                setExcelSheetOperator(0);
                 break;
             case 1304:  // MINUS
-                statusState = StatusState.OPERATOR;
-                excelSheetOperator = 1;
+                setExcelSheetOperator(1);
                 break;
             case 1305:  // MULTI
-                statusState = StatusState.OPERATOR;
-                excelSheetOperator = 2;
+                setExcelSheetOperator(2);
                 break;
             case 1306:  // DIVISION
-                statusState = StatusState.OPERATOR;
-                excelSheetOperator = 3;
+                setExcelSheetOperator(3);
                 break;
             case 1307:  // NUMBERS
-                statusState = StatusState.OPERATOR;
-                excelSheetOperator = 4;
+                setExcelSheetOperator(4);
                 break;
             case 1308:  // COMPARISON
-                statusState = StatusState.OPERATOR;
-                excelSheetOperator = 5;
+                setExcelSheetOperator(5);
                 break;
             case 1309:  // EQUALS
-                statusState = StatusState.OPERATOR;
-                excelSheetOperator = 6;
+                setExcelSheetOperator(6);
                 break;
             case 1310:  // EQUALTYPE
-                statusState = StatusState.OPERATOR;
-                excelSheetOperator = 7;
+                setExcelSheetOperator(7);
                 break;
             case 1311:  // TURN
-                statusState = StatusState.OPERATOR;
-                excelSheetOperator = 9;
+                setExcelSheetOperator(9);
                 break;
 
             case 1350: // FACTOR
@@ -556,6 +570,12 @@ public class Sintaxis {
             default:
                 // Acción por defecto si el valor no coincide con ninguno de los casos anteriores
                 break;
+        }
+    }
+    private void setExcelSheetOperator(final int sheet){
+        if(asig){
+            statusState = StatusState.OPERATOR;
+            excelSheetOperator = sheet;
         }
     }
     private void updateState(State newState){
@@ -1079,8 +1099,8 @@ public class Sintaxis {
             {286,1300,-1,1301,287},                                                                                               // 167
             {292,-10,273,-11},                                                                                          // 168
             {270},                                                                                                      // 169
-            {1304,1350,-36,1301},                                                                                                      // 170
-            {1304,1350,-39,1301},                                                                                                      // 171
+            {1371,1304,1350,-36,1301},                                                                                                      // 170
+            {1372,1304,1350,-39,1301},                                                                                                      // 171
             {271,288},                                                                                                  // 172
             {1350,1371,-10,1301,290,-11},                                                                                              // 173
             {253,273,289},                                                                                              // 174
