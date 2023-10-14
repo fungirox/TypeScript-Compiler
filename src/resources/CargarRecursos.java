@@ -292,7 +292,7 @@ public class CargarRecursos {
 
         semanticaSheet.createRow(semanticaSheet.getLastRowNum()+1);
         dataRow = semanticaSheet.createRow(semanticaSheet.getLastRowNum()+1);
-        totalAmbito(dataRow,semanticaSheet);
+        totalAmbito(dataRow,semanticaSheet,true);
     }
     private static void writeAmbitoExcel(XSSFSheet ambitoSheet,final LinkedList<Errores> listaErrores){
         Row dataRow;
@@ -316,9 +316,9 @@ public class CargarRecursos {
         }
         ambitoSheet.createRow(ambitoSheet.getLastRowNum()+1);
         dataRow = ambitoSheet.createRow(ambitoSheet.getLastRowNum()+1);
-        totalAmbito(dataRow,ambitoSheet);
+        totalAmbito(dataRow,ambitoSheet,false);
     }
-    private static void totalAmbito(Row dataRow,XSSFSheet ambitoSheet){
+    private static void totalAmbito(Row dataRow,XSSFSheet ambitoSheet,boolean semantica){
         int cantRows=ambitoSheet.getLastRowNum();
         int cantCells0=ambitoSheet.getRow(0).getLastCellNum();
         for(int j=0;j<cantCells0;j++){
@@ -328,7 +328,7 @@ public class CargarRecursos {
         for(int i=1;i<cantRows;i++){
             int cantCells = ambitoSheet.getRow(i).getLastCellNum();
             for(int j=1;j<cantCells;j++){
-                if (j==7) continue;
+                if (j==7&&semantica) continue;
                 dataRow.getCell(j).setCellValue(
                         dataRow.getCell(j).getNumericCellValue() + ambitoSheet.getRow(i).getCell(j).getNumericCellValue()
                 );

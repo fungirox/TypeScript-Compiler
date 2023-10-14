@@ -41,7 +41,7 @@ public class Sintaxis {
     private boolean classOVar = false;
     private final ArrayList <Integer> arrayLength;
     private boolean anon = false;
-    private boolean error = false;
+    private boolean errorAmbito = false;
     private final Stack<Operand> operandsStack;
     private final Stack<Operator> operatorStack;
     private int excelSheetOperator;
@@ -73,8 +73,8 @@ public class Sintaxis {
     public int analize() throws IOException {
         int matrizData;
         while(!tokenList.isEmpty()&&!syntacticStack.isEmpty()){
-//            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" generalState: "+stateStack.peek()+" statusState "+statusState+" error: "+error+" topStack: "+syntacticStack.peek()+" classOVar: "+classOVar);
-            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" statusState "+statusState+" error: "+error+" topStack: "+syntacticStack.peek()+" asig: "+asig);
+//            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" generalState: "+stateStack.peek()+" error: "+ errorAmbito +" topStack: "+syntacticStack.peek()+" classOVar: "+classOVar+" ambito "+ (ambitoStack.isEmpty() ? "vacio":ambitoStack.peek().getNumber()));
+//            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" statusState "+statusState+" error: "+error+" topStack: "+syntacticStack.peek()+" asig: "+asig);
             if(syntacticStack.peek()>=200&&syntacticStack.peek()<=292){ // Esto quiere decir que es un NO terminal
 
                 matrizData = mapearToken();
@@ -99,7 +99,7 @@ public class Sintaxis {
             }
             else if(syntacticStack.peek()<0){ //Esto quiere decir que es un token
                 if(tokenList.getFirst().getToken()==syntacticStack.peek()||(tokenList.getFirst().getToken()==(-47)&&syntacticStack.peek()==(-46))||(tokenList.getFirst().getToken()==(-57)&&syntacticStack.peek()==(-56))){//Si el token de la lista y pila son iguales y Caso especifico de cadenas -47 y reales -57
-                    if (!error){
+                    if (!errorAmbito){
                         if(stateStack.peek()==State.STATUS){
                             execute();
                         }
@@ -271,28 +271,32 @@ public class Sintaxis {
     private void codeState(int topStack){
         switch (topStack) {
             case 1000:
-                if(!error){
+                if(!errorAmbito){
                     gestionAmbito(true); // Creación de ámbito
                 }
                 break;
             case 1001:
-                if(!error){
+                if(!errorAmbito){
                     gestionAmbito(false); // Eliminación de ámbito
                 }
                 break;
             case 1002:
-                addArea(true); // Abre área de ejecución
-                updateState(State.STATUS);
-                operatorStack.clear();
-                operandsStack.clear();
-                statusState = StatusState.NONE;
+                if(!errorAmbito){
+                    addArea(true); // Abre área de ejecución
+                    updateState(State.STATUS);
+                    operatorStack.clear();
+                    operandsStack.clear();
+                    statusState = StatusState.NONE;
+                }
                 break;
             case 1003:
-                closeArea(true); // Cierra área de ejecución
-                setOldState();
-                operatorStack.clear();
-                operandsStack.clear();
-                statusState = StatusState.NONE;
+                if(!errorAmbito){
+                    closeArea(true); // Cierra área de ejecución
+                    setOldState();
+                    operatorStack.clear();
+                    operandsStack.clear();
+                    statusState = StatusState.NONE;
+                }
                 break;
             case 1004:
                 addArea(false); // Abre área de declaración
@@ -301,60 +305,62 @@ public class Sintaxis {
                 closeArea(false); // Cierra área de declaración
                 break;
             case 1200: // Abre Declaración de variable en DEC_VAR
-                if(!error){
+                if(!errorAmbito){
                     updateState(State.DEC_VAR);
                 }
                 break;
             case 1201: // Cierra Declaración de variable en DEC_VAR
-                if(!error){
+                if(!errorAmbito){
                     sqlQuerys.addMember(memberDetailsList.getLast());
                 }
-                if(!classOVar){
-                    error = false;
+//                if(errorAmbito && classOVar)
+                if(!(classOVar && errorAmbito)){
+                    setOldState();
+                    errorAmbito = false;
                 }
-                boolean classOvarAnt = classOVar;
-                setOldState();
-                classOVar = classOvarAnt;
+//                else if(!classOVar){
+//                    errorAmbito = false;
+//                }
                 break;
             case 1202: // DEC_MET
-                if(!error){
+                if(!errorAmbito){
                     updateState(State.DEC_MET);
                 }
                 break;
             case 1204: // DEC_FUN
-                if(!error){
+                if(!errorAmbito){
                     updateState(State.DEC_FUN);
                 }
                 break;
             case 1206: // DEC_SET
-                if(!error){
+                if(!errorAmbito){
                     updateState(State.DEC_SET);
                 }
                 break;
             case 1208: // DEC_GET
-                if(!error){
+                if(!errorAmbito){
                     updateState(State.DEC_GET);
                 }
                 break;
             case 1210: // INTERFACE
-                if(!error){
+                if(!errorAmbito){
                     updateState(State.INTERFACE);
                 }
                 break;
             case 1212: // Funcion anonima
-                if(!error){
+                if(!errorAmbito){
                     updateState(State.ANON_FUN);
                     let = true;
                 }
                 break;
             case 1214: // Arrow fuction
-                if(!error){
+                if(!errorAmbito){
                     updateState(State.ARROW_FUN);
                     let = true;
                 }
                 break;
             case 1216: // Class
-                if(!error){
+                if(!errorAmbito){
                     updateState(State.CLASS);
                 }
                 break;
@@ -364,28 +370,33 @@ public class Sintaxis {
             case 1209: // DEC_GET
             case 1213: // Funcion anonima
             case 1215: // Arrow fuction
-                if(!error){
+                if(!errorAmbito){
                     memberDetailsList.get(memberPositionClass).setCantParametro(parametro);
                 }
             case 1211: // Interface
-                if(!error){
+                if(!errorAmbito){
                     memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
                     sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 }
                 parametro = 0;
                 classOVar = false;
                 contieneParametro = false;
-                if(!(stateStack.peek() == State.CLASS || stateStack.peek() == State.CLASS_ANON )){
-                    error = false;
+                if(!(stateStack.peek() == State.CLASS || stateStack.peek() == State.CLASS_ANON ) && !errorAmbito){
+                    errorAmbito = false;
+                    setOldState();
+                }
+                else if(stateStack.peek() == State.ARROW_FUN || stateStack.peek() == State.ANON_FUN){
+                    errorAmbito = false;
                     setOldState();
                 }
                 if(!(stateStack.peek() == State.CLASS_ANON)){
                     anon = false;
                 }
+
                 let = false;
                 break;
             case 1217: // Class
-                if(!error){
+                if(!errorAmbito){
                     memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
                     sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 }
@@ -395,45 +406,45 @@ public class Sintaxis {
                 break;
             case 1227:
                 setOldState();
-                error = false;
+                errorAmbito = false;
                 break;
             case 1218: // ARRAY
-                if(!error){
+                if(!errorAmbito){
                     updateState(State.ARRAY);
                     let = true;
                 }
                 break;
             case 1219: // CIERRE ARRAY
                 setOldState();
-                if(!error){
+                if(!errorAmbito){
                     memberDetailsList.get(memberPositionClass).setArrayDimension(arrayLength.size());
                     memberDetailsList.get(memberPositionClass).setArrayLength(!arrayLength.isEmpty() ? arrayLength.stream().mapToInt(Integer::intValue).toArray():null);
                     sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 }
-                error = false;
+                errorAmbito = false;
                 arrayLength.clear();
                 break;
             case 1220: // LET VAR (SIN CLASS)
-                if(!error){
+                if(!errorAmbito){
                     updateState(State.LET_VAR);
                     let = true;
                 }
                 break;
             case 1221: // Cierra LET VAR
                 setOldState();
-                if(!error){
+                if(!errorAmbito){
                     sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 }
                 break;
             case 1222: // LET ID (SIN CLASS)
-                if(!error){
+                if(!errorAmbito){
                     updateState(State.LET_ID);
                     let = true;
                     anon = true;
                 }
                 break;
             case 1223: // CIERRA LET ID (SIN CLASS)
-                if(!error){
+                if(!errorAmbito){
                     memberDetailsList.addLast(new MemberDetails(memberDetailsList.getLast().getType(),"","@anonima","",ambitoStack.peek().getNumber(),0,0,null));
                     sqlQuerys.addMember(memberDetailsList.getLast());
                 }
@@ -441,13 +452,13 @@ public class Sintaxis {
                 break;
             case 1224: // Abre clase anonima
                 setOldState();
-                if(!error){
+                if(!errorAmbito){
                     updateState(State.CLASS_ANON);
                     memberDetailsList.addLast(new MemberDetails(memberDetailsList.getLast().getType(),"","@anonima","",ambitoStack.peek().getNumber(),0,0,null));
                 }
                 break;
             case 1225: // Cierra clase anonima 1
-                if(!error){
+                if(!errorAmbito){
                     memberDetailsList.getLast().setTypeParametro(ambitoStack.peek().getNumber()+"");
                     sqlQuerys.addMember(memberDetailsList.getLast());
                 }
@@ -456,7 +467,7 @@ public class Sintaxis {
                 }
                 break;
             case 1226:
-                error = false;
+                errorAmbito = false;
                 anon = false;
                 setOldState();
                 break;
@@ -469,51 +480,60 @@ public class Sintaxis {
                  * */
             case 1399: // INICIA UN NUEVO CICLO OR
                 // Vaciar pila
-                if (asig){
-                    while (!operatorStack.isEmpty()){
-                        pushOperatorPerPriority();
+                if(!errorAmbito){
+                    if (asig){
+                        while (!operatorStack.isEmpty()){
+                            pushOperatorPerPriority();
 
-                        System.out.println("O P E R A N D S   S T A C K");
-                        printOperandStack();
-                        System.out.println("O P E R A T O R S   S T A C K");
-                        printOperatorStack();
+                            System.out.println("O P E R A N D S   S T A C K");
+                            printOperandStack();
+                            System.out.println("O P E R A T O R S   S T A C K");
+                            printOperatorStack();
+                        }
+                        // Siempre queda un operando
+                        if(!operandsStack.isEmpty())
+                            sqlQuerys.updateAsignations(operandsStack.peek().getLexema(),operandsStack.peek().getType());
                     }
-                    // Siempre queda un operando
-                    if(!operandsStack.isEmpty())
-                        sqlQuerys.updateAsignations(operandsStack.peek().getLexema(),operandsStack.peek().getType());
+                    operandsStack.clear();
+                    statusState = StatusState.NONE;
+                    asig = false;
                 }
-                operandsStack.clear();
-                statusState = StatusState.NONE;
-                asig = false;
                 break;
 
             case 1370: // =
-                asig = true;
-                sqlQuerys.addAsignations(operandsStack.peek().getLexema(),tokenList.getFirst().getLexema(),operandsStack.peek().getType(),tokenList.getFirst().getLinea());
-                operandsStack.pop();
+                if(!errorAmbito){
+                    asig = true;
+                    sqlQuerys.addAsignations(operandsStack.peek().getLexema(),tokenList.getFirst().getLexema(),operandsStack.peek().getType(),tokenList.getFirst().getLinea());
+                    operandsStack.pop();
+                }
                 break;
             case 1371: // ++
-                if (!asig && operandsStack.empty() && operatorStack.isEmpty() ){
-                    plusminus = "++";
-                    posfix = true;
-                    System.out.println("owo");
-                    statusState = StatusState.ASIG;
+                if(!errorAmbito){
+                    if (!asig && operandsStack.empty() && operatorStack.isEmpty() ){
+                        plusminus = "++";
+                        posfix = true;
+                        statusState = StatusState.ASIG;
+                    }
                 }
-
                 break;
             case 1372: // --
-                if (!asig && operandsStack.empty() && operatorStack.isEmpty() ){
-                    plusminus = "--";
-                    posfix = true;
-                    System.out.println("owo");
-                    statusState = StatusState.ASIG;
+                if(!errorAmbito){
+                    if (!asig && operandsStack.empty() && operatorStack.isEmpty() ){
+                        plusminus = "--";
+                        posfix = true;
+                        statusState = StatusState.ASIG;
+                    }
                 }
                 break;
             case 1300:  // Abre operando
-                statusState = StatusState.OPERAND;
+                if(!errorAmbito){
+                    statusState = StatusState.OPERAND;
+                }
                 break;
             case 1301:  // Cierra operando
-                statusState = StatusState.NONE;
+                if(!errorAmbito){
+                    statusState = StatusState.NONE;
+                }
                 break;
             case 1302:  // Operadores lógicos && ||
                 setExcelSheetOperator(8);
@@ -573,10 +593,13 @@ public class Sintaxis {
         }
     }
     private void setExcelSheetOperator(final int sheet){
-        if(asig){
-            statusState = StatusState.OPERATOR;
-            excelSheetOperator = sheet;
+        if(!errorAmbito){
+            if(asig){
+                statusState = StatusState.OPERATOR;
+                excelSheetOperator = sheet;
+            }
         }
+
     }
     private void updateState(State newState){
         stateStack.push(newState);
@@ -605,9 +628,9 @@ public class Sintaxis {
     }
     private void isDuplicateLet(String classID){
         if(findMember(ambitoStack,letID)){
-            erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"El elemento ya está declarado en el ambito "+ambitoStack.peek().getNumber(),"Error de ámbito",ambitoStack.peek().getNumber()));
+            erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
             erroresAmbito++;
-            error = true;
+            errorAmbito = true;
         }
         else{
             memberDetailsList.addLast(new MemberDetails(letID,"",classID,"",ambitoStack.peek().getNumber(),0,0,null));
@@ -667,7 +690,7 @@ public class Sintaxis {
             if(findMember(ambitoStack,tokenList.getFirst().getLexema())){
                 erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
-                error = true;
+                errorAmbito = true;
             }
             else{
                 memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"",m?"interface":"class","",ambitoStack.peek().getNumber(),0,0,null));
@@ -697,7 +720,7 @@ public class Sintaxis {
                 if(findMember(ambitoStack,tokenList.getFirst().getLexema())){
                     erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                     erroresAmbito++;
-                    error = true;
+                    errorAmbito = true;
                 }
                 else {
                     memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"","variable",contieneParametro?memberString:"",ambitoStack.peek().getNumber(),contieneParametro?parametro+1:0,0,null));
@@ -719,9 +742,9 @@ public class Sintaxis {
         contieneParametro = true;
         if(let && (stateStack.peek() == State.ANON_FUN||stateStack.peek() == State.ARROW_FUN)){
             if(findMember(ambitoStack,letID)){
-                erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
+                erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
-                error = true;
+                errorAmbito = true;
             }
             else{
                 memberDetailsList.addLast(new MemberDetails(letID,"void",classFun,"",ambitoStack.peek().getNumber(),0,0,null));
@@ -740,7 +763,7 @@ public class Sintaxis {
                         if(memberGetSet(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema(),stateStack.peek() == State.DEC_GET?"get":"set")){
                             erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                             erroresAmbito++;
-                            error = true;
+                            errorAmbito = true;
                         }
                         else {
                             memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"void",classFun,"",ambitoStack.peek().getNumber(),0,0,null));
@@ -751,7 +774,7 @@ public class Sintaxis {
                     else{
                         erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                         erroresAmbito++;
-                        error = true;
+                        errorAmbito = true;
                     }
 
                 }
@@ -847,7 +870,7 @@ public class Sintaxis {
         parametro = 0;
         memberDetailsList.clear();
         erroresAmbito = 0;
-        error = false;
+        errorAmbito = false;
         sqlQuerys.truncateTable();
         operandsStack.clear();
         operatorStack.clear();
