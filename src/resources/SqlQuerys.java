@@ -96,6 +96,23 @@ public class SqlQuerys {
         }
         return type;
     }
+    public boolean isArray (final int ambito, final String id){
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT * FROM ambito WHERE nameId = '" + id + "' AND classId = 'Array' AND ambito = " + ambito;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+
+            if (rs.next()) {
+                return true;
+            }
+
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return false;
+    }
     public boolean isDeclaratedGetSet(final int ambito,final String id,final String classId){
         try {
             Statement statement = connection.createStatement();
@@ -170,7 +187,14 @@ public class SqlQuerys {
         }
         return ambitos;
     }
-
+    public void updateTypeMember(final String type){
+        try {
+            Statement statement =  connection.createStatement();
+            statement.execute("UPDATE ambito SET typeId = '"+type+"' WHERE asignationsID = "+ getLastIdAsignations()+";");
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+    }
     public void updateAsignations(final String temp,final int finalDataType){
         try {
             Statement statement =  connection.createStatement();

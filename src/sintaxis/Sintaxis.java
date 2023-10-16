@@ -47,13 +47,14 @@ public class Sintaxis {
     private boolean errorAmbito = false;
     private boolean posfix = false;
     private boolean switchError = false;
-    private boolean condicion = false;
+    private boolean forSentence = false;
+    private boolean forEach = false;
     private Operator operator;
     private StatusState statusState;
     private SematicaState sematicaState;
     private SematicaState sematicaStateAux;
 
-    public Sintaxis(final int [][]matriz,final LinkedList<Errores> listErrores,final LinkedList<Token>sintaxis,final int [][][]matrizSemantica){
+    public Sintaxis(final int [][]matriz,final LinkedList<Errores> listErrores,final LinkedList<Token>sintaxis,final int [][][]matrizSemantica,final LinkedList<Semantica> semanticaLinkedList){
         this.matrizSintactica = matriz;
         this.tokenList = sintaxis;
         this.erroresList = listErrores;
@@ -63,7 +64,7 @@ public class Sintaxis {
         this.memberDetailsList = new LinkedList<>();
         this.areasList = new LinkedList<>();
         this.arrayLength = new ArrayList<>();
-        this.semanticaRulesList = new LinkedList<>();
+        this.semanticaRulesList = semanticaLinkedList;
         this.matrizSemantica = matrizSemantica;
         this.sqlQuerys = CargarRecursos.connectionSQL;
         this.statusState = StatusState.NONE;
@@ -176,9 +177,8 @@ public class Sintaxis {
                         erroresList.add(new Errores(sqlQuerys.getNameIdAsignation(op.getLine()),-1,op.getLine(),"Incompatibilidad de tipos","Error semantico"));
                         state = false;
                     }
-                    semanticaRulesList.add(new Semantica(symbol.equals("=") ? 1020 :
-                            symbol.equals("+=") ? 1021 : 1022
-                            ,op.getLine(),ambitoStack.peek().getNumber(),a[0],op.getDataType()+"",state));
+                    semanticaRulesList.add(new Semantica(forSentence ? 1082 : symbol.equals("=") ? 1020 : symbol.equals("+=") ? 1021 : 1022,
+                            op.getLine(),ambitoStack.peek().getNumber(),a[0],op.getDataType()+"",state));
 
                     operatorStack.clear();
                     sematicaState = sematicaStateAux;
@@ -516,12 +516,12 @@ public class Sintaxis {
                                             state = false;
                                         }
                                     }
-                                    semanticaRulesList.add(new Semantica(
+                                    semanticaRulesList.add(new Semantica( forSentence ? 1080 :
                                             symbol.equals("=") ? 1020 : symbol.equals("+=") ? 1021 : 1022,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(),symbol.equals("+=") ? "any" : a[0] , a[1],state));
 
                                 }
                                 case IF -> {
-                                    semanticaRulesList.add(new Semantica(1010,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "boolean", operandsStack.peek().getDataType(), operandsStack.peek().getType() == 2 ));
+                                    semanticaRulesList.add(new Semantica(forSentence ? 1081 : 1010,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "boolean", operandsStack.peek().getDataType(), operandsStack.peek().getType() == 2 ));
                                 }
                                 case WHILE -> {
                                     semanticaRulesList.add(new Semantica(1011,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "boolean", operandsStack.peek().getDataType(), operandsStack.peek().getType() == 2 ));
@@ -544,11 +544,13 @@ public class Sintaxis {
                                             switchTypeStack.push(operandsStack.peek().getType() == 0); // true number false string
                                             switchError = false;
                                         }
+                                        else {
+                                            semanticaRulesList.add(new Semantica(1030,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "error switch",operandsStack.peek().getDataType(),false));
+                                            break;
+                                        }
                                     }
-//                                    else {
-                                        boolean state = operandsStack.peek().getDataType().equals(switchTypeStack.peek() ? "number" : "string");
-                                        semanticaRulesList.add(new Semantica(1030,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), switchTypeStack.peek() ? "number" : "string",operandsStack.peek().getDataType(),state));
-//                                    }
+                                    boolean state = operandsStack.peek().getDataType().equals(switchTypeStack.peek() ? "number" : "string");
+                                    semanticaRulesList.add(new Semantica(1030,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), switchTypeStack.peek() ? "number" : "string",operandsStack.peek().getDataType(),state));
                                 }
 
                             }
@@ -655,49 +657,101 @@ public class Sintaxis {
 
                 /* Reglas Semantica 2
                 * */
-            case 1400: // Abre OR en if
+            case 1400: // Abre OR en if dentro o fuera de for
                 sematicaState = SematicaState.IF;
-                System.out.println("if "+tokenList.getFirst().getLinea());
                 break;
-            case 1401: // Cierra OR en if
+            case 1401: // Cierra OR en if dentro o fuera de for
                 sematicaState = SematicaState.NONE;
-                System.out.println("if "+tokenList.getFirst().getLinea());
                 break;
             case 1402: // Abre OR en while
                 sematicaState = SematicaState.WHILE;
-                System.out.println("while "+tokenList.getFirst().getLinea());
                 break;
             case 1403: // Cierra OR en while
                 sematicaState = SematicaState.NONE;
-                System.out.println("while "+tokenList.getFirst().getLinea());
                 break;
             case 1404: // Abre OR en do while
                 sematicaState = SematicaState.DOWHILE;
-                System.out.println("do while "+tokenList.getFirst().getLinea());
                 break;
             case 1405: // Cierra OR en do while
                 sematicaState = SematicaState.NONE;
-                System.out.println("do while "+tokenList.getFirst().getLinea());
                 break;
             case 1406: // Abre Switch
                 sematicaState = SematicaState.SWITCH;
-                System.out.println("switch "+tokenList.getFirst().getLinea());
                 break;
             case 1407: // Cierra Swich
                 sematicaState = SematicaState.NONE;
-                System.out.println("switch "+tokenList.getFirst().getLinea());
                 break;
             case 1408: // Abre case
                 sematicaState = SematicaState.CASE;
-                System.out.println("case "+tokenList.getFirst().getLinea());
                 break;
             case 1409: // Cierra case
                 sematicaState = SematicaState.NONE;
-                System.out.println("case "+tokenList.getFirst().getLinea());
                 break;
             case 1410: // Cierra un switch completamente
                 switchTypeStack.pop();
                 break;
+            case 1411:
+                forSentence = true;
+                break;
+            case 1412:
+                forSentence = false;
+                break;
+            case 1413: // Abre for con ambito
+                forEach = true;
+                System.out.println("For each abre");
+                System.out.print("ambitoStack: "+ambitoStack.peek().getNumber()+ " ");
+                if(!errorAmbito){
+                    gestionAmbito(true); // Creación de ámbito
+                    System.out.println(ambitoStack.peek().getNumber());
+                }
+                // TODO añadir un dec_var
+                 if (tokenList.getFirst().getToken() == -1){
+                     System.out.println("holoa");
+                     if(findMember(ambitoStack,tokenList.getFirst().getLexema())){
+                         erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
+                         erroresAmbito ++;
+                         errorAmbito = true;
+                     }
+                     else {
+                         memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"","variable",contieneParametro?memberString:"",ambitoStack.peek().getNumber(),contieneParametro?parametro+1:0,0,null));
+                         sqlQuerys.addMember(memberDetailsList.getLast());
+                     }
+                 }
+
+                break;
+            case 1414:
+                // TODO este solo define y verifica el tipo de dato del dec_var anterior
+                if (tokenList.getFirst().getToken() == -1){
+                    System.out.println("type: "+String.valueOf(sqlQuerys.getOneIDType(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())));
+                    if(String.valueOf(sqlQuerys.getOneIDType(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())).equals("string")){ // Si es string
+                        memberDetailsList.getLast().setType(String.valueOf(sqlQuerys.getOneIDType(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())));
+                        sqlQuerys.updateTypeMember(memberDetailsList.getLast().getType());
+                        semanticaRulesList.add(new Semantica(1083,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), String.valueOf(sqlQuerys.getOneIDType(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())),memberDetailsList.getLast().getType(),true));
+                    }
+                    else if(sqlQuerys.isArray(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())){ // Si es Array
+                        memberDetailsList.getLast().setType(String.valueOf(sqlQuerys.getOneIDType(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())));
+                        sqlQuerys.updateTypeMember(memberDetailsList.getLast().getType());
+                        semanticaRulesList.add(new Semantica(1084,tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(), String.valueOf(sqlQuerys.getOneIDType(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())),memberDetailsList.getLast().getType(),true));
+                    }
+                    else{
+                        semanticaRulesList.add(new Semantica(1085,tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(),"string/Array",memberDetailsList.getLast().getType(),false));
+                    }
+
+                }
+
+                break;
+            case 1415: // Cierra for con ambito
+                if(forEach){
+                    System.out.println("For each cierra");
+                    System.out.print("ambitoStack: "+ambitoStack.peek().getNumber()+ " ");
+                    if(!errorAmbito){
+                        gestionAmbito(false); // Eliminación de ámbito
+                        System.out.println(ambitoStack.peek().getNumber());
+                    }
+                    forEach = false;
+
+                }
+
             default:
                 // Acción por defecto si el valor no coincide con ninguno de los casos anteriores
                 break;
@@ -894,7 +948,6 @@ public class Sintaxis {
                     memberPositionClass = memberDetailsList.size()-1;
                     memberString = tokenList.getFirst().getLexema();
                 }
-                break;
             }
             case -90,-91,-72,-61,-71 -> {
                 memberDetailsList.get(memberPositionClass).setType(tokenList.getFirst().getLexema()); // number // string // boolean // null // real
@@ -941,13 +994,13 @@ public class Sintaxis {
     private void gestionAmbito(boolean m){//true crear false eliminar
         if (m){
             ambitoStack.push(new Ambito(ambito,tokenList.getFirst().getLinea(),0,"placeholder"));
-            stringTxt += "Creacion ambito: [#"+ambitoStack.peek().getNumber()+", #"+ ambitoStack.peek().getLineStart()+"]\n";
+//            stringTxt += "Creacion ambito: [#"+ambitoStack.peek().getNumber()+", #"+ ambitoStack.peek().getLineStart()+"]\n";
 //            System.out.println("abre "+ambitoStack.peek().getNumber());
             ambito++;
         }
         else{
             ambitoStack.peek().setLineFinish(tokenList.getFirst().getLinea());
-            stringTxt += "Eliminacion ambito: [#"+ambitoStack.peek().getNumber()+", #"+ ambitoStack.peek().getLineFinish()+"]\n";
+//            stringTxt += "Eliminacion ambito: [#"+ambitoStack.peek().getNumber()+", #"+ ambitoStack.peek().getLineFinish()+"]\n";
 //            System.out.println("cierra "+ambitoStack.peek().getNumber());
             ambitoStack.pop();
         }
@@ -1139,43 +1192,44 @@ public class Sintaxis {
             {-13,218}, 	                                                                                                // 75
             {-14,254,252}, 	                                                                                            // 76
             // ASIG
-            {1370,-30,1301}, 	                                                                                                    // 77
-            {1370,-35,1301}, 	                                                                                                    // 78
-            {1370,-52,1301}, 	                                                                                                    // 79
-            {1370,-50,1301}, 	                                                                                                    // 80
-            {1370,-38,1301}, 	                                                                                                    // 81
-            {1370,-9,1301}, 	                                                                                                    // 82
-            {1370,-7,1301}, 	                                                                                                    // 83
-            {1370,-23,1301}, 	                                                                                                    // 84
-            {1370,-28,1301}, 	                                                                                                    // 85
-            {1370,-45,1301}, 	                                                                                                    // 86
-            {1370,-44,1301}, 	                                                                                                    // 87
+            {1370,-30,1301}, 	                                                                                        // 77
+            {1370,-35,1301}, 	                                                                                        // 78
+            {1370,-52,1301}, 	                                                                                        // 79
+            {1370,-50,1301}, 	                                                                                        // 80
+            {1370,-38,1301}, 	                                                                                        // 81
+            {1370,-9,1301}, 	                                                                                        // 82
+            {1370,-7,1301}, 	                                                                                        // 83
+            {1370,-23,1301}, 	                                                                                        // 84
+            {1370,-28,1301}, 	                                                                                        // 85
+            {1370,-45,1301}, 	                                                                                        // 86
+            {1370,-44,1301}, 	                                                                                        // 87
             // STATUS
             {-68,-12,255}, 	                                                                                            // 88
             // IF
-            {-62,-10,1400,273,1401,-11,254,257}, 	                                                                                // 89
-            {-64,-10,1406,273,1407,-11,-19,-76,1408,273,1409,-13,258,254,259,-87,260,-20}, 	                                                // 90
+            {-62,-10,1400,273,1401,-11,254,257}, 	                                                                    // 89
+            {-64,-10,1406,273,1407,-11,-19,-76,1408,273,1409,-13,258,254,259,-87,260,-20}, 	                            // 90
             {-19,254,263,-20}, 	                                                                                        // 91
             // WHILE
-            {-67,-10,1402,273,1403,-11,254}, 	                                                                                    // 92
+            {-67,-10,1402,273,1403,-11,254}, 	                                                                        // 92
             {273,-14}, 	                                                                                                // 93
             {-78,273,-14}, 	                                                                                            // 94
             // DO WHILE
-            {-66,254,-67,-10,1404,273,1405,-11,-14}, 	                                                                            // 95
-            {-65,-10,264,-11,254}, 	                                                                                    // 96
+            {-66,254,-67,-10,1404,273,1405,-11,-14}, 	                                                                // 95
+            // FOR
+            {-65,-10,1411,264,1412,-11,254,1415}, 	                                                                        // 96
             {-75,-10,273,256,-11}, 	                                                                                    // 97
             {-69,-10,273,-11}, 	                                                                                        // 98
             {-16,273,256}, 	                                                                                            // 99
             {-63,254}, 	                                                                                                // 100
-            {-76,1408,273,1409,-13,258}, 	                                                                                        // 101
+            {-76,1408,273,1409,-13,258}, 	                                                                            // 101
             {-14,254,259}, 	                                                                                            // 102
-            {-76,1408,273,1409,-13,268,-87,260}, 	                                                                                // 103
+            {-76,1408,273,1409,-13,268,-87,260}, 	                                                                    // 103
             {-77,-13,254,262}, 	                                                                                        // 104
             {-14,254,261},                                                                                              // 105
             {-14,254,262},                                                                                              // 106
             {-14,254,263},                                                                                              // 107
-            {273,265,-14,273,-14,273,266},                                                                              // 108
-            {-87,-1,267,-1},                                                                                            // 109
+            {273,265,-14,1400,273,1401,-14,273,266},                                                                    // 108
+            {-87,1413,-1,267,1414,-1},                                                                                            // 109
             {-16,273,265},                                                                                              // 110
             {-16,273,266},                                                                                              // 111
             {-107},                                                                                                     // 112
@@ -1205,58 +1259,58 @@ public class Sintaxis {
             {-17,273,272,-18},                                                                                          // 136
             {-16,273,272},                                                                                              // 137
             // OR
-            {275,274,1399},                                                                                                  // 138
+            {275,274,1399},                                                                                             // 138
             {1302,1356,-25,1301,275,274},                                                                               // 139
-            {1307,1356,-24,275,274},                                                                                         // 140
+            {1307,1356,-24,275,274},                                                                                    // 140
             // AND
             {277,276},                                                                                                  // 141
-            {1302,1355,-6/*,1301*/,277,276},                                                                                // 142
-            {1307,1355,-5,277,276},                                                                                          // 143
-            {1307,1355,-22,277,276},                                                                                         // 144
+            {1302,1355,-6/*,1301*/,277,276},                                                                            // 142
+            {1307,1355,-5,277,276},                                                                                     // 143
+            {1307,1355,-22,277,276},                                                                                    // 144
             // EXP_PAS EP
             {279,278},                                                                                                  // 145
-            {1308,1354,-26/*,1301*/,279,278},                                                                                              // 146
-            {1308,1354,-29/*,1301*/,279,278},                                                                                              // 147
-            {1309,1354,-31/*,1301*/,279,278},                                                                                              // 148
-            {1309,1354,-3/*,1301*/,279,278},                                                                                               // 149
-            {1308,1354,-42/*,1301*/,279,278},                                                                                              // 150
-            {1308,1354,-40/*,1301*/,279,278},                                                                                              // 151
-            {1310,1354,-32/*,1301*/,279,278},                                                                                              // 152
-            {1310,1354,-4/*,1301*/,279,278},                                                                                               // 153
+            {1308,1354,-26/*,1301*/,279,278},                                                                           // 146
+            {1308,1354,-29/*,1301*/,279,278},                                                                           // 147
+            {1309,1354,-31/*,1301*/,279,278},                                                                           // 148
+            {1309,1354,-3/*,1301*/,279,278},                                                                            // 149
+            {1308,1354,-42/*,1301*/,279,278},                                                                           // 150
+            {1308,1354,-40/*,1301*/,279,278},                                                                           // 151
+            {1310,1354,-32/*,1301*/,279,278},                                                                           // 152
+            {1310,1354,-4/*,1301*/,279,278},                                                                            // 153
             // SIMPLE EXP_PAS SEP
             {281,280},                                                                                                  // 154
-            {1304,1353,-37/*,1301*/,281,280},                                                                                              // 155
-            {1303,1353,-34/*,1301*/,281,280},                                                                                              // 156
-            {1311,1353,-27/*,1301*/,281,280},                                                                                              // 157
-            {1311,1353,-41/*,1301*/,281,280},                                                                                              // 158
-            {1311,1353,-43/*,1301*/,281,280},                                                                                              // 159
+            {1304,1353,-37/*,1301*/,281,280},                                                                           // 155
+            {1303,1353,-34/*,1301*/,281,280},                                                                           // 156
+            {1311,1353,-27/*,1301*/,281,280},                                                                           // 157
+            {1311,1353,-41/*,1301*/,281,280},                                                                           // 158
+            {1311,1353,-43/*,1301*/,281,280},                                                                           // 159
             // TERMINO PASCAL TP
             {283,282},                                                                                                  // 160
-            {1305,1352,-48,/*1301,*/283,282},                                                                                              // 161
-            {1306,1352,-51,/*1301,*/283,282},                                                                                              // 162
-            {1307,1352,-8,/*1301,*/283,282},                                                                                               // 163
+            {1305,1352,-48,/*1301,*/283,282},                                                                           // 161
+            {1306,1352,-51,/*1301,*/283,282},                                                                           // 162
+            {1307,1352,-8,/*1301,*/283,282},                                                                            // 163
             // ELEV
             {285,284},                                                                                                  // 164
-            {1307,1351,-49,/*1301,*/285,284},                                                                                              // 165
+            {1307,1351,-49,/*1301,*/285,284},                                                                           // 165
             // FACTOR
-            {1300,219,1301},                                                                                                      // 166
-            {286,1300,-1,1301,287},                                                                                               // 167
+            {1300,219,1301},                                                                                            // 166
+            {286,1300,-1,1301,287},                                                                                     // 167
             {292,-10,273,-11},                                                                                          // 168
             {270},                                                                                                      // 169
-            {1371,1304,1350,-36,1301},                                                                                                      // 170
-            {1372,1304,1350,-39,1301},                                                                                                      // 171
+            {1371,1304,1350,-36,1301},                                                                                  // 170
+            {1372,1304,1350,-39,1301},                                                                                  // 171
             {271,288},                                                                                                  // 172
-            {1350,1371,-10,1301,290,-11},                                                                                              // 173
+            {1350,1371,-10,1301,290,-11},                                                                               // 173
             {253,273,289},                                                                                              // 174
             {-15,273,-13,273},                                                                                          // 175
             {273,291},                                                                                                  // 176
             {-16,273,291},                                                                                              // 177
-            {1302,1350,-2,1301},                                                                                                       // 178
-            {1307,1350,-21,1301},                                                                                                      // 179
+            {1302,1350,-2,1301},                                                                                        // 178
+            {1307,1350,-21,1301},                                                                                       // 179
 
             {-58,-1},                                                                                                   // 180 TIPO
             {253,273,289},                                                                                              // 181 FA1
-            {-76,1408,273,1409,-13,268}                                                                                           // 182 case OR : S13
+            {-76,1408,273,1409,-13,268}                                                                                 // 182 case OR : S13
     };
     private final Map<Integer,String> errores_sintaxis=new HashMap<Integer,String>(){{
         put(504,"Solo puedes comenzar un programa con let class fuction o interface");

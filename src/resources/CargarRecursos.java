@@ -7,6 +7,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import semantica.Semantica;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -162,7 +163,7 @@ public class CargarRecursos {
         }
         return matriz;
     }
-    public static void writeToExcel(final LinkedList<Token> listaToken,final LinkedList<Errores> listaErrores,final int[] contadores,final int lexico, final int sintaxis,final String path){
+    public static void writeToExcel(final LinkedList<Token> listaToken,final LinkedList<Errores> listaErrores,final int[] contadores,final int lexico, final int sintaxis,final String path, final LinkedList<Semantica> semanticaLinkedList){
         XSSFWorkbook book=new XSSFWorkbook();
         XSSFSheet tokenSheet=book.createSheet("Token");
         Row headerRow1=tokenSheet.createRow(0);
@@ -257,6 +258,18 @@ public class CargarRecursos {
         }
         writeSemantica1Excel(sm1Sheet);
 
+        /**
+         * Semantica 2
+         * */
+        XSSFSheet sm2Sheet=book.createSheet("Semantica 2");
+        Row sm2Rows=sm2Sheet.createRow(0);
+        //headers
+        for(int i=0;i<rowHeadSm2.length;i++){
+            Cell cell=sm2Rows.createCell(i);
+            cell.setCellValue(rowHeadSm2[i]);
+        }
+        writeSemantica2Excel(sm2Sheet,semanticaLinkedList);
+
         /*
          *  Escribir archivo
          */
@@ -268,6 +281,21 @@ public class CargarRecursos {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    private static void writeSemantica2Excel(XSSFSheet semanticaSheet,final LinkedList<Semantica> semanticaLinkedList){
+        Row dataRow;
+
+        for(int i=0;i<semanticaLinkedList.size();i++){
+            dataRow = semanticaSheet.createRow(i+1);
+            Semantica aux1 = semanticaLinkedList.get(i);
+            dataRow.createCell(0).setCellValue(aux1.getRule());
+            dataRow.createCell(1).setCellValue(aux1.getTopStack());
+            dataRow.createCell(2).setCellValue(aux1.getRealValue());
+            dataRow.createCell(3).setCellValue(aux1.getLine());
+            dataRow.createCell(4).setCellValue(aux1.isState() ? "Aceptado" : "ERROR");
+            dataRow.createCell(5).setCellValue(aux1.getAmbito());
+        }
+
     }
     private static void writeSemantica1Excel(XSSFSheet semanticaSheet){
         Row dataRow;
@@ -366,6 +394,9 @@ public class CargarRecursos {
     };
     private final static String [] rowHeadSm1={
             "Linea","T number","T real","T boolean","T string","T null","T var","Asignaciones","Errores"
+    };
+    private final static String [] rowHeadSm2={
+            "Regla","Tope pila","Valor Real","Linea","Edo","Ambito"
     };
 }
 // Linea	Tstring	Tnum	Tbool	Treal	T#	Tvoid	Tvariants	Asignaciones	Errores

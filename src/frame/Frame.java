@@ -6,6 +6,7 @@ import lexico.Token;
 import resources.CargarRecursos;
 import resources.Line;
 import resources.SqlQuerys;
+import semantica.Semantica;
 import sintaxis.Sintaxis;
 
 import javax.swing.*;
@@ -44,9 +45,10 @@ public class Frame extends JFrame{
     private DefaultTableModel mdTblErrores;
     private DefaultTableModel mdTblTipoErrores;
     private DefaultTableModel mdTblContadores;
-    private LinkedList<Errores> erroresList =new LinkedList<>();
-    private LinkedList<Token> tokenListSintaxis =new LinkedList<>();
-    private LinkedList<Token> copy =new LinkedList<>();
+    private final LinkedList<Errores> erroresList =new LinkedList<>();
+    private final LinkedList<Token> tokenListSintaxis =new LinkedList<>();
+    private LinkedList<Token> copy = new LinkedList<>();
+    private final LinkedList<Semantica> semanticaLinkedList = new LinkedList<>();
     private Sintaxis sintaxis;
     private boolean compilo=false;
     private int []contadores=new int[21];
@@ -60,8 +62,8 @@ public class Frame extends JFrame{
         initComponentsPersonal();
 
         //Cargar excel de léxico
-        matrizLexico=CargarRecursos.openExcelFileLexico(excelLexicoPath);
-        matrizSintactica=CargarRecursos.openExcelFileSintaxis(excelSintaxisPath);
+        matrizLexico = CargarRecursos.openExcelFileLexico(excelLexicoPath);
+        matrizSintactica = CargarRecursos.openExcelFileSintaxis(excelSintaxisPath);
         matrizSemantica =  CargarRecursos.openExcelFileSemantica(excelSemanticaPath);
 
         CargarRecursos.connectionSQL.tryConnection();
@@ -425,7 +427,7 @@ public class Frame extends JFrame{
                 else{
                     lexico = new Lexico(matrizLexico,txtCodigo.getText()+'\n',tblTokens/*,tblError*/,tblContadores,erroresList,tokenListSintaxis,contadores);
                     compilo = true;
-                    sintaxis = new Sintaxis(matrizSintactica,erroresList,tokenListSintaxis,matrizSemantica);
+                    sintaxis = new Sintaxis(matrizSintactica,erroresList,tokenListSintaxis,matrizSemantica,semanticaLinkedList);
                 }
                 lexico.compilar();
                 erroresLexico = erroresList.size();
@@ -478,7 +480,7 @@ public class Frame extends JFrame{
             JOptionPane.showMessageDialog(null,"Primero debes Compilar (o゜▽゜)o☆");
     }
     public void writeExcel(final String path){
-        CargarRecursos.writeToExcel(copy,erroresList,contadores,erroresLexico,erroresSintaxis,path);
+        CargarRecursos.writeToExcel(copy,erroresList,contadores,erroresLexico,erroresSintaxis,path,semanticaLinkedList);
     }
     private void btnOpenFileActionPerformed(java.awt.event.ActionEvent evt) throws IOException {
         if(compilo)
