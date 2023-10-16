@@ -462,8 +462,6 @@ public class Frame extends JFrame{
         }
     }
     private void btnExcelActionPerformed(java.awt.event.ActionEvent evt){
-//        String palabrasReservadas=CargarRecursos.openFile("src/resources/palabrasReservadas.txt");
-//        imprimirMap(palabrasReservadas);
         if(compilo){
             JFileChooser fileChooser=new JFileChooser();
             fileChooser.setDialogTitle("Save Excel File");
@@ -494,7 +492,6 @@ public class Frame extends JFrame{
         if(r==JFileChooser.APPROVE_OPTION){
             path=fileChooser.getSelectedFile().getAbsolutePath();
             contenido=CargarRecursos.openFile(path);
-//            contenido=new String(Files.readAllBytes(Paths.get(path)),StandardCharsets.UTF_8);
 
             txtCodigo.setText(contenido);
         }

@@ -17,7 +17,7 @@ public class Errores extends Elemento {
         this.desc = desc;
         this.tipo = tipo;
     }
-    public Errores(final String lexema, final int token, final int linea,final String desc,final String tipo,final int ambito) { // Error sintaxis
+    public Errores(final String lexema, final int token, final int linea,final String desc,final String tipo,final int ambito) { // Error ambito
         super(lexema,token,linea);
         this.desc = desc;
         this.tipo = tipo;

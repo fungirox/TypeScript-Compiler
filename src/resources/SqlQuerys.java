@@ -51,11 +51,11 @@ public class SqlQuerys {
             System.out.println(e);
         }
     }
-    public void addAsignations(final String name,final String symbol,final int type,final int line){
+    public void addAsignations(final String name,final String symbol,final int type,final int line,final String typeData){
         try {
             Statement statement =  connection.createStatement();
-            statement.execute("INSERT INTO a20130044.asignations (nameId,symbol,type,line) VALUES ('"+name+"','"+symbol+"'," +
-                    "'"+type+"','"+line+"');");
+            statement.execute("INSERT INTO a20130044.asignations (nameId,symbol,type,line,typeData) VALUES ('"+name+"','"+symbol+"'," +
+                    "'"+type+"','"+line+"','"+typeData+"');");
         } catch (SQLException e) {
             System.out.println(e);
         }
@@ -172,8 +172,6 @@ public class SqlQuerys {
     }
 
     public void updateAsignations(final String temp,final int finalDataType){
-
-        System.out.println("fungirox");
         try {
             Statement statement =  connection.createStatement();
             statement.execute("UPDATE asignations SET finalData = '"+temp+"', finalDataType ="+finalDataType+" WHERE asignationsID = "+ getLastIdAsignations()+";");
@@ -279,14 +277,15 @@ public class SqlQuerys {
         }
         return true;
     }
-    public boolean isAsigInThisLine(final int line){
+    public String getNameIdAsignation(final int line){
+        String nameId="";
         try {
             Statement statement = connection.createStatement();
-            String query = "SELECT * FROM asignations WHERE line = "+line;
+            String query = "SELECT nameId FROM asignations WHERE line = "+line;
             ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
 
-            if (rs.next()) {
-                return false;
+            while (rs.next()) {
+                nameId = rs.getString("nameId");
             }
 
             // Cerrar el ResultSet y el Statement después de su uso
@@ -295,6 +294,44 @@ public class SqlQuerys {
         } catch (SQLException e) {
             System.out.println(e);
         }
-        return true;
+        return nameId;
+    }
+    public String getAsignationOperator(final int line){
+        String symbol="";
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT symbol FROM asignations WHERE line = "+line;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+
+            while (rs.next()) {
+                symbol = rs.getString("symbol");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return symbol;
+    }
+    public String[] getTypeDataAsignation(final int line){
+        String typeData[] = new String[2];
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT typeData,finalData FROM asignations WHERE line = "+line;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+            while (rs.next()) {
+                typeData[0] = rs.getString("typeData");
+                typeData[1] = rs.getString("finalData");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return typeData;
     }
 }
