@@ -80,7 +80,7 @@ public class Sintaxis {
     public int analize() throws IOException {
         int matrizData;
         while(!tokenList.isEmpty()&&!syntacticStack.isEmpty()){
-//            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" generalState: "+stateStack.peek()+" error: "+ errorAmbito +" topStack: "+syntacticStack.peek()+" classOVar: "+classOVar+" ambito "+ (ambitoStack.isEmpty() ? "vacio":ambitoStack.peek().getNumber()));
+            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" generalState: "+generalStateStack.peek()+" error: "+ errorAmbito +" topStack: "+syntacticStack.peek()+" classOVar: "+classOVar+" ambito "+ (ambitoStack.isEmpty() ? "vacio":ambitoStack.peek().getNumber()));
             System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" statusState "+statusState+" error: "+errorAmbito+" topStack: "+syntacticStack.peek()+" sematicState: "+sematicaState);
             if(syntacticStack.peek()>=200&&syntacticStack.peek()<=292){ // Esto quiere decir que es un NO terminal
 
@@ -155,7 +155,7 @@ public class Sintaxis {
             case OPERAND -> {
                 int operandType;
                 if (posfix && tokenList.getFirst().getToken() == -1 && sematicaState == SematicaState.ASIG) {
-                    sqlQuerys.addAsignations(tokenList.getFirst().getLexema(),plusminus,findMemberType(ambitoStack,tokenList.getFirst().getLexema()),tokenList.getFirst().getLinea(),String.valueOf(sqlQuerys.getOneIDType(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())));
+                    sqlQuerys.addAsignations(tokenList.getFirst().getLexema(),plusminus,findMemberType(ambitoStack,tokenList.getFirst().getLexema()),tokenList.getFirst().getLinea(),findMemberTypeString(ambitoStack,tokenList.getFirst().getLexema()));
 
                     int returnExcel = matrizSemantica[1][0][findMemberType(ambitoStack,tokenList.getFirst().getLexema())];
                     Operand op  = switch (returnExcel){
@@ -178,7 +178,7 @@ public class Sintaxis {
                         state = false;
                     }
                     semanticaRulesList.add(new Semantica(forSentence ? 1082 : symbol.equals("=") ? 1020 : symbol.equals("+=") ? 1021 : 1022,
-                            op.getLine(),ambitoStack.peek().getNumber(),a[0],op.getDataType()+"",state));
+                            op.getLine(),ambitoStack.peek().getNumber(),forSentence ? "++ / --" : a[0],op.getDataType()+"",state));
 
                     operatorStack.clear();
                     sematicaState = sematicaStateAux;
@@ -192,7 +192,7 @@ public class Sintaxis {
                 }
 
                 operandType =  tokenList.getFirst().getToken() == -1 ? findMemberType(ambitoStack,tokenList.getFirst().getLexema()) : idTypeToken(tokenList.getFirst().getToken());
-                operandsStack.push(new Operand(tokenList.getFirst().getLexema(),tokenList.getFirst().getToken(),operandType,tokenList.getFirst().getLinea()));
+                operandsStack.push(new Operand(getTempString(operandType),tokenList.getFirst().getToken(),operandType,tokenList.getFirst().getLinea()));
 
 
             }
@@ -428,7 +428,7 @@ public class Sintaxis {
                 setOldState();
                 if(!errorAmbito){
                     memberDetailsList.get(memberPositionClass).setArrayDimension(arrayLength.size());
-                    memberDetailsList.get(memberPositionClass).setArrayLength(!arrayLength.isEmpty() ? arrayLength.stream().mapToInt(Integer::intValue).toArray():null);
+                    memberDetailsList.get(memberPositionClass).setArrayLength(arrayLength.isEmpty() ? null : arrayLength.stream().mapToInt(Integer::intValue).toArray());
                     sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
                 }
                 errorAmbito = false;
@@ -517,7 +517,7 @@ public class Sintaxis {
                                         }
                                     }
                                     semanticaRulesList.add(new Semantica( forSentence ? 1080 :
-                                            symbol.equals("=") ? 1020 : symbol.equals("+=") ? 1021 : 1022,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(),symbol.equals("+=") ? "any" : a[0] , a[1],state));
+                                            symbol.equals("=") ? 1020 : symbol.equals("+=") ? 1021 : 1022,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), forSentence ? "asignacion" : symbol.equals("+=") ? "any" : a[0] , a[1],state));
 
                                 }
                                 case IF -> {
@@ -706,7 +706,7 @@ public class Sintaxis {
                 }
                 // TODO añadir un dec_var
                  if (tokenList.getFirst().getToken() == -1){
-                     System.out.println("holoa");
+                     System.out.println("hola");
                      if(findMember(ambitoStack,tokenList.getFirst().getLexema())){
                          erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                          erroresAmbito ++;
@@ -722,19 +722,20 @@ public class Sintaxis {
             case 1414:
                 // TODO este solo define y verifica el tipo de dato del dec_var anterior
                 if (tokenList.getFirst().getToken() == -1){
-                    System.out.println("type: "+String.valueOf(sqlQuerys.getOneIDType(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())));
-                    if(String.valueOf(sqlQuerys.getOneIDType(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())).equals("string")){ // Si es string
-                        memberDetailsList.getLast().setType(String.valueOf(sqlQuerys.getOneIDType(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())));
+                    System.out.println(tokenList.getFirst().getLexema());
+                    System.out.println("type: "+findMemberTypeString(ambitoStack,tokenList.getFirst().getLexema()));
+                    if(findMemberTypeString(ambitoStack,tokenList.getFirst().getLexema()).equals("string")){ // Si es string
+                        memberDetailsList.getLast().setType(findMemberTypeString(ambitoStack,tokenList.getFirst().getLexema()));
                         sqlQuerys.updateTypeMember(memberDetailsList.getLast().getType());
-                        semanticaRulesList.add(new Semantica(1083,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), String.valueOf(sqlQuerys.getOneIDType(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())),memberDetailsList.getLast().getType(),true));
+                        semanticaRulesList.add(new Semantica(1083,tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(), "string/Array", memberDetailsList.getLast().getType(),true));
                     }
-                    else if(sqlQuerys.isArray(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())){ // Si es Array
-                        memberDetailsList.getLast().setType(String.valueOf(sqlQuerys.getOneIDType(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())));
+                    else if(isArray(ambitoStack,tokenList.getFirst().getLexema())){ // Si es Array
+                        memberDetailsList.getLast().setType(findMemberTypeString(ambitoStack,tokenList.getFirst().getLexema()));
                         sqlQuerys.updateTypeMember(memberDetailsList.getLast().getType());
-                        semanticaRulesList.add(new Semantica(1084,tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(), String.valueOf(sqlQuerys.getOneIDType(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema())),memberDetailsList.getLast().getType(),true));
+                        semanticaRulesList.add(new Semantica(1084,tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(), "string/Array", memberDetailsList.getLast().getType(),true));
                     }
                     else{
-                        semanticaRulesList.add(new Semantica(1085,tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(),"string/Array",memberDetailsList.getLast().getType(),false));
+                        semanticaRulesList.add(new Semantica(1085,tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(),"string/Array", memberDetailsList.getLast().getType(),false));
                     }
 
                 }
@@ -1011,6 +1012,7 @@ public class Sintaxis {
         tokenList.removeFirst();
     }
     private void printStackAmbito(Stack<Ambito> stack){
+        stringTxt = "";
         if (stack.isEmpty()){
             stringTxt +="\tLa pila esta vacia\n";
             return;
@@ -1024,6 +1026,7 @@ public class Sintaxis {
                 stringTxt +=", ";
         }
         stringTxt +="]\n";
+        System.out.print(stringTxt);
     }
 
     public void clean(){
@@ -1061,6 +1064,28 @@ public class Sintaxis {
             System.out.println(iterator.next());
         }
     }
+    private String getTempString(final int type){
+        switch (type){
+            case 0 -> {
+                return "number";
+            }
+            case 1 -> {
+                return "real";
+            }
+            case 2 -> {
+                return "boolean";
+            }
+            case 3 -> {
+                return "string";
+            }
+            case 4 -> {
+                return "null";
+            }
+            default -> {
+                return "var";
+            }
+        }
+    }
     private int findMemberType(Stack<Ambito> stack, String id){
         Stack<Ambito> copyStack = (Stack<Ambito>) stack.clone();
         while (!copyStack.isEmpty()){
@@ -1087,6 +1112,29 @@ public class Sintaxis {
         }
         return 5;
     }
+    private String findMemberTypeString(Stack<Ambito> stack, String id){
+        Stack<Ambito> copyStack = (Stack<Ambito>) stack.clone();
+        while (!copyStack.isEmpty()){
+            String type = String.valueOf(sqlQuerys.getOneIDType(copyStack.pop().getNumber(),id));
+            switch (type){
+                case "number","real","boolean","string","null" ->{
+                    return type;
+                }
+            }
+        }
+        return "var";
+    }
+    private boolean isArray(Stack<Ambito> stack, String id){
+        Stack<Ambito> copyStack = (Stack<Ambito>) stack.clone();
+        while (!copyStack.isEmpty()){
+            if (sqlQuerys.isArray(copyStack.pop().getNumber(),id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     private int idTypeToken(int token){
         switch(token) {
             case -55 -> { // number

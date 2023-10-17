@@ -36,7 +36,7 @@ public class SqlQuerys {
             statement.execute("INSERT INTO a20130044.ambito (nameId,typeId,classId,ambito,cantParametro," +
                     "typeParametro,arrayDimension,arrayLength) VALUES ('"+mb.getId()+"','"+mb.getType()+"'," +
                     "'"+mb.getClassId()+"','"+mb.getAmbito()+"','"+mb.getCantParametro()+"','"+mb.getTypeParametro()+"" +
-                    "','"+mb.getArrayDimension()+"','"+mb.getArrayLength()+"');");
+                    "','"+mb.getArrayDimension()+"','"+mb.getArrayToJson()+"');");
         } catch (SQLException e) {
             System.out.println(e);
         }
@@ -83,11 +83,8 @@ public class SqlQuerys {
             Statement statement = connection.createStatement();
             String query = "SELECT typeId FROM ambito WHERE nameId = '" + id + "' AND ambito = " + ambito;
             ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
-            if (rs.next()) {
+            while (rs.next()) {
                 type = rs.getString("typeId");
-                // Cerrar el ResultSet y el Statement después de su uso
-                rs.close();
-                statement.close();
             }
             rs.close();
             statement.close();
@@ -190,7 +187,7 @@ public class SqlQuerys {
     public void updateTypeMember(final String type){
         try {
             Statement statement =  connection.createStatement();
-            statement.execute("UPDATE ambito SET typeId = '"+type+"' WHERE asignationsID = "+ getLastIdAsignations()+";");
+            statement.execute("UPDATE ambito SET typeId = '"+type+"' WHERE declarationID = "+ getLastIdAmbito()+";");
         } catch (SQLException e) {
             System.out.println(e);
         }
@@ -208,6 +205,25 @@ public class SqlQuerys {
         try {
             Statement statement = connection.createStatement();
             String query = "SELECT MAX(asignationsID) AS last_id FROM asignations";
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+
+            while (rs.next()) {
+                lastId = rs.getInt("last_id");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return lastId;
+    }
+    private int getLastIdAmbito(){
+        int lastId = 0;
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT MAX(declarationID) AS last_id FROM ambito";
             ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
 
             while (rs.next()) {

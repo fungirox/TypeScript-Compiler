@@ -40,6 +40,22 @@ public class MemberDetails {
         return arrayLength;
     }
 
+    public String getArrayToJson() {
+        if(arrayLength != null ){
+            StringBuilder json = new StringBuilder();
+            json.append("[");
+            for (int i = 0; i < arrayLength.length; i++) {
+                json.append(arrayLength[i]);
+                if (i < arrayLength.length - 1) {
+                    json.append(",");
+                }
+            }
+            json.append("]");
+            return json.toString();
+        }
+        return "[]";
+    }
+
     public void setArrayLength(int[] arrayLength) {
         this.arrayLength = arrayLength;
     }
