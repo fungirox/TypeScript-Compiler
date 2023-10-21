@@ -49,6 +49,7 @@ public class Sintaxis {
     private boolean switchError = false;
     private boolean forSentence = false;
     private boolean forEach = false;
+    private boolean errorOR = false;
     private Operator operator;
     private StatusState statusState;
     private SematicaState sematicaState;
@@ -153,46 +154,57 @@ public class Sintaxis {
 
         switch (statusState){
             case OPERAND -> {
+                // TODO regla 9
                 int operandType;
                 if (posfix && tokenList.getFirst().getToken() == -1 && sematicaState == SematicaState.ASIG) {
-                    sqlQuerys.addAsignations(tokenList.getFirst().getLexema(),plusminus,findMemberType(ambitoStack,tokenList.getFirst().getLexema()),tokenList.getFirst().getLinea(),findMemberTypeString(ambitoStack,tokenList.getFirst().getLexema()));
 
-                    int returnExcel = matrizSemantica[1][0][findMemberType(ambitoStack,tokenList.getFirst().getLexema())];
-                    Operand op  = switch (returnExcel){
-                        case -90 -> new Operand("temp number",-90,0,tokenList.getFirst().getLinea());   // NUMBER
-                        case -71 -> new Operand("temp real",-71,1,tokenList.getFirst().getLinea());   // REAL
-                        case -72 -> new Operand("temp boolean",-72,2,tokenList.getFirst().getLinea());   // boolean
-                        case -91 -> new Operand("temp string",-91,3,tokenList.getFirst().getLinea());   // string
-                        case -61 -> new Operand("temp null",-61,4,tokenList.getFirst().getLinea());   // null
-                        default -> new Operand("temp var",-200,6,tokenList.getFirst().getLinea());   // var
-                    };
-                    sqlQuerys.addTemporal(op);
-                    sqlQuerys.updateAsignations(op.getLexema(),op.getType());
-
-                    boolean state = true;
-                    String symbol = sqlQuerys.getAsignationOperator(op.getLine());
-                    String [] a = sqlQuerys.getTypeDataAsignation(op.getLine());
-
-                    if(sqlQuerys.getErrorSemantica(op.getLine())){ // Ver si son del mismo tipo la asignación y el resultado final
-                        erroresList.add(new Errores(sqlQuerys.getNameIdAsignation(op.getLine()),-1,op.getLine(),"Incompatibilidad de tipos","Error semantico"));
-                        state = false;
+                    if(isVarOrArray(ambitoStack,tokenList.getFirst().getLexema())) {
+                        sqlQuerys.addAsignations(tokenList.getFirst().getLexema(),plusminus,findMemberType(ambitoStack,tokenList.getFirst().getLexema()),tokenList.getFirst().getLinea(),findMemberTypeString(ambitoStack,tokenList.getFirst().getLexema()));
                     }
-                    semanticaRulesList.add(new Semantica(forSentence ? 1082 : symbol.equals("=") ? 1020 : symbol.equals("+=") ? 1021 : 1022,
-                            op.getLine(),ambitoStack.peek().getNumber(),forSentence ? "++ / --" : a[0],op.getDataType()+"",state));
+                    else{
+                        System.out.println("No es array o variable");
+                        errorOR = true;
+                    }
+                    semanticaRulesList.add(new Semantica(1090,tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(),"var/Array",tokenList.getFirst().getLexema(),!errorOR));
 
-                    operatorStack.clear();
-                    sematicaState = sematicaStateAux;
-                    statusState = StatusState.NONE;
-                    posfix = false;
+                    if(!errorOR){
+                        int returnExcel = matrizSemantica[1][0][findMemberType(ambitoStack,tokenList.getFirst().getLexema())];
+                        Operand op  = switch (returnExcel){
+                            case -90 -> new Operand("TNUM"+(sqlQuerys.getTempTypeLine(0,tokenList.getFirst().getLinea())),-90,0,tokenList.getFirst().getLinea());   // NUMBER
+                            case -71 -> new Operand("TR"+(sqlQuerys.getTempTypeLine(1,tokenList.getFirst().getLinea())),-71,1,tokenList.getFirst().getLinea());   // REAL
+                            case -72 -> new Operand("TB"+(sqlQuerys.getTempTypeLine(2,tokenList.getFirst().getLinea())),-72,2,tokenList.getFirst().getLinea());   // boolean
+                            case -91 -> new Operand("TS"+(sqlQuerys.getTempTypeLine(3,tokenList.getFirst().getLinea())),-91,3,tokenList.getFirst().getLinea());   // string
+                            case -61 -> new Operand("TNULL"+(sqlQuerys.getTempTypeLine(4,tokenList.getFirst().getLinea())),-61,4,tokenList.getFirst().getLinea());   // null
+                            default -> new Operand("TV"+(sqlQuerys.getTempTypeLine(5,tokenList.getFirst().getLinea())),-200,6,tokenList.getFirst().getLinea());   // var
+                        };
+                        sqlQuerys.addTemporal(op);
+                        sqlQuerys.updateAsignations(op.getLexema(),op.getType());
 
-                    if (sematicaState == SematicaState.IF || sematicaState == SematicaState.WHILE || sematicaState == SematicaState.DOWHILE){
-                        operandsStack.push(op);
+                        boolean state = true;
+                        String symbol = sqlQuerys.getAsignationOperator(op.getLine());
+                        String [] a = sqlQuerys.getTypeDataAsignation(op.getLine());
+
+                        if(sqlQuerys.getErrorSemantica(op.getLine())){ // Ver si son del mismo tipo la asignación y el resultado final
+                            erroresList.add(new Errores(sqlQuerys.getNameIdAsignation(op.getLine()),-1,op.getLine(),"Incompatibilidad de tipos","Error semantico"));
+                            state = false;
+                        }
+                        semanticaRulesList.add(new Semantica(forSentence ? 1082 : symbol.equals("=") ? 1020 : symbol.equals("+=") ? 1021 : 1022,
+                                op.getLine(),ambitoStack.peek().getNumber(),forSentence ? "++ / --" : a[0],op.getDataType()+"",state));
+
+                        operatorStack.clear();
+                        sematicaState = sematicaStateAux;
+                        statusState = StatusState.NONE;
+                        posfix = false;
+
+                        if (sematicaState == SematicaState.IF || sematicaState == SematicaState.WHILE || sematicaState == SematicaState.DOWHILE){
+                            operandsStack.push(op);
+                        }
                     }
                     break;
                 }
 
                 operandType =  tokenList.getFirst().getToken() == -1 ? findMemberType(ambitoStack,tokenList.getFirst().getLexema()) : idTypeToken(tokenList.getFirst().getToken());
-                operandsStack.push(new Operand(getTempString(operandType),tokenList.getFirst().getToken(),operandType,tokenList.getFirst().getLinea()));
+                operandsStack.push(new Operand(tokenList.getFirst().getLexema(),tokenList.getFirst().getToken(),operandType,tokenList.getFirst().getLinea()));
 
 
             }
@@ -233,17 +245,16 @@ public class Sintaxis {
 
     private void pushOperatorPerPriority() {
         Operand op1 = operandsStack.pop();
-        Operand op2 = operatorStack.peek().getPriority() == 0 ? new Operand("temp number",-90,0,op1.getLine()) : operandsStack.pop();
+        Operand op2 = operatorStack.peek().getPriority() == 0 ? new Operand("TNA",-90,0,op1.getLine()) : operandsStack.pop();
         int returnExcel = matrizSemantica[operatorStack.peek().getType()][op1.getType()==6?5:op1.getType()][op2.getType()==6?5:op2.getType()];
         op2 = switch (returnExcel){
-            case -90 -> new Operand("temp number",-90,0,op1.getLine());   // NUMBER
-            case -71 -> new Operand("temp real",-71,1,op1.getLine());   // REAL
-            case -72 -> new Operand("temp boolean",-72,2,op1.getLine());   // boolean
-            case -91 -> new Operand("temp string",-91,3,op1.getLine());   // string
-            case -61 -> new Operand("temp null",-61,4,op1.getLine());   // null
-            default -> new Operand("temp var",-200,6,op1.getLine());   // var
+            case -90 -> new Operand("TNUM"+(sqlQuerys.getTempTypeLine(0,tokenList.getFirst().getLinea())),-90,0,op1.getLine());   // number
+            case -71 -> new Operand("TR"+(sqlQuerys.getTempTypeLine(1,tokenList.getFirst().getLinea())),-71,1,op1.getLine());   // real
+            case -72 -> new Operand("TB"+(sqlQuerys.getTempTypeLine(2,tokenList.getFirst().getLinea())),-72,2,op1.getLine());   // boolean
+            case -91 -> new Operand("TS"+(sqlQuerys.getTempTypeLine(3,tokenList.getFirst().getLinea())),-91,3,op1.getLine());   // string
+            case -61 -> new Operand("TNULL"+(sqlQuerys.getTempTypeLine(4,tokenList.getFirst().getLinea())),-61,4,op1.getLine());   // null
+            default -> new Operand("TV"+(sqlQuerys.getTempTypeLine(5,tokenList.getFirst().getLinea())),-200,6,op1.getLine());   // var
         };
-//        if(sematicaState == SematicaState.ASIG)
         sqlQuerys.addTemporal(op2);
         operandsStack.push(op2);
         operatorStack.pop();
@@ -492,7 +503,7 @@ public class Sintaxis {
                 // Vaciar pila
                 if(!errorAmbito){
                     if (sematicaState != SematicaState.NONE){
-                        while (!operatorStack.isEmpty()){
+                        while (!operatorStack.isEmpty() && !errorOR){
                             pushOperatorPerPriority();
 
                             System.out.println("O P E R A N D S   S T A C K");
@@ -504,21 +515,23 @@ public class Sintaxis {
                         if(!operandsStack.isEmpty()){
                             switch (sematicaState){
                                 case ASIG -> { // Regla 2
-                                    sqlQuerys.updateAsignations(operandsStack.peek().getLexema(),operandsStack.peek().getType());
+                                    // TODO regla 9
+                                    if(!errorOR){
+                                        sqlQuerys.updateAsignations(operandsStack.peek().getLexema(),operandsStack.peek().getType());
 
-                                    String [] a = sqlQuerys.getTypeDataAsignation(operandsStack.peek().getLine());
-                                    boolean state = true;
+                                        String [] a = sqlQuerys.getTypeDataAsignation(operandsStack.peek().getLine());
+                                        boolean state = true;
 
-                                    String symbol = sqlQuerys.getAsignationOperator(operandsStack.peek().getLine());
-                                    if(!(symbol.equals("+=")&&a[0].equals("string"))){
-                                        if(sqlQuerys.getErrorSemantica(operandsStack.peek().getLine())){ // Ver si son del mismo tipo la asignación y el resultado final
-                                            erroresList.add(new Errores(sqlQuerys.getNameIdAsignation(operandsStack.peek().getLine()),-1,operandsStack.peek().getLine(),"Incompatibilidad de tipos","Error semantico"));
-                                            state = false;
+                                        String symbol = sqlQuerys.getAsignationOperator(operandsStack.peek().getLine());
+                                        if(!(symbol.equals("+=")&&a[0].equals("string"))){
+                                            if(sqlQuerys.getErrorSemantica(operandsStack.peek().getLine())){ // Ver si son del mismo tipo la asignación y el resultado final
+                                                erroresList.add(new Errores(sqlQuerys.getNameIdAsignation(operandsStack.peek().getLine()),-1,operandsStack.peek().getLine(),"Incompatibilidad de tipos","Error semantico"));
+                                                state = false;
+                                            }
                                         }
+                                        semanticaRulesList.add(new Semantica( forSentence ? 1080 :
+                                                symbol.equals("=") ? 1020 : symbol.equals("+=") ? 1021 : 1022,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), forSentence ? "asignacion" : symbol.equals("+=") ? "any" : a[0] , a[1],state));
                                     }
-                                    semanticaRulesList.add(new Semantica( forSentence ? 1080 :
-                                            symbol.equals("=") ? 1020 : symbol.equals("+=") ? 1021 : 1022,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), forSentence ? "asignacion" : symbol.equals("+=") ? "any" : a[0] , a[1],state));
-
                                 }
                                 case IF -> {
                                     semanticaRulesList.add(new Semantica(forSentence ? 1081 : 1010,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "boolean", operandsStack.peek().getDataType(), operandsStack.peek().getType() == 2 ));
@@ -560,13 +573,22 @@ public class Sintaxis {
                     operandsStack.clear();
                     statusState = StatusState.NONE;
                     sematicaState = SematicaState.NONE;
+                    errorOR = false;
                 }
                 break;
 
             case 1370: // =
                 if(!errorAmbito){
                     sematicaState = SematicaState.ASIG;
-                    sqlQuerys.addAsignations(operandsStack.peek().getLexema(),tokenList.getFirst().getLexema(),operandsStack.peek().getType(),tokenList.getFirst().getLinea(),operandsStack.peek().getDataType());
+                    // TODO regla 9
+                    if(isVarOrArray(ambitoStack,operandsStack.peek().getLexema())) {
+                        sqlQuerys.addAsignations(operandsStack.peek().getLexema(),tokenList.getFirst().getLexema(),operandsStack.peek().getType(),tokenList.getFirst().getLinea(),operandsStack.peek().getDataType());
+                    }
+                    else{
+                        System.out.println("No es array o variable");
+                        errorOR = true;
+                    }
+                    semanticaRulesList.add(new Semantica(1090,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(),"var/Array",operandsStack.peek().getLexema(),!errorOR));
                     operandsStack.pop();
                 }
                 break;
@@ -706,7 +728,6 @@ public class Sintaxis {
                 }
                 // TODO añadir un dec_var
                  if (tokenList.getFirst().getToken() == -1){
-                     System.out.println("hola");
                      if(findMember(ambitoStack,tokenList.getFirst().getLexema())){
                          erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                          erroresAmbito ++;
@@ -1058,7 +1079,7 @@ public class Sintaxis {
         }
     }
     private void printSemanticaRules() {
-        System.out.printf("%15s%15s%15s%15s%15s%15s\n","rule","topStack","real value","state","line","ambito");
+        System.out.printf("%15s%15s%15s%15s%15s%15s\n","rule","real value","topStack","state","line","ambito");
         Iterator<Semantica> iterator = semanticaRulesList.iterator();
         while (iterator.hasNext()) {
             System.out.println(iterator.next());
@@ -1097,7 +1118,7 @@ public class Sintaxis {
                 case "real" -> {
                     return 1;
                 }
-                case "boolean" -> { // por ahora se usara el valor true pero
+                case "boolean" -> {
                     return 2;
                 }
                 case "string" -> {
@@ -1123,6 +1144,23 @@ public class Sintaxis {
             }
         }
         return "var";
+    }
+    private boolean isVarOrArray(Stack<Ambito> stack, String id){
+        Stack<Ambito> copyStack = (Stack<Ambito>) stack.clone();
+        while (!copyStack.isEmpty()){
+            String classId = String.valueOf(sqlQuerys.getOneIDClass(copyStack.pop().getNumber(),id));
+            switch (classId){
+                case "variable","Array" ->{
+                    return true;
+                }
+                case "" -> {
+                }
+                default -> {
+                    return false;
+                }
+            }
+        }
+        return false;
     }
     private boolean isArray(Stack<Ambito> stack, String id){
         Stack<Ambito> copyStack = (Stack<Ambito>) stack.clone();

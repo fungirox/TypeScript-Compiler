@@ -292,7 +292,7 @@ public class CargarRecursos {
             dataRow.createCell(1).setCellValue(aux1.getTopStack());
             dataRow.createCell(2).setCellValue(aux1.getRealValue());
             dataRow.createCell(3).setCellValue(aux1.getLine());
-            dataRow.createCell(4).setCellValue(aux1.isState() ? "Aceptado" : "ERROR");
+            dataRow.createCell(4).setCellValue(aux1.isState() ? "ACEPTA" : "ERROR");
             dataRow.createCell(5).setCellValue(aux1.getAmbito());
         }
 
@@ -304,14 +304,14 @@ public class CargarRecursos {
         for (Integer line : linesSem) {
             dataRow = semanticaSheet.createRow(i);
             dataRow.createCell(0).setCellValue(line);
-            dataRow.createCell(1).setCellValue(connectionSQL.getTempTypeLine(line,0));
-            dataRow.createCell(2).setCellValue(connectionSQL.getTempTypeLine(line,1));
-            dataRow.createCell(3).setCellValue(connectionSQL.getTempTypeLine(line,2));
-            dataRow.createCell(4).setCellValue(connectionSQL.getTempTypeLine(line,3));
-            dataRow.createCell(5).setCellValue(connectionSQL.getTempTypeLine(line,4));
-            dataRow.createCell(6).setCellValue(connectionSQL.getTempTypeLine(line,6));
+            dataRow.createCell(1).setCellValue(connectionSQL.getTempTypeLineAsig(line,0));
+            dataRow.createCell(2).setCellValue(connectionSQL.getTempTypeLineAsig(line,1));
+            dataRow.createCell(3).setCellValue(connectionSQL.getTempTypeLineAsig(line,2));
+            dataRow.createCell(4).setCellValue(connectionSQL.getTempTypeLineAsig(line,3));
+            dataRow.createCell(5).setCellValue(connectionSQL.getTempTypeLineAsig(line,4));
+            dataRow.createCell(6).setCellValue(connectionSQL.getTempTypeLineAsig(line,6));
             dataRow.createCell(7).setCellValue(connectionSQL.getFinalTempString(line));
-            dataRow.createCell(8).setCellValue(connectionSQL.getTempTypeLine(line,6));
+            dataRow.createCell(8).setCellValue(connectionSQL.getTempTypeLineAsig(line,6));
 
             dataRow.getCell(8).setCellValue(connectionSQL.getErrorSemantica(line)?dataRow.getCell(8).getNumericCellValue()+1:dataRow.getCell(8).getNumericCellValue());
 

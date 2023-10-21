@@ -11,7 +11,6 @@ public class Operand extends PolishNotationElement{
         super(lexema, token, type, line);
         this.dataType = types[type];
     }
-
     public String getDataType() {
         return dataType;
     }

@@ -77,6 +77,22 @@ public class SqlQuerys {
         }
         return false;
     }
+    public String getOneIDClass(final int ambito,final String id){
+        String classId="";
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT classId FROM ambito WHERE nameId = '" + id + "' AND ambito = " + ambito;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+            while (rs.next()) {
+                classId = rs.getString("classId");
+            }
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return classId;
+    }
     public String getOneIDType(final int ambito,final String id){
         String type="";
         try {
@@ -238,12 +254,31 @@ public class SqlQuerys {
         }
         return lastId;
     }
-    public int getTempTypeLine(final int line, final int type){
+    public int getTempTypeLineAsig(final int line, final int type){
         int typePerLine = 0;
         try {
             Statement statement = connection.createStatement();
             String query = "SELECT COUNT(temporals.typeNumber) AS count_temporals_type FROM asignations INNER JOIN temporals ON asignations.line = temporals.line " +
                     "WHERE temporals.typeNumber = '"+type+"' AND asignations.line = '"+line+"' GROUP BY asignations.type,temporals.typeNumber;";
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+
+            while (rs.next()) {
+                typePerLine = rs.getInt("count_temporals_type");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return typePerLine;
+    }
+    public int getTempTypeLine(final int type, final int line){
+        int typePerLine = 0;
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT COUNT(temporals.typeNumber) AS count_temporals_type FROM temporals WHERE temporals.typeNumber = '"+type+"' AND temporals.line = '"+line+"' GROUP BY temporals.typeNumber;";
             ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
 
             while (rs.next()) {
@@ -373,5 +408,25 @@ public class SqlQuerys {
             System.out.println(e);
         }
         return typeData;
+    }
+    public String lastNameIdAsignations(){
+        String nameId="";
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT nameId FROM asignations WHERE asignationsID = "+ getLastIdAsignations() +";";
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+
+            while (rs.next()) {
+                nameId = rs.getString("nameId");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return nameId;
+
     }
 }
