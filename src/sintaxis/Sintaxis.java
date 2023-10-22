@@ -41,6 +41,7 @@ public class Sintaxis {
     private int memberPositionClass;
     private int excelSheetOperator;
     private int operatorPriority;
+    private int arrayDimensionOR = 0;
     private boolean let = false;
     private boolean classOVar = false;
     private boolean anon = false;
@@ -50,7 +51,9 @@ public class Sintaxis {
     private boolean forSentence = false;
     private boolean forEach = false;
     private boolean errorOR = false;
-    private Operator operator;
+    private boolean arrayOR = false;
+    private boolean errorArray = false;
+    Object [] arrayAsig;
     private StatusState statusState;
     private SematicaState sematicaState;
     private SematicaState sematicaStateAux;
@@ -154,7 +157,8 @@ public class Sintaxis {
 
         switch (statusState){
             case OPERAND -> {
-                // TODO regla 9
+                // regla 9
+                // TODO reglas 4 5 y 6
                 int operandType;
                 if (posfix && tokenList.getFirst().getToken() == -1 && sematicaState == SematicaState.ASIG) {
 
@@ -209,32 +213,35 @@ public class Sintaxis {
 
             }
             case OPERATOR -> { // temporal
-                operator = new Operator(tokenList.getFirst().getLexema(),tokenList.getFirst().getToken(),excelSheetOperator,tokenList.getFirst().getLinea(),operatorPriority);
+                if(!errorOR){
+                    Operator operator = new Operator(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), excelSheetOperator, tokenList.getFirst().getLinea(), operatorPriority);
 
-                if (operatorStack.isEmpty()){ // Si la pila de operadores está vacia
-                    operatorStack.push(operator);
-                }
-                else {
-                    // Hay que recorrer la pila aquí
-                    while (!operatorStack.isEmpty()){
-                        if(operator.getPriority() <= operatorStack.peek().getPriority()){
-                            // Se mete a la pila pq al final al vaciarla se realizarian primero
-                            operatorStack.push(operator);
-                            break;
-                        }
-                        else {
-                            // Operator se queda intacto pq después se metera a la pila
-                            // Se necesita obtener los ultimos 2 operandos para realizar las "comparaciones"
-                            // temporalmente ignoraremos las de prioridad 0 pq solo necesitan un elemento para interactuar ++ -- ! ~
-                            pushOperatorPerPriority();
-
-                        }
-                    }
                     if (operatorStack.isEmpty()){ // Si la pila de operadores está vacia
                         operatorStack.push(operator);
                     }
-                    statusState = StatusState.NONE;
+                    else {
+                        // Hay que recorrer la pila aquí
+                        while (!operatorStack.isEmpty()){
+                            if(operator.getPriority() <= operatorStack.peek().getPriority()){
+                                // Se mete a la pila pq al final al vaciarla se realizarian primero
+                                operatorStack.push(operator);
+                                break;
+                            }
+                            else {
+                                // Operator se queda intacto pq después se metera a la pila
+                                // Se necesita obtener los ultimos 2 operandos para realizar las "comparaciones"
+                                // temporalmente ignoraremos las de prioridad 0 pq solo necesitan un elemento para interactuar ++ -- ! ~
+                                pushOperatorPerPriority();
+
+                            }
+                        }
+                        if (operatorStack.isEmpty()){ // Si la pila de operadores está vacia
+                            operatorStack.push(operator);
+                        }
+                        statusState = StatusState.NONE;
+                    }
                 }
+
 
             }
 
@@ -495,7 +502,9 @@ public class Sintaxis {
             case 1270: // Save ID para Let
                 updateState(State.SAVEID);
                 break;
-
+            case 1271:
+                sqlQuerys.updateTypeMemberClass("constante");
+                break;
                 /**
                  * Semantica
                  * */
@@ -514,8 +523,44 @@ public class Sintaxis {
                         // Siempre queda un operando
                         if(!operandsStack.isEmpty()){
                             switch (sematicaState){
+                                case ARRAY -> { // TODO Reglas 4, 5 y 6
+                                    arrayDimensionOR++;
+                                    System.out.println("dataType "+ operandsStack.peek().getDataType());
+                                    // Regla 4
+                                    int arrayDimensionAsig = sqlQuerys.getArrayDimension(Integer.valueOf(String.valueOf(arrayAsig[5])),String.valueOf(arrayAsig[0]));
+                                    if(arrayDimensionOR <= arrayDimensionAsig){
+                                        semanticaRulesList.add(new Semantica(1040,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "<= " + arrayDimensionAsig , operandsStack.peek().getLexema(), true ));
+
+                                        // Regla 5
+                                        if(operandsStack.peek().getType() == 0) { // Si no es number
+                                            semanticaRulesList.add(new Semantica(1050,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "number" , operandsStack.peek().getLexema(), true ));
+                                            // Regla 6 tenemos dos casos nuestro dato es "number" o tiene un valor numerico
+                                            int arrayLengthReal = sqlQuerys.getArrayLengthPosition(Integer.valueOf(String.valueOf(arrayAsig[5])),String.valueOf(arrayAsig[0]),arrayDimensionOR-1);
+
+                                            if (operandsStack.peek().getLexema().contains("TNUM"))  {
+                                                semanticaRulesList.add(new Semantica(1060,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "< "+arrayLengthReal, operandsStack.peek().getLexema(), true));
+
+                                            }
+                                            else {
+                                                int arrayLengthRead = Integer.parseInt(operandsStack.peek().getLexema());
+                                                semanticaRulesList.add(new Semantica(1060,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "< "+arrayLengthReal, operandsStack.peek().getLexema(), arrayLengthRead < arrayLengthReal ));
+                                                errorArray = !(arrayLengthRead < arrayLengthReal);
+                                            }
+                                            sqlQuerys.updateAsignations(String.valueOf(arrayAsig[0]),Integer.parseInt(String.valueOf(arrayAsig[2])));
+                                        }
+                                        else{
+                                            semanticaRulesList.add(new Semantica(1050,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "number" , operandsStack.peek().getLexema(), false ));
+                                            errorArray = true;
+                                        }
+                                    }
+                                    else {
+                                        semanticaRulesList.add(new Semantica(1040,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "<= " + arrayDimensionAsig , operandsStack.peek().getLexema(), false ));
+                                        errorArray = true;
+                                    }
+
+                                }
                                 case ASIG -> { // Regla 2
-                                    // TODO regla 9
+                                    // regla 9
                                     if(!errorOR){
                                         sqlQuerys.updateAsignations(operandsStack.peek().getLexema(),operandsStack.peek().getType());
 
@@ -578,18 +623,39 @@ public class Sintaxis {
                 break;
 
             case 1370: // =
+                // TODO regla 4 5 6
                 if(!errorAmbito){
-                    sematicaState = SematicaState.ASIG;
-                    // TODO regla 9
-                    if(isVarOrArray(ambitoStack,operandsStack.peek().getLexema())) {
-                        sqlQuerys.addAsignations(operandsStack.peek().getLexema(),tokenList.getFirst().getLexema(),operandsStack.peek().getType(),tokenList.getFirst().getLinea(),operandsStack.peek().getDataType());
+                    if (arrayOR){
+                        if(isVarOrArray(ambitoStack,String.valueOf(arrayAsig[0]))) {
+//                            arrayAsig = new Object[] {operandsStack.peek().getLexema(), "placeholder", operandsStack.peek().getType(), tokenList.getFirst().getLinea(), operandsStack.peek().getDataType()};
+                            sqlQuerys.addAsignations(String.valueOf(arrayAsig[0]),
+                                    tokenList.getFirst().getLexema(),
+                                    Integer.valueOf(String.valueOf(arrayAsig[2])),
+                                    Integer.valueOf(String.valueOf(arrayAsig[3])),
+                                    String.valueOf(arrayAsig[4]));
+                        }
+                        else{
+                            System.out.println("No es array o variable");
+                            errorOR = true;
+                        }
+                        semanticaRulesList.add(new Semantica(1090,tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(),"var/Array",String.valueOf(arrayAsig[0]),!errorOR));
+                        arrayOR = false;
+                        operandsStack.pop();
+                        sqlQuerys.deleteLastTemporal();
                     }
                     else{
-                        System.out.println("No es array o variable");
-                        errorOR = true;
+                        // regla 9
+                        if(isVarOrArray(ambitoStack,operandsStack.peek().getLexema())) {
+                            sqlQuerys.addAsignations(operandsStack.peek().getLexema(),tokenList.getFirst().getLexema(),operandsStack.peek().getType(),tokenList.getFirst().getLinea(),operandsStack.peek().getDataType());
+                        }
+                        else{
+                            System.out.println("No es array o variable");
+                            errorOR = true;
+                        }
+                        semanticaRulesList.add(new Semantica(1090,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(),"var/Array",operandsStack.peek().getLexema(),!errorOR));
+                        operandsStack.pop();
                     }
-                    semanticaRulesList.add(new Semantica(1090,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(),"var/Array",operandsStack.peek().getLexema(),!errorOR));
-                    operandsStack.pop();
+                    sematicaState = SematicaState.ASIG;
                 }
                 break;
             case 1371: // ++
@@ -710,6 +776,7 @@ public class Sintaxis {
                 sematicaState = SematicaState.NONE;
                 break;
             case 1410: // Cierra un switch completamente
+                System.out.println("Cierra switch");
                 switchTypeStack.pop();
                 break;
             case 1411:
@@ -726,7 +793,7 @@ public class Sintaxis {
                     gestionAmbito(true); // Creación de ámbito
                     System.out.println(ambitoStack.peek().getNumber());
                 }
-                // TODO añadir un dec_var
+                // añadir un dec_var
                  if (tokenList.getFirst().getToken() == -1){
                      if(findMember(ambitoStack,tokenList.getFirst().getLexema())){
                          erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
@@ -741,7 +808,7 @@ public class Sintaxis {
 
                 break;
             case 1414:
-                // TODO este solo define y verifica el tipo de dato del dec_var anterior
+                // este solo define y verifica el tipo de dato del dec_var anterior
                 if (tokenList.getFirst().getToken() == -1){
                     System.out.println(tokenList.getFirst().getLexema());
                     System.out.println("type: "+findMemberTypeString(ambitoStack,tokenList.getFirst().getLexema()));
@@ -773,7 +840,44 @@ public class Sintaxis {
                     forEach = false;
 
                 }
+            case 1416: // Abre un array []
+                // TODO regla 4, 5 y 6 : al llegar el OR de array vacia la pila
+                if(!errorAmbito && !arrayOR){
+                    // regla 9
+                    arrayAsig = new Object[] {operandsStack.peek().getLexema(), "placeholder", operandsStack.peek().getType(), tokenList.getFirst().getLinea(), operandsStack.peek().getDataType(),ambitoStack.peek().getNumber()};
+                    operandsStack.pop();
+                }
+//                sematicaState = SematicaState.ARRAY;
+                arrayOR = true;
+                sematicaState = SematicaState.ARRAY;
+                System.out.println("abre array");
+                break;
+            case 1417:
+                System.out.println("Cierra array");
+                if (errorArray){
+                    Operand op = new Operand("TV"+(sqlQuerys.getTempTypeLine(5,tokenList.getFirst().getLinea())),-200,6,tokenList.getFirst().getLinea());
+                    operandsStack.push(op);   // array type
+                    sqlQuerys.addTemporal(op);
+                }
+                else {
+                    Operand op;
+                    System.out.println("array type: "+sqlQuerys.getArrayType(Integer.valueOf(String.valueOf(arrayAsig[5])),String.valueOf(arrayAsig[0])));
+                    op = switch (sqlQuerys.getArrayType(Integer.valueOf(String.valueOf(arrayAsig[5])),String.valueOf(arrayAsig[0]))){
+                        case "number" -> new Operand("TNUM"+(sqlQuerys.getTempTypeLine(0,tokenList.getFirst().getLinea())),-90,0,tokenList.getFirst().getLinea());   // number
+                        case "real" -> new Operand("TR"+(sqlQuerys.getTempTypeLine(1,tokenList.getFirst().getLinea())),-71,1,tokenList.getFirst().getLinea());   // real
+                        case "boolean" -> new Operand("TB"+(sqlQuerys.getTempTypeLine(2,tokenList.getFirst().getLinea())),-72,2,tokenList.getFirst().getLinea());   // boolean
+                        case "string" -> new Operand("TS"+(sqlQuerys.getTempTypeLine(3,tokenList.getFirst().getLinea())),-91,3,tokenList.getFirst().getLinea());   // string
+                        case "null" -> new Operand("TNULL"+(sqlQuerys.getTempTypeLine(4,tokenList.getFirst().getLinea())),-61,4,tokenList.getFirst().getLinea());   // null
+                        default -> new Operand("TV"+(sqlQuerys.getTempTypeLine(5,tokenList.getFirst().getLinea())),-200,6,tokenList.getFirst().getLinea());   // var
+                    };
+                    operandsStack.push(op);
+                    sqlQuerys.addTemporal(op);
+                }
+                errorArray = false;
+                arrayDimensionOR = 0;
+                // TODO si es necesario meter de nuevo a la pila dicho elemento
 
+                break;
             default:
                 // Acción por defecto si el valor no coincide con ninguno de los casos anteriores
                 break;
@@ -1150,7 +1254,7 @@ public class Sintaxis {
         while (!copyStack.isEmpty()){
             String classId = String.valueOf(sqlQuerys.getOneIDClass(copyStack.pop().getNumber(),id));
             switch (classId){
-                case "variable","Array" ->{
+                case "variable","Array","var let" ->{
                     return true;
                 }
                 case "" -> {
@@ -1251,14 +1355,14 @@ public class Sintaxis {
             {-16,273,231}, 	                                                                                            // 48
             {-74,-73,1219,-10,-11}, 	                                                                                // 49
             {1220,218,1221,232}, 	                                                                                    // 50
-            {-30,233}, 	                                                                                                // 51
+            {-30,233,1271}, 	                                                                                        // 51
             {219}, 	                                                                                                    // 52
             {-19,1224,1000,1004,1225,246,-16,234,214,235,249,236,1001,1005,1226,-20}, 	                                // 53 <----- Ambito ; Declaración
             {246,-16}, 	                                                                                                // 54
             {-16,214}, 	                                                                                                // 55
             {-16,249}, 	                                                                                                // 56
             {1222,-1,237}, 	                                                                                            // 57
-            {-30,238}, 	                                                                                                // 58
+            {-30,238,1271}, 	                                                                                        // 58
             {1223,219}, 	                                                                                            // 59
             {-19,1224,1000,1004,1225,246,-16,239,214,240,249,241,1001,1005,1226,-20}, 	                                // 60 <----- Ambito ; Declaración
             {246,-16}, 	                                                                                                // 61
@@ -1293,7 +1397,7 @@ public class Sintaxis {
             {-68,-12,255}, 	                                                                                            // 88
             // IF
             {-62,-10,1400,273,1401,-11,254,257}, 	                                                                    // 89
-            {-64,-10,1406,273,1407,-11,-19,-76,1408,273,1409,-13,258,254,259,-87,260,-20}, 	                            // 90
+            {-64,-10,1406,273,1407,-11,-19,-76,1408,273,1409,-13,258,254,259,-87,260,-20,1410}, 	                    // 90
             {-19,254,263,-20}, 	                                                                                        // 91
             // WHILE
             {-67,-10,1402,273,1403,-11,254}, 	                                                                        // 92
@@ -1302,7 +1406,7 @@ public class Sintaxis {
             // DO WHILE
             {-66,254,-67,-10,1404,273,1405,-11,-14}, 	                                                                // 95
             // FOR
-            {-65,-10,1411,264,1412,-11,254,1415}, 	                                                                        // 96
+            {-65,-10,1411,264,1412,-11,254,1415}, 	                                                                    // 96
             {-75,-10,273,256,-11}, 	                                                                                    // 97
             {-69,-10,273,-11}, 	                                                                                        // 98
             {-16,273,256}, 	                                                                                            // 99
@@ -1315,7 +1419,7 @@ public class Sintaxis {
             {-14,254,262},                                                                                              // 106
             {-14,254,263},                                                                                              // 107
             {273,265,-14,1400,273,1401,-14,273,266},                                                                    // 108
-            {-87,1413,-1,267,1414,-1},                                                                                            // 109
+            {-87,1413,-1,267,1414,-1},                                                                                  // 109
             {-16,273,265},                                                                                              // 110
             {-16,273,266},                                                                                              // 111
             {-107},                                                                                                     // 112
@@ -1343,7 +1447,7 @@ public class Sintaxis {
             {-86,-10,273,-11},                                                                                          // 134
             {269},                                                                                                      // 135
             {-17,273,272,-18},                                                                                          // 136
-            {-16,273,272},                                                                                              // 137
+            {-16,1416,273,272},                                                                                              // 137
             // OR
             {275,274,1399},                                                                                             // 138
             {1302,1356,-25,1301,275,274},                                                                               // 139
@@ -1385,7 +1489,7 @@ public class Sintaxis {
             {270},                                                                                                      // 169
             {1371,1304,1350,-36,1301},                                                                                  // 170
             {1372,1304,1350,-39,1301},                                                                                  // 171
-            {271,288},                                                                                                  // 172
+            {1416,271,1417,288},                                                                                        // 172
             {1350,1371,-10,1301,290,-11},                                                                               // 173
             {253,273,289},                                                                                              // 174
             {-15,273,-13,273},                                                                                          // 175

@@ -42,6 +42,7 @@ public class SqlQuerys {
         }
     }
     public void addTemporal(Operand operand){
+        System.out.println("jojo "+operand);
         try {
             Statement statement =  connection.createStatement();
             statement.execute("INSERT INTO a20130044.temporals (lexeme,typeString,typeNumber,line) VALUES ('"+operand.getLexema()+"','"+operand.getDataType()+"'," +
@@ -208,6 +209,22 @@ public class SqlQuerys {
             System.out.println(e);
         }
     }
+    public void updateTypeMemberClass(final String type){
+        try {
+            Statement statement =  connection.createStatement();
+            statement.execute("UPDATE ambito SET classId = '"+type+"' WHERE declarationID = "+ getLastIdAmbito()+";");
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+    }
+    public void deleteLastTemporal(){
+        try {
+            Statement statement =  connection.createStatement();
+            statement.execute("DELETE FROM temporals WHERE temporalsID = "+ getLastIdTemporals()+";");
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+    }
     public void updateAsignations(final String temp,final int finalDataType){
         try {
             Statement statement =  connection.createStatement();
@@ -221,6 +238,25 @@ public class SqlQuerys {
         try {
             Statement statement = connection.createStatement();
             String query = "SELECT MAX(asignationsID) AS last_id FROM asignations";
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+
+            while (rs.next()) {
+                lastId = rs.getInt("last_id");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return lastId;
+    }
+    private int getLastIdTemporals(){
+        int lastId = 0;
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT MAX(temporalsID) AS last_id FROM temporals";
             ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
 
             while (rs.next()) {
@@ -409,15 +445,14 @@ public class SqlQuerys {
         }
         return typeData;
     }
-    public String lastNameIdAsignations(){
-        String nameId="";
+    public int getArrayDimension(final int ambito,final String id){
+        int arrayDimension = 0;
         try {
             Statement statement = connection.createStatement();
-            String query = "SELECT nameId FROM asignations WHERE asignationsID = "+ getLastIdAsignations() +";";
+            String query = "SELECT arrayDimension FROM ambito WHERE ambito = "+ambito+" AND nameId = '"+id+"'";
             ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
-
             while (rs.next()) {
-                nameId = rs.getString("nameId");
+                arrayDimension = rs.getInt("arrayDimension");
             }
 
             // Cerrar el ResultSet y el Statement después de su uso
@@ -426,7 +461,43 @@ public class SqlQuerys {
         } catch (SQLException e) {
             System.out.println(e);
         }
-        return nameId;
+        return arrayDimension;
+    }
+    public int getArrayLengthPosition(final int ambito,final String id,final int position){
+        int arrayLength = 0;
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT JSON_EXTRACT(arrayLength, '$["+position+"]') as arrayL FROM ambito WHERE ambito = "+ambito+" AND nameId = '"+id+"'";
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+            while (rs.next()) {
+                arrayLength = rs.getInt("arrayL");
+            }
 
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return arrayLength;
+    }
+    public String getArrayType(final int ambito,final String id){
+        String type = "";
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT typeId FROM ambito WHERE ambito = "+ambito+" AND nameId = '"+id+"'";
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+            while (rs.next()) {
+                type = rs.getString("typeId");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return type;
     }
 }
+// SELECT JSON_EXTRACT(arrayLength, '$[x]') FROM ambito;

@@ -8,5 +8,6 @@ public enum SematicaState {
     DOWHILE,
     FOR,
     SWITCH,
-    CASE
+    CASE,
+    ARRAY
 }
