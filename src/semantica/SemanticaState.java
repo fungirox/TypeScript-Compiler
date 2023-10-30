@@ -1,6 +1,6 @@
 package semantica;
 
-public enum SematicaState {
+public enum SemanticaState {
     NONE,
     ASIG,
     IF,
@@ -9,5 +9,6 @@ public enum SematicaState {
     FOR,
     SWITCH,
     CASE,
-    ARRAY
+    ARRAY,
+    PARAMETERS
 }

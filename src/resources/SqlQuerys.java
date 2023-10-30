@@ -95,13 +95,29 @@ public class SqlQuerys {
         return classId;
     }
     public String getOneIDType(final int ambito,final String id){
-        String type="";
+        String type = "";
         try {
             Statement statement = connection.createStatement();
             String query = "SELECT typeId FROM ambito WHERE nameId = '" + id + "' AND ambito = " + ambito;
             ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
             while (rs.next()) {
                 type = rs.getString("typeId");
+            }
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return type;
+    }
+    public int getArrayFuction(final int ambito,final String id){
+        int type = 0;
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT ambito,type, FROM ambito WHERE nameId = '" + id + "' AND ambito = " + ambito;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+            while (rs.next()) {
+                type = rs.getInt("cantParametro");
             }
             rs.close();
             statement.close();
@@ -290,6 +306,25 @@ public class SqlQuerys {
         }
         return lastId;
     }
+    public int getDeclarationID(final int ambito,final String id){
+        int declarationID = 0;
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT declarationID FROM ambito WHERE ambito = "+ambito+" AND nameId = '"+id+"'";
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+
+            while (rs.next()) {
+                declarationID = rs.getInt("declarationID");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return declarationID;
+    }
     public int getTempTypeLineAsig(final int line, final int type){
         int typePerLine = 0;
         try {
@@ -310,11 +345,11 @@ public class SqlQuerys {
         }
         return typePerLine;
     }
-    public int getTempTypeLine(final int type, final int line){
+    public int getTempTypeLine(final int type){
         int typePerLine = 0;
         try {
             Statement statement = connection.createStatement();
-            String query = "SELECT COUNT(temporals.typeNumber) AS count_temporals_type FROM temporals WHERE temporals.typeNumber = '"+type+"' AND temporals.line = '"+line+"' GROUP BY temporals.typeNumber;";
+            String query = "SELECT COUNT(temporals.typeNumber) AS count_temporals_type FROM temporals WHERE temporals.typeNumber = '"+type+"'  GROUP BY temporals.typeNumber;";
             ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
 
             while (rs.next()) {
@@ -445,24 +480,7 @@ public class SqlQuerys {
         }
         return typeData;
     }
-    public int getArrayDimension(final int ambito,final String id){
-        int arrayDimension = 0;
-        try {
-            Statement statement = connection.createStatement();
-            String query = "SELECT arrayDimension FROM ambito WHERE ambito = "+ambito+" AND nameId = '"+id+"'";
-            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
-            while (rs.next()) {
-                arrayDimension = rs.getInt("arrayDimension");
-            }
 
-            // Cerrar el ResultSet y el Statement después de su uso
-            rs.close();
-            statement.close();
-        } catch (SQLException e) {
-            System.out.println(e);
-        }
-        return arrayDimension;
-    }
     public int getArrayLengthPosition(final int ambito,final String id,final int position){
         int arrayLength = 0;
         try {
@@ -481,11 +499,63 @@ public class SqlQuerys {
         }
         return arrayLength;
     }
-    public String getArrayType(final int ambito,final String id){
+    public int getAmbito(final int declarationID){
+        int type = 0;
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT ambito FROM ambito WHERE declarationID = "+declarationID;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+            while (rs.next()) {
+                type = rs.getInt("ambito");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return type;
+    }
+    public int getArrayDimension(final int declarationID){
+        int arrayDimension = 0;
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT arrayDimension FROM ambito WHERE declarationID = "+declarationID;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+            while (rs.next()) {
+                arrayDimension = rs.getInt("arrayDimension");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return arrayDimension;
+    }
+    public String getClass(final int declarationID){
+        String classId="";
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT classId FROM ambito WHERE declarationID = "+declarationID;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+            while (rs.next()) {
+                classId = rs.getString("classId");
+            }
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return classId;
+    }
+    public String getType(final int declarationID){
         String type = "";
         try {
             Statement statement = connection.createStatement();
-            String query = "SELECT typeId FROM ambito WHERE ambito = "+ambito+" AND nameId = '"+id+"'";
+            String query = "SELECT typeId FROM ambito WHERE declarationID = "+declarationID;
             ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
             while (rs.next()) {
                 type = rs.getString("typeId");
@@ -498,6 +568,60 @@ public class SqlQuerys {
             System.out.println(e);
         }
         return type;
+    }
+    public int getCantParametro(final int declarationID){
+        int cantParametro = 0;
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT cantParametro FROM ambito WHERE declarationID = "+declarationID;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+            while (rs.next()) {
+                cantParametro = rs.getInt("cantParametro");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return cantParametro;
+    }
+    public String getTypeParametro(final int declarationID){
+        String typeParametro = "";
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT typeParametro FROM ambito WHERE declarationID = "+declarationID;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+            while (rs.next()) {
+                typeParametro = rs.getString("typeParametro");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return typeParametro;
+    }
+    public String getTypeOfAParameter(final int cantParametro,final int ambito, final String typeParametro){
+        String typeId = "";
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT typeId FROM ambito WHERE cantParametro = "+cantParametro+" AND ambito = "+ambito+" AND typeParametro = '"+typeParametro+"'";
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+            while (rs.next()) {
+                typeId = rs.getString("typeId");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return typeId;
     }
 }
 // SELECT JSON_EXTRACT(arrayLength, '$[x]') FROM ambito;
