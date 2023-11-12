@@ -63,7 +63,7 @@ LET
 49 T8 → new Array ()
 50 T6 → TIPO T11
 51 T11 → = T12
-52 T12 → CONSTIPO
+52 T12 → CONSTIPO 
 53 T12 → { ¿ ° ♦ DEC_VAR ♦ , T13 DEC_GET_SET T14 DEC_MET T15 ° ¿ } <----- ambito <---- declaracion
 54 T13 → DEC_VAR ,
 55 T14 → , DEC_GET_SET
@@ -97,9 +97,9 @@ DEC_MET
 
 ASIG 
 77 AS → 1370 = 1301 
-78 AS → +=
-79 AS → /=
-80 AS → *=
+78 AS → 1370 +=
+79 AS → 1370 /=
+80 AS → 1370 *=
 81 AS → -=
 82 AS → %=
 83 AS → &=
@@ -110,27 +110,27 @@ ASIG
 
 STATUS
 88 STATUS → Console . S0
-89 STATUS → if ( OR ) STATUS S2
-90 STATUS → switch ( OR ) { case OR : S3 STATUS S4 break S5 }
+89 STATUS → if ( 1400 OR 1401 ) STATUS S2
+90 STATUS → switch ( 1406 OR 1407 ) { case 1408 OR 1409 : S3 STATUS S4 break S5 } 1410
 91 STATUS → { STATUS S8 }
-92 STATUS → while ( OR ) STATUS
+92 STATUS → while ( 1402 OR 1403 ) STATUS
 93 STATUS → OR ;
 94 STATUS → return OR ;
-95 STATUS → do STATUS while ( OR ) ; 
-96 STATUS → for ( S9 ) STATUS
+95 STATUS → do STATUS while ( 1404 OR 1405 ) ; 
+96 STATUS → for ( 1411 S9 1412 ) 1002 STATUS 1003 1001
 97 S0 → read ( OR S1 )
 98 S0 → log ( OR )
 99 S1 → , OR S1
 100 S2 → else OR
-101 S3 → case OR : S3
+101 S3 → case 1408 OR 1409 : S3
 102 S4 → ; STATUS S4
-103 S5 → case OR : S13 break S5
+103 S5 → case 1408 OR 1409 : S13 break S5
 104 S5 → default : STATUS S7
 105 S6 → ; STATUS S6
 106 S7 → ; STATUS S7
 107 S8 → ; STATUS S8
-108 S9 → OR S10 ; STATUS ; OR S11
-109 S9 → let id S12 id 
+108 S9 → OR S10 ; 1400 OR 1401 ; OR S11
+109 S9 → let 1413 1000 1004 id 1005  S12 id 
 110 S10 → , OR S10
 111 S11 → , OR S11
 112 S12 → in
@@ -214,7 +214,7 @@ FACTOR
 170 FA0 → 1304 ++ 1350 1301
 171 FA0 → 1304 -- 1350 1301 
 172 FA1 → ARR FA2 
-173 FA1 → 1350 ( FA4 ) 
+173 FA1 → ( 1418 FA4 1419 ) 
 174 FA2 → ASIG OR FA3 
 175 FA3 → ? OR : OR 
 176 FA4 → OR FA5 
@@ -224,4 +224,4 @@ FACTOR
 
 180 TIPO -> # id 
 181 FA1 -> ASIG OR FA3 
-182 {-76,273,-13,268} 182 case OR : S13
+182 {-76,273,-13,268} 182 case 1408 OR 1409 : S13

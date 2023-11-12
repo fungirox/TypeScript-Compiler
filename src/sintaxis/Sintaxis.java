@@ -28,6 +28,7 @@ public class Sintaxis {
     private final Stack <Ambito> ambitoStack;
     private final Stack <State> generalStateStack;
     private final Stack <Boolean> switchTypeStack;
+//    private final Stack <>
     private final ArrayList <Integer> arrayLength;
     private int ambito;
     private int erroresAmbito;
@@ -96,7 +97,7 @@ public class Sintaxis {
         int matrizData;
         while(!tokenList.isEmpty()&&!syntacticStack.isEmpty()){
             System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" generalState: "+generalStateStack.peek()+" error: "+ errorAmbito +" topStack: "+syntacticStack.peek()+" classOVar: "+classOVar+" ambito "+ (ambitoStack.isEmpty() ? "vacio":ambitoStack.peek().getNumber()));
-            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" statusState "+statusState+" error: "+errorAmbito+" topStack: "+syntacticStack.peek()+" sematicState: "+ semanticaState);
+            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" statusState "+statusState+" errorAmbito: "+errorAmbito+" errorOR: "+errorOR+" isAFun: "+isInAFun+" topStack: "+syntacticStack.peek()+" sematicState: "+ semanticaState);
             if(syntacticStack.peek()>=200&&syntacticStack.peek()<=292){ // Esto quiere decir que es un NO terminal
 
                 matrizData = mapearToken();
@@ -171,7 +172,7 @@ public class Sintaxis {
 
             else {
                 semanticaRulesList.add(new Semantica(1170,tokenList.getFirst().getLinea(),memberDetailsList.get(memberPositionClass).getAmbito(),"","return",false));
-                errorAmbito = true;
+//                errorOR = true;
                 // TODO arreglar que al final de este metodo si se continue
             }
         }
@@ -457,6 +458,7 @@ public class Sintaxis {
                     anon = false;
                 }
                 let = false;
+                errorOR = false;
                 break;
             case 1217: // Class
                 if(!errorAmbito){
@@ -684,7 +686,7 @@ public class Sintaxis {
 
             case 1370: // =
                 // TODO regla 4 5 6
-                if(!errorAmbito && errorOR){
+                if(!errorAmbito && !errorOR){
                     if (arrayOR){
                         if(isVarOrArray(ambitoStack,arrayAsignation.getLexema()))  {
                             sqlQuerys.addAsignations(arrayAsignation.getLexema(),
@@ -713,12 +715,13 @@ public class Sintaxis {
                         }
                         semanticaRulesList.add(new Semantica(1090,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(),"var/Array",operandsStack.peek().getLexema(),!errorOR));
                         operandsStack.pop();
+                        errorOR = false;
                     }
                     semanticaState = SemanticaState.ASIG;
                 }
                 break;
             case 1371: // ++
-                if(!errorAmbito && errorOR){
+                if(!errorAmbito && !errorOR){
                     if (! (semanticaState == SemanticaState.ASIG) && operandsStack.empty() && operatorStack.isEmpty() ){
                         plusminus = "++";
                         posfix = true;
@@ -729,7 +732,7 @@ public class Sintaxis {
                 }
                 break;
             case 1372: // --
-                if(!errorAmbito && errorOR){
+                if(!errorAmbito && !errorOR){
                     if (! (semanticaState == SemanticaState.ASIG) && operandsStack.empty() && operatorStack.isEmpty() ){
                         plusminus = "--";
                         posfix = true;
@@ -1008,6 +1011,7 @@ public class Sintaxis {
                 break;
             case 1420:
                 errorAmbito = false;
+                isInAFun = false;
                 break;
             default:
                 // Acción por defecto si el valor no coincide con ninguno de los casos anteriores
@@ -1183,6 +1187,7 @@ public class Sintaxis {
                 errorAmbito = true;
             }
             else{
+                isInAFun = false;
                 memberDetailsList.addLast(new MemberDetails(letID,"void",classFun,"",ambitoStack.peek().getNumber(),0,0,null));
                 memberPositionClass = memberDetailsList.size()-1;
                 memberString = letID;
@@ -1202,6 +1207,7 @@ public class Sintaxis {
                             errorAmbito = true;
                         }
                         else {
+                            isInAFun = false;
                             memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"void",classFun,"",ambitoStack.peek().getNumber(),0,0,null));
                             memberPositionClass = memberDetailsList.size()-1;
                             memberString = tokenList.getFirst().getLexema();
@@ -1458,7 +1464,7 @@ public class Sintaxis {
     //             del -1 al -124 son tokens, ver en pila
     // Longitud del arreglo: 0 al 182
     private final int[][] producciones = { // Siempre insertar al reves
-            {1000,1004,201,1005,-19,1420,1002,254,206,1003,1001,-20}, 	                                                    // 0 <----- Ambito ; Ejecución ; Declaración
+            {1420,1000,1004,201,1005,-19,1420,1002,254,206,1003,1001,-20}, 	                                                    // 0 <----- Ambito ; Ejecución ; Declaración
             {247,201}, 	                                                                                                // 1
             {207,201}, 	                                                                                                // 2
             {220,202,203}, 	                                                                                            // 3
@@ -1469,17 +1475,17 @@ public class Sintaxis {
             {-14,210,205}, 	                                                                                            // 8
             {-14,254,206}, 	                                                                                            // 9
             {-14,254,206}, 	                                                                                            // 10
-            {-94,1216,-1,1000,1004,1217,-19,246,208,249,209,1227,1001,1005,-20}, 	                                    // 11 <----- Ambito ; Declaración
+            {1420,-94,1216,-1,1000,1004,1217,-19,246,208,249,209,1227,1001,1005,-20}, 	                                    // 11 <----- Ambito ; Declaración
             {-14,246,208}, 	                                                                                            // 12
             {249,209}, 	                                                                                                // 13
-            {-70,1204,-1,1000,1004,-10,246,211,1005,-11,212,-19,1002,254,213,1003,1205,1001,-20}, 	                    // 14 <----- Ambito ; Ejecución ; Declaración
+            {1420,-70,1204,-1,1000,1004,-10,246,211,1005,-11,212,-19,1002,254,213,1003,1205,1001,-20}, 	                    // 14 <----- Ambito ; Ejecución ; Declaración
             {-16,246,211}, 	                                                                                            // 15
             {-13,218}, 	                                                                                                // 16
             {-14,254,213}, 	                                                                                            // 17
-            {-92,1206,-1,1000,-10,1004,246,215,1005,-11,-19,1002,254,216,1003,1207,1001,-20}, 	                        // 18 <----- Ambito ; Ejecución ; Declaración
+            {1420,-92,1206,-1,1000,-10,1004,246,215,1005,-11,-19,1002,254,216,1003,1207,1001,-20}, 	                        // 18 <----- Ambito ; Ejecución ; Declaración
             {-16,246,215}, 	                                                                                            // 19
             {-14,254,216}, 	                                                                                            // 20
-            {-93,1208,-1,1000,-10,1004,1005,-11,-13,218,1209,-19,1002,254,217,1003,1001,-20}, 	                        // 21 <----- Ambito ; Ejecución ; Declaración
+            {1420,-93,1208,-1,1000,-10,1004,1005,-11,-13,218,1209,-19,1002,254,217,1003,1001,-20}, 	                        // 21 <----- Ambito ; Ejecución ; Declaración
             {-14,254,217}, 	                                                                                            // 22
             {-91}, 	                                                                                                 	// 23 // string
             {-90},  	                                                                                            	// 24 // number
@@ -1494,11 +1500,11 @@ public class Sintaxis {
             {-61}, 	 	                                                                                                // 33
             {-88,1270,-1,221}, 	 	                                                                                    // 34
             {-30,222}, 	                                                                                                // 35
-            {1212,-70,1000,-10,1004,246,223,1005,-11,224,-19,1002,254,225,1003,1213,1001,-20}, 	                        // 36 <----- Ambito ; Ejecución ; Declaración
+            {1420,1212,-70,1000,-10,1004,246,223,1005,-11,224,-19,1002,254,225,1003,1213,1001,-20}, 	                        // 36 <----- Ambito ; Ejecución ; Declaración
             {-16,246,223}, 	                                                                                            // 37
             {-13,218}, 	                                                                                                // 38
             {-14,254,226}, 	                                                                                            // 39
-            {1214,-10,1000,1004,246,226,1005,-11,-33,1002,254,1003,1215,1001}, 	                                        // 40 <----- Ambito ; Ejecución ; Declaración // Arrow fuction
+            {1420,1214,-10,1000,1004,246,226,1005,-11,-33,1002,254,1003,1215,1001}, 	                                        // 40 <----- Ambito ; Ejecución ; Declaración // Arrow fuction
             {-16,246,226}, 	                                                                                            // 41
             {-13,227}, 	                                                                                                // 42
             {-73,-26,1218,228,-40,-30,229}, 	                                                                        // 43
@@ -1511,14 +1517,14 @@ public class Sintaxis {
             {1220,218,1221,232}, 	                                                                                    // 50
             {-30,233,1271}, 	                                                                                        // 51
             {219}, 	                                                                                                    // 52
-            {-19,1224,1000,1004,1225,246,-16,234,214,235,249,236,1001,1005,1226,-20}, 	                                // 53 <----- Ambito ; Declaración
+            {1420,-19,1224,1000,1004,1225,246,-16,234,214,235,249,236,1001,1005,1226,-20}, 	                                // 53 <----- Ambito ; Declaración
             {246,-16}, 	                                                                                                // 54
             {-16,214}, 	                                                                                                // 55
             {-16,249}, 	                                                                                                // 56
             {1222,-1,237}, 	                                                                                            // 57
             {-30,238,1271}, 	                                                                                        // 58
             {1223,219}, 	                                                                                            // 59
-            {-19,1224,1000,1004,1225,246,-16,239,214,240,249,241,1001,1005,1226,-20}, 	                                // 60 <----- Ambito ; Declaración
+            {1420,-19,1224,1000,1004,1225,246,-16,239,214,240,249,241,1001,1005,1226,-20}, 	                                // 60 <----- Ambito ; Declaración
             {246,-16}, 	                                                                                                // 61
             {-16,214}, 	                                                                                                // 62
             {-16,249}, 	                                                                                                // 63
@@ -1529,9 +1535,9 @@ public class Sintaxis {
             {273,245}, 	                                                                                                // 68
             {-16,273,245}, 	                                                                                            // 69
             {1200,-1,-13,218,1201}, 	                                                                                // 70 // DEC_VAR
-            {-89,1210,-1,1000,1004,-19,246,248,1005,1001,1211,-20}, 	                                                // 71 <----- Ambito ; Declaración
+            {1420,-89,1210,-1,1000,1004,-19,246,248,1005,1001,1211,-20}, 	                                                // 71 <----- Ambito ; Declaración
             {-14,246,248}, 	                                                                                            // 72
-            {1202,-1,1000,-10,1004,246,250,1005,-11,251,1203,-19,1002,254,252,1003,1001,-20}, 	                        // 73 <----- Ambito ; Ejecución ; Declaración ; DEC_MET
+            {1420,1202,-1,1000,-10,1004,246,250,1005,-11,251,1203,-19,1002,254,252,1003,1001,-20}, 	                        // 73 <----- Ambito ; Ejecución ; Declaración ; DEC_MET
             {-16,246,250}, 	                                                                                            // 74
             {-13,218}, 	                                                                                                // 75
             {-14,254,252}, 	                                                                                            // 76
