@@ -121,7 +121,7 @@ STATUS
 97 S0 → read ( OR S1 )
 98 S0 → log ( OR )
 99 S1 → , OR S1
-100 S2 → else OR
+100 S2 → else STATUS
 101 S3 → case 1408 OR 1409 : S3
 102 S4 → ; STATUS S4
 103 S5 → case 1408 OR 1409 : S13 break S5
