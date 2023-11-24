@@ -146,9 +146,9 @@ public class Sintaxis {
             printOperandStack();
             System.out.println("O P E R A T O R S   S T A C K");
             printOperatorStack();
-            System.out.println("------------------------------------------------------------------------------------------------------------------------");
-            System.out.println("S T R U C T U R E   S T A C K");
-            printStructureStack();
+//            System.out.println("------------------------------------------------------------------------------------------------------------------------");
+//            System.out.println("S T R U C T U R E   S T A C K");
+//            printStructureStack();
             System.out.println("------------------------------------------------------------------------------------------------------------------------");
 
         }
@@ -162,14 +162,12 @@ public class Sintaxis {
         System.out.println();
         System.out.println("S E M A N T I C A   R U L E S");
         printSemanticaRules();
-        System.out.println("C U A D R U P L O S");
-        printCuadruplosList();
         return erroresAmbito;
     }
     private void execute(){
         if (tokenList.getFirst().getToken() == -1) { // Si es ID
             if (!findMember(ambitoStack,tokenList.getFirst().getLexema())){
-                erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento no declarado","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
+                erroresList.add(new Errores(tokenList.getFirst().getLexema(), 1150, tokenList.getFirst().getLinea(),"Elemento no declarado","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
                 operandsStack.push(new Operand("No declarado",tokenList.getFirst().getToken(),6,tokenList.getFirst().getLinea()));
                 semanticaRulesList.add(new Semantica(1150, tokenList.getFirst().getLinea(), ambitoStack.peek().getNumber(), "", tokenList.getFirst().getLexema(), false));
@@ -184,7 +182,9 @@ public class Sintaxis {
             }
 
             else {
+
                 semanticaRulesList.add(new Semantica(1170,tokenList.getFirst().getLinea(),memberDetailsList.get(memberPositionClass).getAmbito(),"","return",false));
+                erroresList.add(new Errores(tokenList.getFirst().getLexema(), 1170, tokenList.getFirst().getLinea(),"Un metodo no puede retornar un valor","Error semantico",ambitoStack.peek().getNumber()));
 //                errorAmbito = true;
 //                gestionAmbito(false);
                 // TODO arreglar que al final de este metodo si se continue
@@ -236,8 +236,9 @@ public class Sintaxis {
                         String [] a = sqlQuerys.getTypeDataAsignation(op.getLine());
 
                         if(sqlQuerys.getErrorSemantica(op.getLine())){ // Ver si son del mismo tipo la asignación y el resultado final
-                            erroresList.add(new Errores(sqlQuerys.getNameIdAsignation(op.getLine()),-1,op.getLine(),"Incompatibilidad de tipos","Error semantico"));
+                            erroresList.add(new Errores(sqlQuerys.getNameIdAsignation(op.getLine()),1020,op.getLine(),"Incompatibilidad de tipos","Error semantico"));
                             state = false;
+                            System.out.println("1020 error");
                         }
                         semanticaRulesList.add(new Semantica(forSentence ? 1082 : symbol.equals("=") ? 1020 : symbol.equals("+=") ? 1021 : 1022,
                                 op.getLine(),ambitoStack.peek().getNumber(),forSentence ? "++ / --" : a[0],op.getDataType()+"",state));
@@ -458,11 +459,12 @@ public class Sintaxis {
                 }
                 if(isInAFun && !hasAReturn){
                     semanticaRulesList.add(new Semantica(1160,tokenList.getFirst().getLinea(),memberDetailsList.get(memberPositionClass).getAmbito(),"return "+memberDetailsList.get(memberPositionClass).getType(),"",false));
+                    erroresList.add(new Errores(memberDetailsList.get(memberPositionClass).getType(), 1160, tokenList.getFirst().getLinea(),"La funcion no tiene return","Error semantico",ambitoStack.peek().getNumber()));
                 }
                 parametro = 0;
                 classOVar = false;
                 contieneParametro = false;
-                System.out.println("jojo c:");
+                System.out.println("c:");
                 //structuresStack.push(new Structures("end fuction",memberDetailsList.get(memberPositionClass).getId(),tokenList.getFirst().getLinea()));
 
                 structuresStack.pop();
@@ -573,11 +575,6 @@ public class Sintaxis {
                     if (semanticaState != SemanticaState.NONE){
                         while (!operatorStack.isEmpty() && !errorOR){
                             pushOperatorPerPriority();
-
-//                            System.out.println("O P E R A N D S   S T A C K");
-//                            printOperandStack();
-//                            System.out.println("O P E R A T O R S   S T A C K");
-//                            printOperatorStack();
                         }
                         // Siempre queda un operando
                         if(!operandsStack.isEmpty()){
@@ -593,24 +590,37 @@ public class Sintaxis {
                                         String symbol = sqlQuerys.getAsignationOperator(operandsStack.peek().getLine());
                                         if(!(symbol.equals("+=")&&a[0].equals("string"))){
                                             if(sqlQuerys.getErrorSemantica(operandsStack.peek().getLine())){ // Ver si son del mismo tipo la asignación y el resultado final
-                                                erroresList.add(new Errores(sqlQuerys.getNameIdAsignation(operandsStack.peek().getLine()),-1,operandsStack.peek().getLine(),"Incompatibilidad de tipos","Error semantico"));
+//                                                erroresList.add(new Errores(sqlQuerys.getNameIdAsignation(operandsStack.peek().getLine()),-1,operandsStack.peek().getLine(),"Incompatibilidad de tipos","Error semantico"));
                                                 state = false;
                                             }
                                         }
                                         semanticaRulesList.add(new Semantica( forSentence ? 1080 :
                                                 symbol.equals("=") ? 1020 : symbol.equals("+=") ? 1021 : 1022,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), forSentence ? "asignacion" : symbol.equals("+=") ? "any" : a[0] , a[1],state));
+                                        if (!state){
+                                            erroresList.add(new Errores(a[1],
+                                                    forSentence ? 1080 : symbol.equals("=") ? 1020 : symbol.equals("+=") ? 1021 : 1022,
+                                                    tokenList.getFirst().getLinea(),"Incompatibilidad de tipos","Error semantico",ambitoStack.peek().getNumber()));
+                                        }
                                     }
                                 }
                                 case IF -> {
                                     semanticaRulesList.add(new Semantica(forSentence ? 1081 : 1010,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "boolean", operandsStack.peek().getDataType(), operandsStack.peek().getType() == 2 ));
-
+                                    if( operandsStack.peek().getType() != 2 ){
+                                        erroresList.add(new Errores(operatorStack.peek().getLexema(), forSentence ? 1081 : 1010, tokenList.getFirst().getLinea(),"la condicion no es boolean","Error semantico",ambitoStack.peek().getNumber()));
+                                    }
                                 }
                                 case WHILE -> {
                                     semanticaRulesList.add(new Semantica(1011,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "boolean", operandsStack.peek().getDataType(), operandsStack.peek().getType() == 2 ));
+                                    if( operandsStack.peek().getType() != 2 ){
+                                        erroresList.add(new Errores(operatorStack.peek().getLexema(), 1011, tokenList.getFirst().getLinea(),"la condicion no es boolean","Error semantico",ambitoStack.peek().getNumber()));
+                                    }
 
                                 }
                                 case DOWHILE -> {
                                     semanticaRulesList.add(new Semantica(1012,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "boolean", operandsStack.peek().getDataType(), operandsStack.peek().getType() == 2));
+                                    if( operandsStack.peek().getType() != 2 ){
+                                        erroresList.add(new Errores(operatorStack.peek().getLexema(), 1012, tokenList.getFirst().getLinea(),"la condicion no es boolean","Error semantico",ambitoStack.peek().getNumber()));
+                                    }
 
                                 }
                                 case SWITCH -> {
@@ -622,6 +632,7 @@ public class Sintaxis {
                                     }
                                     else{
                                         switchError = true;
+                                        erroresList.add(new Errores(operatorStack.peek().getLexema(), 1031, tokenList.getFirst().getLinea(),"la sentencia no es number/string","Error semantico",ambitoStack.peek().getNumber()));
                                     }
 
                                 }
@@ -634,6 +645,7 @@ public class Sintaxis {
                                         }
                                         else {
                                             semanticaRulesList.add(new Semantica(1030,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "error switch",operandsStack.peek().getDataType(),false));
+                                            erroresList.add(new Errores(operatorStack.peek().getLexema(), 1030, tokenList.getFirst().getLinea(),"la sentencia no es number/string","Error semantico",ambitoStack.peek().getNumber()));
                                             break;
                                         }
                                     }
@@ -642,6 +654,9 @@ public class Sintaxis {
 
                                     boolean state = operandsStack.peek().getDataType().equals(getTypeSwitch(structuresStack));
                                     semanticaRulesList.add(new Semantica(1030,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), getTypeSwitch(structuresStack), operandsStack.peek().getDataType(),state));
+                                    if (!state){
+                                        erroresList.add(new Errores(operatorStack.peek().getLexema(), 1030, tokenList.getFirst().getLinea(),"la sentencia no es igual a la del switch","Error semantico",ambitoStack.peek().getNumber()));
+                                    }
                                     structuresStack.push(new Structures("begin case","case",tokenList.getFirst().getLinea()));
                                 }
                                 case ARRAY -> { // Reglas 4, 5 y 6
@@ -657,25 +672,30 @@ public class Sintaxis {
                                             // Regla 6 tenemos dos casos nuestro dato es "number" o tiene un valor numerico
                                             int arrayLengthReal = sqlQuerys.getArrayLengthPosition(arrayAsignation.getAmbito(),arrayAsignation.getLexema(),arrayDimensionOR-1);
 
-                                            if (operandsStack.peek().getLexema().contains("TNUM"))  {
+                                            if (operandsStack.peek().getDataType().equals("number"))  {
                                                 semanticaRulesList.add(new Semantica(1060,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "< "+arrayLengthReal, operandsStack.peek().getLexema(), true));
-                                                structuresStack.push(new Structures("begin array","array",tokenList.getFirst().getLinea()));
+//                                                structuresStack.push(new Structures("begin array","array",tokenList.getFirst().getLinea()));
                                             }
                                             else {
                                                 int arrayLengthRead = Integer.parseInt(operandsStack.peek().getLexema());
                                                 semanticaRulesList.add(new Semantica(1060,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "< "+arrayLengthReal, operandsStack.peek().getLexema(), arrayLengthRead < arrayLengthReal ));
                                                 errorArray = !(arrayLengthRead < arrayLengthReal);
+                                                if(! (arrayLengthRead < arrayLengthReal)) {
+                                                    erroresList.add(new Errores(operatorStack.peek().getLexema(), 1060, tokenList.getFirst().getLinea(), "Longitud de array invalida", "Error semantico", ambitoStack.peek().getNumber()));
+                                                }
                                             }
                                             sqlQuerys.updateAsignations(arrayAsignation.getLexema(),arrayAsignation.getType());
                                         }
                                         else{
                                             semanticaRulesList.add(new Semantica(1050,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "number" , operandsStack.peek().getLexema(), false ));
                                             errorArray = true;
+                                            erroresList.add(new Errores(operatorStack.peek().getLexema(), 1050, tokenList.getFirst().getLinea(), "La posicion no es tipo number", "Error semantico", ambitoStack.peek().getNumber()));
                                         }
                                     }
                                     else {
                                         semanticaRulesList.add(new Semantica(1040,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "<= " + arrayAsignation.getParDim() , operandsStack.peek().getLexema(), false ));
                                         errorArray = true;
+                                        erroresList.add(new Errores(operatorStack.peek().getLexema(), 1040, tokenList.getFirst().getLinea(), "Dimension de array invalida", "Error semantico", ambitoStack.peek().getNumber()));
                                     }
 
                                 }
@@ -695,12 +715,14 @@ public class Sintaxis {
                                         else{
                                             System.out.println("tipo incorrecto");
                                             semanticaRulesList.add(new Semantica(1120, funcion.getLine(), ambitoStack.peek().getNumber(),realType, operandsStack.peek().getLexema(),false));
+                                            erroresList.add(new Errores(operatorStack.peek().getLexema(), 1120, funcion.getLine(), "Tipo de parametro incorrecto", "Error semantico", ambitoStack.peek().getNumber()));
                                             errorFuction = true;
                                         }
                                     }
                                     else{
                                         System.out.println("sobra un parametro");
                                         semanticaRulesList.add(new Semantica(1101, funcion.getLine(), ambitoStack.peek().getNumber(), "=" + funcion.getParDim(), operandsStack.peek().getLexema(), false));
+                                        erroresList.add(new Errores(operatorStack.peek().getLexema(), 1101, funcion.getLine(), "Parametro de sobra", "Error semantico", ambitoStack.peek().getNumber()));
                                         errorFuction = true;
                                     }
 
@@ -712,15 +734,21 @@ public class Sintaxis {
                     }
                     operandsStack.clear();
                     statusState = StatusState.NONE;
+                    if(semanticaState != SemanticaState.ARRAY){
+                        arrayOR = false;
+                    }
                     semanticaState = parameters ? SemanticaState.CALLING : SemanticaState.NONE;
                     errorOR = false;
+
                 }
                 break;
 
             case 1370: // =
                 // regla 4 5 6
+                System.out.println("llega un = error ambito: "+errorAmbito+" errorOR "+errorOR);
                 if(!errorAmbito && !errorOR){
                     if (arrayOR){
+                        System.out.println("array");
                         if(isVarOrArray(ambitoStack,arrayAsignation.getLexema()))  {
                             sqlQuerys.addAsignations(arrayAsignation.getLexema(),
                                     tokenList.getFirst().getLexema(),
@@ -731,6 +759,7 @@ public class Sintaxis {
                         else{
                             System.out.println("No es array o variable");
                             errorOR = true;
+                            erroresList.add(new Errores(arrayAsignation.getLexema(), 1090, tokenList.getFirst().getLinea(), "No es array o variable", "Error semantico", ambitoStack.peek().getNumber()));
                         }
                         semanticaRulesList.add(new Semantica(1090,tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(),"var/Array",arrayAsignation.getLexema(),!errorOR));
                         arrayOR = false;
@@ -738,12 +767,14 @@ public class Sintaxis {
                         sqlQuerys.deleteLastTemporal();
                     }
                     else{
+                        System.out.println("var");
                         // regla 9
                         if(isVarOrArray(ambitoStack,operandsStack.peek().getLexema())) {
                             sqlQuerys.addAsignations(operandsStack.peek().getLexema(),tokenList.getFirst().getLexema(),operandsStack.peek().getType(),tokenList.getFirst().getLinea(),operandsStack.peek().getDataType());
                         }
                         else{
                             System.out.println("No es array o variable");
+                            erroresList.add(new Errores(arrayAsignation.getLexema(), 1090, tokenList.getFirst().getLinea(), "No es array o variable", "Error semantico", ambitoStack.peek().getNumber()));
                             errorOR = true;
                         }
                         semanticaRulesList.add(new Semantica(1090,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(),"var/Array",operandsStack.peek().getLexema(),!errorOR));
@@ -914,7 +945,7 @@ public class Sintaxis {
                  }
 
                 break;
-            case 1414: // for este solo define y verifica el tipo de dato del dec_var anterior
+            case 1414: // for este solo define y verifica el tipo de dato del dec_var anterior ESTE YA NO ES VALIDO
                 if (tokenList.getFirst().getToken() == -1){
                     System.out.println(tokenList.getFirst().getLexema());
                     System.out.println("type: "+findMemberTypeString(ambitoStack,tokenList.getFirst().getLexema()));
@@ -992,6 +1023,7 @@ public class Sintaxis {
                 structuresStack.pop();
                 errorArray = false;
                 arrayDimensionOR = 0;
+
                 // si es necesario meter de nuevo a la pila dicho elemento
 
                 break;
@@ -1025,6 +1057,7 @@ public class Sintaxis {
                         case "" -> {
                             System.out.println("no es funcion ni metodo");
                             semanticaRulesList.add(new Semantica(1130, funcion.getLine(), funcion.getAmbito(), "type/void", funcion.getLexema(), false));
+                            erroresList.add(new Errores(funcion.getLexema(), 1130, funcion.getLine(), "No es ni funcion ni metodo", "Error semantico", ambitoStack.peek().getNumber()));
                             errorAmbito = true;
                         }
                         default -> {
@@ -1050,6 +1083,7 @@ public class Sintaxis {
                     if(parametersOR < funcion.getParDim()){
                         System.out.println("Faltan parametros");
                         semanticaRulesList.add(new Semantica(1100, funcion.getLine(), funcion.getAmbito(), "=" + funcion.getParDim(), "", false));
+                        erroresList.add(new Errores(funcion.getLexema(), 1100, funcion.getLine(), "No es array o variable", "Error semantico", ambitoStack.peek().getNumber()));
                     }
 
                     System.out.println("cierra calling");
@@ -1124,6 +1158,9 @@ public class Sintaxis {
                 break;
             case 1501: // inicia do while para cuadruplos
                 structuresStack.add(new Structures("begin do while","do while",tokenList.getFirst().getLinea()));
+                break;
+            case 1503:
+                isInAFun = true;
                 break;
             default:
                 // Acción por defecto si el valor no coincide con ninguno de los casos anteriores
@@ -1626,7 +1663,7 @@ public class Sintaxis {
             {-16,246,223}, 	                                                                                            // 37
             {-13,218}, 	                                                                                                // 38
             {-14,254,225}, 	                                                                                            // 39
-            {1420,1214,-10,1000,1004,246,226,1005,-11,-33,1002,254,1003,1215,1001}, 	                                        // 40 <----- Ambito ; Ejecución ; Declaración // Arrow fuction
+            {1420,1214,-10,1000,1004,246,226,1005,-11,1503,-33,1002,254,1003,1215,1001}, 	                                        // 40 <----- Ambito ; Ejecución ; Declaración // Arrow fuction
             {-16,246,226}, 	                                                                                            // 41
             {-13,227}, 	                                                                                                // 42
             {-73,-26,1218,228,-40,-30,229}, 	                                                                        // 43

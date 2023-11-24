@@ -33,8 +33,9 @@ public class SqlQuerys {
     public void addMember(MemberDetails mb){
         try {
             Statement statement =  connection.createStatement();
+            String arrow = mb.getClassId().equals("arrow fuction") ? "number" : mb.getType();
             statement.execute("INSERT INTO a20130044.ambito (nameId,typeId,classId,ambito,cantParametro," +
-                    "typeParametro,arrayDimension,arrayLength) VALUES ('"+mb.getId()+"','"+mb.getType()+"'," +
+                    "typeParametro,arrayDimension,arrayLength) VALUES ('"+mb.getId()+"','"+arrow+"'," +
                     "'"+mb.getClassId()+"','"+mb.getAmbito()+"','"+mb.getCantParametro()+"','"+mb.getTypeParametro()+"" +
                     "','"+mb.getArrayDimension()+"','"+mb.getArrayToJson()+"');");
         } catch (SQLException e) {
