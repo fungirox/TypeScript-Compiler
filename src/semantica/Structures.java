@@ -5,32 +5,41 @@ public class Structures {
     private final String type,name;
     private String label1,label2,label3,label4;
     private final int line;
-    private int cuadruploId;
+    private int cuadruploId,parameters;
     private boolean switchType; // true = number , false = string
-    private final SemanticaState state;
-    public Structures(final String type,final String name,final int line,final SemanticaState state) {
+    private ObjectData calling_array;
+    public Structures(final String type,final String name,final int line) {
         this.type = type;
         this.name = name;
         this.line = line;
-        this.state = state;
     }
-    public Structures(final String type,final String name,final int line,final SemanticaState state,final boolean swtichType) {
+    public Structures(final String type,final String name,final int line,final boolean swtichType) {
         this.type = type;
         this.name = name;
         this.line = line;
-        this.state = state;
         this.switchType = swtichType;
     }
 
     @Override
     public String toString() {
-        return String.format("%15s%15s%15d%15s%15s%15s%15s%15s%15s",this.getType(),this.getName(),this.getLine(),this.getState(),this.isSwitchType()? "number" : "string" ,this.getLabel1(),this.getLabel2(),this.getLabel3(),this.getLabel4());
+        return String.format("%15s%15s%15d%15s%15d",this.getType(),this.getName(),this.getLine(),this.isSwitchType()? "number" : "string" ,this.getParameters());
     }
 
-    public SemanticaState getState() {
-        return state;
+    public int getParameters() {
+        return parameters;
     }
 
+    public void setParameters(int parameters) {
+        this.parameters = parameters;
+    }
+
+    public ObjectData getCalling_array() {
+        return calling_array;
+    }
+
+    public void setCalling_array(ObjectData calling_array) {
+        this.calling_array = calling_array;
+    }
 
     public boolean isSwitchType() {
         return switchType;
