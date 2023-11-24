@@ -2,14 +2,24 @@ package semantica;
 
 public class Structures {
     // String etiquetas
-    private String type,name,label1,label2,label3,label4;
-    private int line,cuadruploId;
+    private final String type,name;
+    private String label1,label2,label3,label4;
+    private final int line;
+    private int cuadruploId;
     private boolean switchType; // true = number , false = string
-    private SemanticaState state;
-    public Structures(final String type,final String name,final int line) {
+    private final SemanticaState state;
+    public Structures(final String type,final String name,final int line,final SemanticaState state) {
         this.type = type;
         this.name = name;
         this.line = line;
+        this.state = state;
+    }
+    public Structures(final String type,final String name,final int line,final SemanticaState state,final boolean swtichType) {
+        this.type = type;
+        this.name = name;
+        this.line = line;
+        this.state = state;
+        this.switchType = swtichType;
     }
 
     @Override
@@ -21,9 +31,6 @@ public class Structures {
         return state;
     }
 
-    public void setState(SemanticaState state) {
-        this.state = state;
-    }
 
     public boolean isSwitchType() {
         return switchType;
@@ -37,16 +44,9 @@ public class Structures {
         return type;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
 
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getLabel1() {
@@ -83,10 +83,6 @@ public class Structures {
 
     public int getLine() {
         return line;
-    }
-
-    public void setLine(int line) {
-        this.line = line;
     }
 
     public int getCuadruploId() {

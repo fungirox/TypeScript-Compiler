@@ -10,5 +10,5 @@ public enum SemanticaState {
     SWITCH,
     CASE,
     ARRAY,
-    PARAMETERS
+    CALLING
 }
