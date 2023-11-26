@@ -166,7 +166,7 @@ public class Sintaxis {
     }
     private void execute(){
         if (tokenList.getFirst().getToken() == -1) { // Si es ID
-            if (!findMember(ambitoStack,tokenList.getFirst().getLexema())){
+            if (!findMember(tokenList.getFirst().getLexema())){
                 erroresList.add(new Errores(tokenList.getFirst().getLexema(), 1150, tokenList.getFirst().getLinea(),"Elemento no declarado","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
                 operandsStack.push(new Operand("No declarado",tokenList.getFirst().getToken(),6,tokenList.getFirst().getLinea()));
@@ -339,13 +339,22 @@ public class Sintaxis {
 
         }
     }
-    private boolean findMember(Stack<Ambito> stack, String id){
-        Stack<Ambito> copyStack = (Stack<Ambito>)stack.clone();
+    private boolean findMember(final String id){
+        Stack<Ambito> copyStack = (Stack<Ambito>)ambitoStack.clone();
         while (!copyStack.isEmpty()){
             if (sqlQuerys.isDeclarated(copyStack.pop().getNumber(),id)){
                 return true;
             }
         }
+        return false;
+    }
+    private boolean findMemberPerAmbito(final String id){
+//        Stack<Ambito> copyStack = (Stack<Ambito>)ambitoStack.clone();
+//        while (!copyStack.isEmpty()){
+            if (sqlQuerys.isDeclarated(ambitoStack.peek().getNumber(),id)){
+                return true;
+            }
+//        }
         return false;
     }
     private void codeState(int topStack){
@@ -695,7 +704,7 @@ public class Sintaxis {
                                     else {
                                         semanticaRulesList.add(new Semantica(1040,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "<= " + arrayAsignation.getParDim() , operandsStack.peek().getLexema(), false ));
                                         errorArray = true;
-                                        erroresList.add(new Errores(operatorStack.peek().getLexema(), 1040, tokenList.getFirst().getLinea(), "Dimension de array invalida", "Error semantico", ambitoStack.peek().getNumber()));
+                                        erroresList.add(new Errores(arrayAsignation.getLexema(), 1040, tokenList.getFirst().getLinea(), "Dimension de array invalida", "Error semantico", ambitoStack.peek().getNumber()));
                                     }
 
                                 }
@@ -774,7 +783,7 @@ public class Sintaxis {
                         }
                         else{
                             System.out.println("No es array o variable");
-                            erroresList.add(new Errores(arrayAsignation.getLexema(), 1090, tokenList.getFirst().getLinea(), "No es array o variable", "Error semantico", ambitoStack.peek().getNumber()));
+                            erroresList.add(new Errores(operandsStack.peek().getLexema(), 1090, tokenList.getFirst().getLinea(), "No es array o variable", "Error semantico", ambitoStack.peek().getNumber()));
                             errorOR = true;
                         }
                         semanticaRulesList.add(new Semantica(1090,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(),"var/Array",operandsStack.peek().getLexema(),!errorOR));
@@ -932,7 +941,7 @@ public class Sintaxis {
                 }
                 // añadir un dec_var
                  if (tokenList.getFirst().getToken() == -1){
-                     if(findMember(ambitoStack,tokenList.getFirst().getLexema())){
+                     if(findMemberPerAmbito(tokenList.getFirst().getLexema())){ // Aqui pq es para declarar
                          erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                          erroresAmbito ++;
                          errorAmbito = true;
@@ -1236,7 +1245,7 @@ public class Sintaxis {
 
     }
     private void isDuplicateLet(String classID){
-        if(findMember(ambitoStack,letID)){
+        if(findMemberPerAmbito(letID)){ // Aqui pq es para declarar
             erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
             erroresAmbito++;
             errorAmbito = true;
@@ -1296,7 +1305,7 @@ public class Sintaxis {
         classOVar = true;
         if(tokenList.getFirst().getToken()==-1)
         {
-            if(findMember(ambitoStack,tokenList.getFirst().getLexema())){
+            if(findMemberPerAmbito(tokenList.getFirst().getLexema())){ // Aqui pq es para declarar
                 erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
                 errorAmbito = true;
@@ -1327,7 +1336,7 @@ public class Sintaxis {
         switch (tokenList.getFirst().getToken())
         {
             case -1 -> { // id
-                if(findMember(ambitoStack,tokenList.getFirst().getLexema())){
+                if(findMemberPerAmbito(tokenList.getFirst().getLexema())){ // Aqui pq es para declarar
                     erroresList.add(new Errores(tokenList.getFirst().getLexema(), tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                     erroresAmbito++;
                     errorAmbito = true;
@@ -1351,7 +1360,7 @@ public class Sintaxis {
     private void DEC_MET_FUN(String classFun){
         contieneParametro = true;
         if(let && (generalStateStack.peek() == State.ANON_FUN|| generalStateStack.peek() == State.ARROW_FUN)){
-            if(findMember(ambitoStack,letID)){
+            if(findMemberPerAmbito(letID)){ // Aqui pq es para declarar
                 erroresList.add(new Errores(letID, tokenList.getFirst().getToken(), tokenList.getFirst().getLinea(),"Elemento repetido","Error de ámbito ("+ambitoStack.peek().getNumber()+")",ambitoStack.peek().getNumber()));
                 erroresAmbito++;
                 errorAmbito = true;
@@ -1369,7 +1378,7 @@ public class Sintaxis {
         switch (tokenList.getFirst().getToken())
         {
             case -1 -> { // id
-                if(findMember(ambitoStack,tokenList.getFirst().getLexema())){
+                if(findMemberPerAmbito(tokenList.getFirst().getLexema())){ // Declaracion
 
                     if(generalStateStack.peek()==State.DEC_SET|| generalStateStack.peek() == State.DEC_GET){ // Es un set
                         if(memberGetSet(ambitoStack.peek().getNumber(),tokenList.getFirst().getLexema(), generalStateStack.peek() == State.DEC_GET?"get":"set")){
