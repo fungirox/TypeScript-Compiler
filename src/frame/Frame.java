@@ -421,6 +421,7 @@ public class Frame extends JFrame{
                 if (compilo){
                     lexico.clean();
                     sintaxis.clean();
+                    CargarRecursos.connectionSQL.truncateTable();
                     mdTblErrores.setRowCount(0);
                     lexico.setText(txtCodigo.getText()+" ");
                 }
@@ -465,6 +466,8 @@ public class Frame extends JFrame{
     }
     private void btnExcelActionPerformed(java.awt.event.ActionEvent evt){
         if(compilo){
+            CargarRecursos.connectionSQL.deleteNativeFunctions();
+
             JFileChooser fileChooser=new JFileChooser();
             fileChooser.setDialogTitle("Save Excel File");
             fileChooser.setFileFilter(new FileNameExtensionFilter("Excel files (*.xlsx)", "xlsx"));
@@ -539,4 +542,6 @@ public class Frame extends JFrame{
     private javax.swing.JTextArea txtCodigo;
     private javax.swing.JTable tblTipoError;
     private javax.swing.JScrollPane sclTipoError;
+
+
 }

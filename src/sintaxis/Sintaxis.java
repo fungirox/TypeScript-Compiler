@@ -254,13 +254,21 @@ public class Sintaxis {
                     }
                     break;
                 }
-
-                operandType =  tokenList.getFirst().getToken() == -1 ? findMemberType(ambitoStack,tokenList.getFirst().getLexema()) : idTypeToken(tokenList.getFirst().getToken());
+                operandType = switch(tokenList.getFirst().getToken()){
+                    case -1,-95,-96,-97,-98,-99,-100,-101,-102,-103,-104,-105,-106,
+                            -79,-80,-81,-82,-83,-84,-85,-86 -> findMemberType(ambitoStack,tokenList.getFirst().getLexema());
+                    default ->  idTypeToken(tokenList.getFirst().getToken());
+                };
+//                operandType =  tokenList.getFirst().getToken() == -1 ? findMemberType(ambitoStack,tokenList.getFirst().getLexema()) : idTypeToken(tokenList.getFirst().getToken());
                 operandsStack.push(new Operand(tokenList.getFirst().getLexema(),tokenList.getFirst().getToken(),operandType,tokenList.getFirst().getLinea()));
 
-                if(tokenList.getFirst().getToken() == -1){
-                    funcionName = operandsStack.peek().getLexema();
-                }
+//                if(tokenList.getFirst().getToken() == -1){
+//                    funcionName = operandsStack.peek().getLexema();
+//                }
+                funcionName = switch(tokenList.getFirst().getToken()){
+                    case -1,-95,-96,-97,-98,-99,-100,-101,-102,-103,-104,-105,-106,-79,-80,-81,-82,-83,-84,-85,-86 -> operandsStack.peek().getLexema();
+                    default ->  "";
+                };
             }
             case OPERATOR -> { // temporal
                 if(!errorOR){
@@ -598,9 +606,13 @@ public class Sintaxis {
 
                                         String symbol = sqlQuerys.getAsignationOperator(operandsStack.peek().getLine());
                                         if(!(symbol.equals("+=")&&a[0].equals("string"))){
+
                                             if(sqlQuerys.getErrorSemantica(operandsStack.peek().getLine())){ // Ver si son del mismo tipo la asignación y el resultado final
 //                                                erroresList.add(new Errores(sqlQuerys.getNameIdAsignation(operandsStack.peek().getLine()),-1,operandsStack.peek().getLine(),"Incompatibilidad de tipos","Error semantico"));
                                                 state = false;
+                                                if (sqlQuerys.getRealNumber(operandsStack.peek().getLine())){
+                                                    state = true;
+                                                }
                                             }
                                         }
                                         semanticaRulesList.add(new Semantica( forSentence ? 1080 :
@@ -722,10 +734,17 @@ public class Sintaxis {
                                             semanticaRulesList.add(new Semantica(1120, funcion.getLine(), ambitoStack.peek().getNumber(),realType, operandsStack.peek().getLexema(),true));
                                         }
                                         else{
-                                            System.out.println("tipo incorrecto");
-                                            semanticaRulesList.add(new Semantica(1120, funcion.getLine(), ambitoStack.peek().getNumber(),realType, operandsStack.peek().getLexema(),false));
-                                            erroresList.add(new Errores(operatorStack.peek().getLexema(), 1120, funcion.getLine(), "Tipo de parametro incorrecto", "Error semantico", ambitoStack.peek().getNumber()));
-                                            errorFuction = true;
+                                            if(realType.equals("real")&&operandsStack.peek().getDataType().equals("number")){
+                                                System.out.println("tipo correcto");
+                                                semanticaRulesList.add(new Semantica(1120,funcion.getLine(), ambitoStack.peek().getNumber(),realType, operandsStack.peek().getLexema(),true));
+                                            }
+                                            else{
+                                                System.out.println("tipo incorrecto");
+                                                semanticaRulesList.add(new Semantica(1120, funcion.getLine(), ambitoStack.peek().getNumber(),realType, operandsStack.peek().getLexema(),false));
+                                                erroresList.add(new Errores(operatorStack.peek().getLexema(), 1120, funcion.getLine(), "Tipo de parametro incorrecto", "Error semantico", ambitoStack.peek().getNumber()));
+                                                errorFuction = true;
+                                            }
+
                                         }
                                     }
                                     else{
@@ -1044,7 +1063,7 @@ public class Sintaxis {
                         asigFuntion = true;
                         semanticaState = SemanticaState.CALLING;
                     }
-                    else if (semanticaState == SemanticaState.NONE){
+                    else /*if (semanticaState == SemanticaState.NONE)*/{
                         semanticaState = SemanticaState.CALLING;
                     }
 //                    int id = findDeclarationID(ambitoStack,operandsStack.peek().getLexema());
@@ -1575,7 +1594,6 @@ public class Sintaxis {
         memberDetailsList.clear();
         erroresAmbito = 0;
         errorAmbito = false;
-        sqlQuerys.truncateTable();
         operandsStack.clear();
         operatorStack.clear();
         semanticaRulesList.clear();
@@ -1753,26 +1771,26 @@ public class Sintaxis {
             {-107},                                                                                                     // 112
             {-108},                                                                                                     // 113
             {254,261},                                                                                                  // 114
-            {-95,-10,-11},                                                                                              // 115
-            {-96,-10,-11},                                                                                              // 116
-            {-97},                                                                                                      // 117
-            {-98,-10,-11},                                                                                              // 118
-            {-99,-10,273,-11},                                                                                          // 119
-            {-100,-10,273,-11},                                                                                         // 120
-            {-101,-10,273,-11},                                                                                         // 121
-            {-102,-10,273,-11},                                                                                         // 122
-            {-103,-10,273,-11},                                                                                         // 123
-            {-104,-10,273,-16,273,-11},                                                                                 // 124
-            {-105,-10,273,-16,273,-11},                                                                                 // 125
-            {-106,-10,273,-11},                                                                                         // 126
-            {-79,-10,273,-16,273,-11},                                                                                  // 127
-            {-80,-10,273,-16,273,-11},                                                                                  // 128
-            {-81,-10,273,-16,273,-16,-11},                                                                              // 129
-            {-82,-10,273,-11},                                                                                          // 130
-            {-83,-10,273,-11},                                                                                          // 131
-            {-84,-10,273,-11},                                                                                          // 132
-            {-85,-10,273,-11},                                                                                          // 133
-            {-86,-10,273,-11},                                                                                          // 134
+            {1300,-95,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 115 MET CAD
+            {1300,-96,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 116
+            {1300,-97,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 117
+            {1300,-98,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 118
+            {1300,-99,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                  // 119
+            {1300,-100,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                 // 120
+            {1300,-101,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                 // 121
+            {1300,-102,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                 // 122
+            {1300,-103,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                 // 123
+            {1300,-104,1301,1350,1371,-10,1418,273,-16,273,-16,273,1419,-11},                                                                         // 124
+            {1300,-105,1301,1350,1371,-10,1418,273,-16,273,-16,273,1419,-11},                                                                         // 125
+            {1300,-106,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                 // 126 MET CAD
+            {1300,-79,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                  // 127
+            {1300,-80,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                  // 128
+            {1300,-81,1301,1350,1371,-10,1418,273,-16,273,-16,273,1419,-11},                                                                              // 129
+            {1300,-82,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 130
+            {1300,-83,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 131
+            {1300,-84,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 132
+            {1300,-85,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 133
+            {1300,-86,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 134
             {269},                                                                                                      // 135
             {-17,273,272,-18},                                                                                          // 136
             {-16,1416,273,272},                                                                                              // 137
@@ -1830,7 +1848,7 @@ public class Sintaxis {
             {253,273,289},                                                                                              // 181 FA1
             {-76,1408,273,1409,-13,268}                                                                                 // 182 case OR : S13
     };
-    private final Map<Integer,String> errores_sintaxis=new HashMap<Integer,String>(){{
+    private final Map<Integer,String> errores_sintaxis=new HashMap<>(){{
         put(504,"Solo puedes comenzar un programa con let class fuction o interface");
         put(505,"Se esperaba let, interface o class");
         put(506,"Se esperaba fuction");

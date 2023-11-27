@@ -16,6 +16,7 @@ public class SqlQuerys {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             connection = DriverManager.getConnection(url,username,password);
+            Statement statement =  connection.createStatement();
         } catch (ClassNotFoundException | SQLException e) {
             System.out.printf(String.valueOf(e));
         }
@@ -26,9 +27,24 @@ public class SqlQuerys {
             statement.execute("TRUNCATE TABLE ambito");
             statement.execute("TRUNCATE TABLE temporals");
             statement.execute("TRUNCATE TABLE asignations");
+            for (int i=0;i<native_functions.length;i++){
+                statement.execute(
+                        "INSERT INTO a20130044.ambito " +
+                                "(nameId,typeId,classId,ambito,cantParametro,typeParametro)" +
+                                "VALUES  "+native_functions[i]);
+            }
+
         } catch (SQLException e) {
             System.out.println(e);
         }
+    }
+    public void deleteNativeFunctions(){
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("DELETE FROM a20130044.ambito WHERE declarationID <= "+native_functions.length);
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+
     }
     public void addMember(MemberDetails mb){
         try {
@@ -424,6 +440,24 @@ public class SqlQuerys {
         }
         return true;
     }
+    public boolean getRealNumber(final int line){
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT * FROM asignations WHERE type = 1 AND finalDataType = 0 AND line = "+line;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+
+            if (rs.next()) {
+                return true;
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return false;
+    }
     public String getNameIdAsignation(final int line){
         String nameId="";
         try {
@@ -624,5 +658,83 @@ public class SqlQuerys {
         }
         return typeId;
     }
+    final String [] native_functions = {
+            // toLowerCase
+            "('toLowerCase','string','fuction',0,1,'-1')",
+            "('par1','string','variable',-1,1,'toLowerCase')",
+            // toUpperCase
+            "('toUpperCase','string','fuction',0,1,'-2')",
+            "('par1','string','variable',-2,1,'toUpperCase')",
+            // legth
+            "('legth','number','fuction',0,1,'-3')",
+            "('par1','string','variable',-3,1,'legth')",
+            // trim
+            "('trim','string','fuction',0,2,'-4')",
+            "('par1','string','variable',-4,1,'trim')",
+            "('par2','string','variable',-4,2,'trim')",
+            // charAt
+            "('charAt','string','fuction',0,2,'-5')",
+            "('par1','string','variable',-5,1,'charAt')",
+            "('par2','number','variable',-5,2,'charAt')",
+            // startsWith
+            "('startsWith','boolean','fuction',0,2,'-6')",
+            "('par1','string','variable',-6,1,'startsWith')",
+            "('par2','string','variable',-6,2,'startsWith')",
+            // endsWith
+            "('endsWith','boolean','fuction',0,2,'-7')",
+            "('par1','string','variable',-7,1,'endsWith')",
+            "('par2','string','variable',-7,2,'endsWith')",
+            // indexOf
+            "('indexOf','number','fuction',0,2,'-8')",
+            "('par1','string','variable',-8,1,'indexOf')",
+            "('par2','string','variable',-8,2,'indexOf')",
+            // includes
+            "('includes','boolean','fuction',0,2,'-9')",
+            "('par1','string','variable',-9,1,'includes')",
+            "('par2','string','variable',-9,2,'includes')",
+            // slice
+            "('slice','string','fuction',0,3,'-10')",
+            "('par1','string','variable',-10,1,'slice')",
+            "('par2','number','variable',-10,2,'slice')",
+            "('par3','number','variable',-10,3,'slice')",
+            // replace
+            "('replace','string','fuction',0,3,'-11')",
+            "('par1','string','variable',-11,1,'replace')",
+            "('par2','string','variable',-11,2,'replace')",
+            "('par3','string','variable',-11,3,'replace')",
+            // split
+            "('split','string','fuction',0,2,'-12')",
+            "('par1','string','variable',-12,1,'split')",
+            "('par2','string','variable',-12,2,'split')",
+
+            // expo
+            "('expo','number','fuction',0,2,'-13')",
+            "('par1','real','variable',-13,1,'expo')",
+            "('par2','number','variable',-13,2,'expo')",
+            // sqrtv
+            "('sqrtv','real','fuction',0,2,'-14')",
+            "('par1','real','variable',-14,1,'sqrtv')",
+            "('par2','number','variable',-14,2,'sqrtv')",
+            // ConvBase
+            "('ConvBase','void','fuction',0,3,'-15')",
+            "('par1','string','variable',-15,1,'ConvBase')",
+            "('par2','number','variable',-15,2,'ConvBase')",
+            "('par3','number','variable',-15,3,'ConvBase')",
+            // asc
+            "('asc','string','fuction',0,1,'-16')",
+            "('par1','number','variable',-16,1,'asc')",
+            // sen
+            "('sen','real','fuction',0,1,'-17')",
+            "('par1','real','variable',-17,1,'sen')",
+            // cos
+            "('cos','real','fuction',0,1,'-18')",
+            "('par1','real','variable',-18,1,'cos')",
+            // tan
+            "('tan','real','fuction',0,1,'-19')",
+            "('par1','real','variable',-19,1,'tan')",
+            // val
+            "('val','number','fuction',0,1,'-20')",
+            "('par1','string','variable',-20,1,'val')",
+
+    };
 }
-// SELECT JSON_EXTRACT(arrayLength, '$[x]') FROM ambito;
