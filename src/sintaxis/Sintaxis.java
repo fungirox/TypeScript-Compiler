@@ -30,6 +30,7 @@ public class Sintaxis {
     private final Stack <State> generalStateStack;
     private final Stack <Boolean> switchTypeStack;
     private final Stack <Structures> structuresStack;
+    private final Stack <String> etiquetas;
     private final ArrayList <Integer> arrayLength;
     private final LinkedList<Cuadruplo> cuadruplos;
     private int ambito;
@@ -48,6 +49,7 @@ public class Sintaxis {
     private int arrayDimensionOR = 0;
     private int parametersOR = 0;
     private int etiqueta = 0;
+    private int console = 0;
     private boolean let = false;
     private boolean classOVar = false;
     private boolean anon = false;
@@ -92,11 +94,15 @@ public class Sintaxis {
         this.switchTypeStack = new Stack<>();
         this.structuresStack = new Stack<>();
         this.cuadruplos = new LinkedList<>();
+        this.etiquetas = new Stack<>();
         syntacticStack.push(200);
         generalStateStack.push(State.NONE);
         semanticaState = SemanticaState.NONE;
         ambito = 0;
 
+    }
+    public String label(final int num,final String type){
+        return type + "-E" + num;
     }
     public int analize() throws IOException {
         int matrizData;
@@ -144,13 +150,13 @@ public class Sintaxis {
                     delete();
                 }
             }
-            System.out.println("O P E R A N D S   S T A C K");
-            printOperandStack();
-            System.out.println("O P E R A T O R S   S T A C K");
-            printOperatorStack();
-            System.out.println("------------------------------------------------------------------------------------------------------------------------");
-            System.out.println("S T R U C T U R E   S T A C K");
-            printStructureStack();
+//            System.out.println("O P E R A N D S   S T A C K");
+//            printOperandStack();
+//            System.out.println("O P E R A T O R S   S T A C K");
+//            printOperatorStack();
+//            System.out.println("------------------------------------------------------------------------------------------------------------------------");
+//            System.out.println("S T R U C T U R E   S T A C K");
+//            printStructureStack();
             System.out.println("------------------------------------------------------------------------------------------------------------------------");
 
         }
@@ -158,12 +164,17 @@ public class Sintaxis {
         if(!syntacticStack.isEmpty()) {
             System.out.println("Parece que no terminaste tu codigo");
         }
-        System.out.println();
-        System.out.println("S T R U C T U R E   S T A C K");
-        printStructureStack();
+        cuadruplos.add(new Cuadruplo());
+        cuadruplos.getLast().label_begin_end(false,"main");
+//        System.out.println();
+//        System.out.println("S T R U C T U R E   S T A C K");
+//        printStructureStack();
         System.out.println();
         System.out.println("S E M A N T I C A   R U L E S");
         printSemanticaRules();
+        System.out.println("------------------------------------------------------------------------------------------------------------------------");
+        printCuadruplosList();
+
         return erroresAmbito;
     }
     private void execute(){
@@ -189,7 +200,6 @@ public class Sintaxis {
                 erroresList.add(new Errores(tokenList.getFirst().getLexema(), 1170, tokenList.getFirst().getLinea(),"Un metodo no puede retornar un valor","Error semantico",ambitoStack.peek().getNumber()));
 //                errorAmbito = true;
 //                gestionAmbito(false);
-                // TODO arreglar que al final de este metodo si se continue
             }
         }
 
@@ -207,7 +217,6 @@ public class Sintaxis {
                         if(isArray(ambitoStack,tokenList.getFirst().getLexema())){
                             // Es array y se está usando de esta manera ++ a[0]
                             // TODO arreglar casos de regla 6 ++a[0] a = ++a[0] a[a[0]]
-
                         }
                         else{
                             sqlQuerys.addAsignations(tokenList.getFirst().getLexema(),plusminus,findMemberType(ambitoStack,tokenList.getFirst().getLexema()),tokenList.getFirst().getLinea(),findMemberTypeString(ambitoStack,tokenList.getFirst().getLexema()));
@@ -219,6 +228,7 @@ public class Sintaxis {
                         errorOR = true;
                     }
                     semanticaRulesList.add(new Semantica(1090,tokenList.getFirst().getLinea(),ambitoStack.peek().getNumber(),"var/Array",tokenList.getFirst().getLexema(),!errorOR));
+                    String action, value1 = tokenList.getFirst().getLexema(),value2 = "1",result;
 
                     if(!errorOR){
                         int returnExcel = matrizSemantica[1][0][findMemberType(ambitoStack,tokenList.getFirst().getLexema())];
@@ -230,6 +240,7 @@ public class Sintaxis {
                             case -61 -> new Operand("TNULL"+(sqlQuerys.getTempTypeLine(4)),-61,4,tokenList.getFirst().getLinea());   // null
                             default -> new Operand("TV"+(sqlQuerys.getTempTypeLine(5)),-200,6,tokenList.getFirst().getLinea());   // var
                         };
+                        result = op.getLexema();
                         sqlQuerys.addTemporal(op);
                         sqlQuerys.updateAsignations(op.getLexema(),op.getType());
                         asigFuntion = false;
@@ -237,7 +248,8 @@ public class Sintaxis {
                         boolean state = true;
                         String symbol = sqlQuerys.getAsignationOperator(op.getLine());
                         String [] a = sqlQuerys.getTypeDataAsignation(op.getLine());
-
+                        cuadruplos.add(new Cuadruplo());
+                        cuadruplos.getLast().action_operation(symbol,value1,value2,result);
                         if(sqlQuerys.getErrorSemantica(op.getLine())){ // Ver si son del mismo tipo la asignación y el resultado final
                             erroresList.add(new Errores(sqlQuerys.getNameIdAsignation(op.getLine()),1020,op.getLine(),"Incompatibilidad de tipos","Error semantico"));
                             state = false;
@@ -311,8 +323,11 @@ public class Sintaxis {
 
     }
     private void pushOperatorPerPriority() {
+        String action = operatorStack.peek().getLexema(),value1 = operandsStack.peek().getLexema(),value2,result;
+
         Operand op1 = operandsStack.pop();
-        Operand op2 = operatorStack.peek().getPriority() == 0 ? new Operand("TNA",-90,0,op1.getLine()) : operandsStack.pop();
+        Operand op2 = operatorStack.peek().getPriority() == 0 ? new Operand("TNUM",-90,0,op1.getLine()) : operandsStack.pop();
+        value2 = op2.getLexema();
         int returnExcel = matrizSemantica[operatorStack.peek().getType()][op1.getType()==6?5:op1.getType()][op2.getType()==6?5:op2.getType()];
         op2 = switch (returnExcel){
             case -90 -> new Operand("TNUM"+(sqlQuerys.getTempTypeLine(0)),-90,0,op1.getLine());   // number
@@ -322,6 +337,9 @@ public class Sintaxis {
             case -61 -> new Operand("TNULL"+(sqlQuerys.getTempTypeLine(4)),-61,4,op1.getLine());   // null
             default -> new Operand("TV"+(sqlQuerys.getTempTypeLine(5)),-200,6,op1.getLine());   // var
         };
+        result = op2.getLexema();
+        cuadruplos.add(new Cuadruplo());
+        cuadruplos.getLast().action_operation(action,value1,value2,result);
         sqlQuerys.addTemporal(op2);
         operandsStack.push(op2);
         operatorStack.pop();
@@ -472,8 +490,7 @@ public class Sintaxis {
                     memberDetailsList.get(memberPositionClass).setCantParametro(parametro);
                 }
             case 1211: // Interface
-                if(!errorAmbito){// TODO intentar arreglar esto para poder cerrar el ambito antes y dejar de hacer un desastre
-                    // TODO añadir cualquier cosa de estas que abre a las pilas de structure
+                if(!errorAmbito){
                     System.out.println("type parametro");
                     memberDetailsList.get(memberPositionClass).setTypeParametro(ambitoStack.peek().getNumber()+"");
                     sqlQuerys.addMember(memberDetailsList.get(memberPositionClass));
@@ -487,7 +504,8 @@ public class Sintaxis {
                 contieneParametro = false;
                 System.out.println("c:");
                 //structuresStack.push(new Structures("end fuction",memberDetailsList.get(memberPositionClass).getId(),tokenList.getFirst().getLinea()));
-
+                cuadruplos.add(new Cuadruplo());
+                cuadruplos.getLast().label_begin_end(false,memberDetailsList.get(memberPositionClass).getId());
                 structuresStack.pop();
 
                 if(!(generalStateStack.peek() == State.CLASS || generalStateStack.peek() == State.CLASS_ANON ) && !errorAmbito){
@@ -515,6 +533,8 @@ public class Sintaxis {
             case 1227:
                 setOldState();
 //                structuresStack.push(new Structures("end class",memberDetailsList.get(memberPositionClass).getId(),tokenList.getFirst().getLinea()));
+                cuadruplos.add(new Cuadruplo());
+                cuadruplos.getLast().label_begin_end(false,structuresStack.peek().getName());
                 structuresStack.pop();
                 errorAmbito = false;
                 break;
@@ -630,8 +650,15 @@ public class Sintaxis {
                                 }
                                 case IF -> {
                                     semanticaRulesList.add(new Semantica(forSentence ? 1081 : 1010,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "boolean", operandsStack.peek().getDataType(), operandsStack.peek().getType() == 2 ));
-                                    if( operandsStack.peek().getType() != 2 ){
+                                    if ( operandsStack.peek().getType() != 2 ){
                                         erroresList.add(new Errores(operandsStack.peek().getLexema(), forSentence ? 1081 : 1010, tokenList.getFirst().getLinea(),"la condicion no es boolean","Error semantico",ambitoStack.peek().getNumber()));
+                                    }
+                                    else {
+                                        etiqueta++;
+                                        etiquetas.push(label(etiqueta,"IF"));
+                                        cuadruplos.addLast(new Cuadruplo());
+                                        cuadruplos.getLast().action_JF(operandsStack.peek().getLexema(),etiquetas.peek());
+
                                     }
                                 }
                                 case WHILE -> {
@@ -745,11 +772,18 @@ public class Sintaxis {
                                             if(realType.equals("real")&&operandsStack.peek().getDataType().equals("number")){
                                                 System.out.println("tipo correcto");
                                                 semanticaRulesList.add(new Semantica(1120,funcion.getLine(), ambitoStack.peek().getNumber(),realType, operandsStack.peek().getLexema(),true));
+
+                                                if(parametersOR % 2 != 0){ // Si es impar
+                                                    cuadruplos.add(new Cuadruplo());
+                                                    cuadruplos.getLast().setValue1(operandsStack.peek().getLexema());
+                                                }
+                                                else{
+                                                    cuadruplos.getLast().setValue2(operandsStack.peek().getLexema());
+                                                }
                                             }
                                             else{
                                                 System.out.println("tipo incorrecto");
                                                 semanticaRulesList.add(new Semantica(1120, funcion.getLine(), ambitoStack.peek().getNumber(),realType, operandsStack.peek().getLexema(),false));
-                                                // TODO arreglar esto
                                                 erroresList.add(new Errores(operandsStack.peek().getLexema(), 1120, funcion.getLine(), "Tipo de parametro incorrecto", "Error semantico", ambitoStack.peek().getNumber()));
                                                 errorFuction = true;
                                             }
@@ -763,6 +797,17 @@ public class Sintaxis {
                                         errorFuction = true;
                                     }
 
+                                }
+                                case CONSOLE -> {
+                                    System.out.println("hola:DDD");
+                                    console ++ ;
+                                    if(console % 2 != 0){ // Si es impar
+                                        cuadruplos.add(new Cuadruplo());
+                                        cuadruplos.getLast().setValue1(operandsStack.peek().getLexema());
+                                    }
+                                    else{
+                                        cuadruplos.getLast().setValue2(operandsStack.peek().getLexema());
+                                    }
                                 }
 
                             }
@@ -958,6 +1003,7 @@ public class Sintaxis {
                 structuresStack.pop();
                 // TODO hay q ver si se tiene que regresar a none
                 System.out.println("Cierra switch");
+                semanticaState = SemanticaState.NONE;
 //                switchTypeStack.pop();
                 break;
             case 1411:
@@ -1049,7 +1095,7 @@ public class Sintaxis {
                     Operand op = new Operand("TV"+(sqlQuerys.getTempTypeLine(5)),-200,6,tokenList.getFirst().getLinea());
                     operandsStack.push(op);   // array type
                     sqlQuerys.addTemporal(op);
-
+                    structuresStack.pop();
                 }
                 else {
                     Operand op;
@@ -1064,9 +1110,63 @@ public class Sintaxis {
                     };
                     operandsStack.push(op);
                     sqlQuerys.addTemporal(op);
+                    structuresStack.pop();
+                    if(!structuresStack.isEmpty()){
+                        System.out.println("hola:)");
+                        switch (structuresStack.peek().getType()){
+                            case "calling metodo","calling funcion" -> {
+                                semanticaState = SemanticaState.CALLING;
+                                funcion = structuresStack.peek().getCalling_array();
+                                parametersOR = structuresStack.peek().getParameters();
+                                System.out.println("parameters OR " + parametersOR);
+                            }
+                            case "open array" -> {
+                                semanticaState = SemanticaState.ARRAY;
+                                arrayAsignation = structuresStack.peek().getCalling_array();
+                                arrayDimensionOR = structuresStack.peek().getParameters();
+                                asigFuntion = false;
+                            }
+                            case "begin case" -> {
+                                semanticaState = SemanticaState.CASE;
+                                asigFuntion = false;
+                            }
+                            case "begin do while" -> {
+                                semanticaState = SemanticaState.DOWHILE;
+                                asigFuntion = false;
+                            }
+                            case "begin while" -> {
+                                semanticaState = SemanticaState.WHILE;
+                                asigFuntion = false;
+                            }
+                            case "begin switch" -> {
+                                semanticaState = cerroSwitch ? semanticaState : SemanticaState.SWITCH;
+                                asigFuntion = false;
+                            }
+                            case "begin if" -> {
+                                semanticaState = SemanticaState.IF;
+                                asigFuntion = false;
+                            }
+                            case "begin log","begin read" ->{
+                                semanticaState = SemanticaState.CONSOLE;
+                                asigFuntion = false;
+                            }
+                            default -> {
+                                if(asigFuntion){
+                                    semanticaState = SemanticaState.ASIG;
+                                }
+                                else{
+                                    semanticaState = SemanticaState.NONE;
+                                    asigFuntion = false;
+                                }
+                                parametersOR = 0;
+                            }
+                        }
+                    }
                 }
+
+
 //                structuresStack.push(new Structures("end array",arrayAsignation.getLexema(),arrayAsignation.getLine()));
-                structuresStack.pop();
+
                 errorArray = false;
                 arrayDimensionOR = 0;
 
@@ -1074,10 +1174,10 @@ public class Sintaxis {
 
                 break;
 
-            case 1418: // TODO Leer parametros (con funciones anidadas)
+            case 1418:
 //                bkihjuwvhjfawhjawfejv
                 if(!errorAmbito){ // regla 10
-                    if (semanticaState == SemanticaState.ASIG){ // caso funcion(... TODO aqui cambiará con la pila pq no importa que sea antes se podra cambiar
+                    if (semanticaState == SemanticaState.ASIG){ // caso funcion(...  aqui cambiará con la pila pq no importa que sea antes se podra cambiar
 //                        asigFuntion = true;
                         semanticaState = SemanticaState.CALLING;
                     }
@@ -1089,7 +1189,12 @@ public class Sintaxis {
                     String typeFuction = typeFuction(id);
                     System.out.println("id "+id);
                     System.out.println("type fuction: "+typeFuction);
+
                     funcion = new ObjectData(operandsStack.peek().getLexema(),operandsStack.peek().getDataType(),operandsStack.peek().getType(),tokenList.getFirst().getLinea(), sqlQuerys.getAmbito(id),sqlQuerys.getCantParametro(id), Integer.parseInt(sqlQuerys.getTypeParametro(id).equals("")?"0":sqlQuerys.getTypeParametro(id)),id);
+
+                    cuadruplos.add(new Cuadruplo());
+                    cuadruplos.getLast().calling_fuction(operandsStack.peek().getLexema());
+
                     switch(typeFuction){
                         case "void" -> {
                             System.out.println("es método");
@@ -1124,13 +1229,19 @@ public class Sintaxis {
                 System.out.println("abre fuction,metodo,etc");
                 break;
             case 1419:
-                // TODO aaaaaaa
                 if(!errorAmbito){
                     if(parametersOR < funcion.getParDim()){
                         System.out.println("Faltan parametros");
                         semanticaRulesList.add(new Semantica(1100, funcion.getLine(), funcion.getAmbito(), "=" + funcion.getParDim(), "", false));
                         erroresList.add(new Errores(funcion.getLexema(), 1100, funcion.getLine(), "Faltan parametros", "Error semantico", ambitoStack.peek().getNumber()));
+                        // checar esto jeje
+                        operandsStack.push(new Operand("TV"+(sqlQuerys.getTempTypeLine(5)),-200,6,tokenList.getFirst().getLinea()));
+                        sqlQuerys.addTemporal(operandsStack.peek());
+                        break;
                     }
+//                    cuadruplos.add(new Cuadruplo());
+//                    cuadruplos.getLast().label_begin_end(false,structuresStack.peek().getName());
+
                     System.out.println(structuresStack.peek());
                     System.out.println("cierra calling");
                     structuresStack.pop();
@@ -1150,6 +1261,7 @@ public class Sintaxis {
                                     };
                                     operandsStack.push(op);
                                     sqlQuerys.addTemporal(op);
+                                    cuadruplos.getLast().setResult(op.getLexema());
                                 }
                             }
                             asigFuntion = false;
@@ -1207,6 +1319,10 @@ public class Sintaxis {
                                     semanticaState = SemanticaState.IF;
                                     asigFuntion = false;
                                 }
+                                case "begin log","begin read" ->{
+                                    semanticaState = SemanticaState.CONSOLE;
+                                    asigFuntion = false;
+                                }
                                 default -> {
                                     if(asigFuntion){
                                         semanticaState = SemanticaState.ASIG;
@@ -1217,10 +1333,7 @@ public class Sintaxis {
                                     }
                                     parametersOR = 0;
                                 }
-//                            };
-                        }
-
-
+                            }
 
                 }
                 parameters = false;
@@ -1231,14 +1344,22 @@ public class Sintaxis {
                 errorAmbito = false;
                 isInAFun = false;
                 break;
-            case 1430:
+            case 1430: // IF
                 structuresStack.pop();
+                cuadruplos.addLast(new Cuadruplo());
+                cuadruplos.getLast().setLabel(etiquetas.pop());
                 break;
             case 1431:
                 structuresStack.push(new Structures("begin else","else",tokenList.getFirst().getLinea()));
+                etiqueta++;
+                etiquetas.push(label((etiqueta),"ELSE"));
+                cuadruplos.addLast(new Cuadruplo());
+                cuadruplos.getLast().action_JMP(etiquetas.peek());
                 break;
-            case 1432:
+            case 1432: // ELSE
                 structuresStack.pop();
+                cuadruplos.addLast(new Cuadruplo());
+                cuadruplos.getLast().setLabel(etiquetas.pop());
                 break;
             case 1500: // Termina while para cuadruplos
                 // no se jaja
@@ -1248,6 +1369,39 @@ public class Sintaxis {
                 break;
             case 1503:
                 isInAFun = true;
+                break;
+            case 1505:
+                cuadruplos.add(new Cuadruplo());
+                cuadruplos.getLast().label_begin_end(true,"main");
+                break;
+            case 1506:
+                cuadruplos.add(new Cuadruplo());
+                cuadruplos.getLast().calling_fuction("Console.read");
+                semanticaState = SemanticaState.CONSOLE;
+                structuresStack.push((new Structures("begin read","read",tokenList.getFirst().getLinea())));
+                console = 0;
+                System.out.println();
+                break;
+            case 1507:
+                cuadruplos.add(new Cuadruplo());
+                cuadruplos.getLast().calling_fuction("Console.log");
+                structuresStack.push((new Structures("begin log","log",tokenList.getFirst().getLinea())));
+                semanticaState = SemanticaState.CONSOLE;
+                console = 0;
+                break;
+            case 1508: // termina console read
+                semanticaState = SemanticaState.NONE;
+                structuresStack.pop();
+                break;
+            case 1509: // termina console log
+                semanticaState = SemanticaState.NONE;
+                structuresStack.pop();
+                break;
+            case 1510: // llega break
+                etiqueta++;
+                etiquetas.push(label((etiqueta),"CASE"));
+                cuadruplos.addLast(new Cuadruplo());
+                cuadruplos.getLast().action_JMP(etiquetas.peek());
                 break;
             default:
                 // Acción por defecto si el valor no coincide con ninguno de los casos anteriores
@@ -1392,6 +1546,8 @@ public class Sintaxis {
                 memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"",m?"interface":"class","",ambitoStack.peek().getNumber(),0,0,null));
                 memberPositionClass = memberDetailsList.size()-1;
                 structuresStack.push(new Structures("begin int class",tokenList.getFirst().getLexema(),tokenList.getFirst().getLinea()));
+                cuadruplos.add(new Cuadruplo());
+                cuadruplos.getLast().label_begin_end(true,tokenList.getFirst().getLexema());
             }
 
         }
@@ -1449,6 +1605,8 @@ public class Sintaxis {
                 memberPositionClass = memberDetailsList.size()-1;
                 memberString = letID;
                 structuresStack.push(new Structures("begin let",letID,tokenList.getFirst().getLinea()));
+                cuadruplos.add(new Cuadruplo());
+                cuadruplos.getLast().label_begin_end(true,letID);
             }
             let = false;
             return;
@@ -1470,6 +1628,8 @@ public class Sintaxis {
                             memberPositionClass = memberDetailsList.size()-1;
                             memberString = tokenList.getFirst().getLexema();
                             structuresStack.push(new Structures("begin funcion",tokenList.getFirst().getLexema(),tokenList.getFirst().getLinea()));
+                            cuadruplos.add(new Cuadruplo());
+                            cuadruplos.getLast().label_begin_end(true,tokenList.getFirst().getLexema());
                         }
                     }
                     else{
@@ -1484,6 +1644,8 @@ public class Sintaxis {
                     memberPositionClass = memberDetailsList.size()-1;
                     memberString = tokenList.getFirst().getLexema();
                     structuresStack.push(new Structures("begin funcion",tokenList.getFirst().getLexema(),tokenList.getFirst().getLinea()));
+                    cuadruplos.add(new Cuadruplo());
+                    cuadruplos.getLast().label_begin_end(true,tokenList.getFirst().getLexema());
                 }
             }
             case -90,-91,-72,-61,-71 -> {
@@ -1657,6 +1819,7 @@ public class Sintaxis {
         operatorStack.clear();
         semanticaRulesList.clear();
         structuresStack.clear();
+        cuadruplos.clear();
     }
     private void printOperandStack() {
         System.out.printf("%15s%15s%15s%15s%15s\n","lexema","token","excel column","tipo string","line");
@@ -1683,7 +1846,7 @@ public class Sintaxis {
         }
     }
     private void printCuadruplosList() {
-        System.out.printf("%15s%15s%15s%15s%15s%15s%15s\n","label","action","value1","value2","result","type","line");
+        System.out.printf("%15s%15s%20s%20s%15s%15s%15s\n","label","action","value1","value2","result","type","line");
         for (Cuadruplo cuadruplo : cuadruplos) {
             System.out.println(cuadruplo);
         }
@@ -1709,7 +1872,7 @@ public class Sintaxis {
     //             del -1 al -124 son tokens, ver en pila
     // Longitud del arreglo: 0 al 182
     private final int[][] producciones = { // Siempre insertar al reves
-            {1420,1000,1004,201,1005,-19,1420,1002,254,206,1003,1001,-20}, 	                                                    // 0 <----- Ambito ; Ejecución ; Declaración
+            {1420,1000,1004,201,1005,1505,-19,1420,1002,254,206,1003,1001,-20}, 	                                                    // 0 <----- Ambito ; Ejecución ; Declaración
             {247,201}, 	                                                                                                // 1
             {207,201}, 	                                                                                                // 2
             {220,202,203}, 	                                                                                            // 3
@@ -1802,7 +1965,7 @@ public class Sintaxis {
             {-68,-12,255}, 	                                                                                            // 88
             // IF
             {-62,-10,1400,273,1401,-11,254,1430,257}, 	                                                                // 89
-            {-64,-10,1406,273,1407,-11,-19,-76,1408,273,1409,-13,258,254,259,-87,260,-20,1410}, 	                    // 90
+            {-64,-10,1406,273,1407,-11,-19,-76,1408,273,1409,-13,258,254,259,1510,-87,260,-20,1410}, 	                    // 90
             {-19,254,263,-20}, 	                                                                                        // 91
             // WHILE
             {-67,-10,1402,273,1403,-11,254,1500}, 	                                                                    // 92
@@ -1812,13 +1975,15 @@ public class Sintaxis {
             {1501,-66,254,-67,-10,1404,273,1405,-11,-14}, 	                                                            // 95
             // FOR
             {-65,-10,1411,264,1412,1430,-11,254,1415}, 	                                                                    // 96
-            {-75,-10,273,256,-11}, 	                                                                                    // 97
-            {-69,-10,273,-11}, 	                                                                                        // 98
+            // Read
+            {1506,-75,-10,273,256,1508,-11}, 	                                                                                    // 97
+            // Log
+            {1507,-69,-10,273,1509,-11}, 	                                                                                        // 98
             {-16,273,256}, 	                                                                                            // 99
             {-63,1431,254,1432}, 	                                                                                    // 100
             {-76,1408,273,1409,-13,258}, 	                                                                            // 101
             {-14,254,259}, 	                                                                                            // 102
-            {-76,1408,273,1409,-13,268,-87,260}, 	                                                                    // 103
+            {-76,1408,273,1409,-13,268,1510,-87,260}, 	                                                                    // 103
             {-77,-13,254,262}, 	                                                                                        // 104
             {-14,254,261},                                                                                              // 105
             {-14,254,262},                                                                                              // 106
