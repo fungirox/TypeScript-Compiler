@@ -42,6 +42,7 @@ public class Frame extends JFrame{
     private int erroresAmbito;
     private int erroresLexico;
     private int erroresSintaxis;
+    private int erroresSemantica;
     private DefaultTableModel mdTblErrores;
     private DefaultTableModel mdTblTipoErrores;
     private DefaultTableModel mdTblContadores;
@@ -151,7 +152,8 @@ public class Frame extends JFrame{
                 new Object [][] {
                         {"Lexico", null},
                         {"Sintaxis", null},
-                        {"Ambito", null}
+                        {"Ambito", null},
+                        {"Semantica", null}
                 },
                 new String [] {
                         "Tipos", ""
@@ -435,17 +437,26 @@ public class Frame extends JFrame{
                 copy = new LinkedList<>(tokenListSintaxis);
 
                 try {
-                    erroresAmbito = sintaxis.analize();
+                    sintaxis.analize();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-                erroresSintaxis=erroresList.size()-erroresLexico-erroresAmbito;
+                erroresSintaxis = tiposError("sintactico");
+                erroresAmbito = tiposError("mbito");
+                erroresSemantica = tiposError("semantico");
+//                erroresSintaxis=erroresList.size()-erroresLexico-erroresAmbito;
                 llenarTablaErrores();
         }
 
 
     }
-
+    private int tiposError(final String type){
+        int errores = 0;
+        for(int i=0;i<erroresList.size();i++){
+            errores = erroresList.get(i).getTipo().contains(type) ? errores + 1 : errores;
+        }
+        return errores;
+    }
     private void llenarTablaErrores(){
         for(int i = 0; i< erroresList.size(); i++){
             mdTblErrores.addRow(erroresList.get(i).getRow());
@@ -456,7 +467,7 @@ public class Frame extends JFrame{
         mdTblTipoErrores.setValueAt(erroresLexico,0,1);
         mdTblTipoErrores.setValueAt(erroresSintaxis,1,1);
         mdTblTipoErrores.setValueAt(erroresAmbito,2,1);
-
+        mdTblTipoErrores.setValueAt(erroresSemantica,3,1);
 
     }
     private void llenarContadores(){
@@ -483,7 +494,7 @@ public class Frame extends JFrame{
             JOptionPane.showMessageDialog(null,"Primero debes Compilar (o゜▽゜)o☆");
     }
     public void writeExcel(final String path){
-        CargarRecursos.writeToExcel(copy,erroresList,contadores,erroresLexico,erroresSintaxis,path,semanticaLinkedList);
+        CargarRecursos.writeToExcel(copy,erroresList,contadores,erroresLexico,erroresSintaxis,path,semanticaLinkedList,erroresAmbito,erroresSemantica);
     }
     private void btnOpenFileActionPerformed(java.awt.event.ActionEvent evt) throws IOException {
         if(compilo)

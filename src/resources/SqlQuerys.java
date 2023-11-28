@@ -59,7 +59,7 @@ public class SqlQuerys {
         }
     }
     public void addTemporal(Operand operand){
-        System.out.println("jojo "+operand);
+//        System.out.println("jojo "+operand);
         try {
             Statement statement =  connection.createStatement();
             statement.execute("INSERT INTO a20130044.temporals (lexeme,typeString,typeNumber,line) VALUES ('"+operand.getLexema()+"','"+operand.getDataType()+"'," +
@@ -669,9 +669,9 @@ public class SqlQuerys {
             "('legth','number','fuction',0,1,'-3')",
             "('par1','string','variable',-3,1,'legth')",
             // trim
-            "('trim','string','fuction',0,2,'-4')",
+            "('trim','string','fuction',0,1,'-4')",
             "('par1','string','variable',-4,1,'trim')",
-            "('par2','string','variable',-4,2,'trim')",
+//            "('par2','string','variable',-4,2,'trim')",
             // charAt
             "('charAt','string','fuction',0,2,'-5')",
             "('par1','string','variable',-5,1,'charAt')",

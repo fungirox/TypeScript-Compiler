@@ -163,7 +163,7 @@ public class CargarRecursos {
         }
         return matriz;
     }
-    public static void writeToExcel(final LinkedList<Token> listaToken,final LinkedList<Errores> listaErrores,final int[] contadores,final int lexico, final int sintaxis,final String path, final LinkedList<Semantica> semanticaLinkedList){
+    public static void writeToExcel(final LinkedList<Token> listaToken,final LinkedList<Errores> listaErrores,final int[] contadores,final int lexico, final int sintaxis,final String path, final LinkedList<Semantica> semanticaLinkedList, final int erroresAmbito, final int erroresSemantica){
         XSSFWorkbook book=new XSSFWorkbook();
         XSSFSheet tokenSheet=book.createSheet("Token");
         Row headerRow1=tokenSheet.createRow(0);
@@ -233,6 +233,9 @@ public class CargarRecursos {
         Row dataRowTER = tiposErrorSheet.createRow(1);
             dataRowTER.createCell(0).setCellValue(lexico);
             dataRowTER.createCell(1).setCellValue(sintaxis);
+            dataRowTER.createCell(2).setCellValue(erroresAmbito);
+            dataRowTER.createCell(3).setCellValue(erroresSemantica);
+
 
         /**
          * Ambito
@@ -390,7 +393,7 @@ public class CargarRecursos {
             "void","# id","errores","total"
     };
     private final static String [] rowHeadTER={
-            "Lexico","Sintaxis"
+            "Lexico","Sintaxis","Ambito","Semantica"
     };
     private final static String [] rowHeadSm1={
             "Linea","T number","T real","T boolean","T string","T null","T var","Asignaciones","Errores"

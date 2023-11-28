@@ -65,6 +65,7 @@ public class Sintaxis {
     private boolean arrayPlusMinus = false;
     private boolean isInAFun = false;
     private boolean hasAReturn = false;
+    private boolean cerroSwitch = false;
     private String arrayPlusMinusLexeme = "";
     private ObjectData arrayAsignation;
     private ObjectData funcion;
@@ -101,7 +102,8 @@ public class Sintaxis {
         int matrizData;
         while(!tokenList.isEmpty()&&!syntacticStack.isEmpty()){
             System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" generalState: "+generalStateStack.peek()+" error: "+ errorAmbito +" topStack: "+syntacticStack.peek()+" classOVar: "+classOVar+" ambito "+ (ambitoStack.isEmpty() ? "vacio":ambitoStack.peek().getNumber()));
-            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" statusState "+statusState+" errorAmbito: "+errorAmbito+" errorOR: "+errorOR+" isAFun: "+isInAFun+" topStack: "+syntacticStack.peek()+" sematicState: "+ semanticaState+" parametersOR: "+ parametersOR);
+            System.out.println(tokenList.getFirst().getLexema()+" line: "+tokenList.getFirst().getLinea()+" statusState "+statusState+" errorAmbito: "+errorAmbito+" errorOR: "+errorOR+" isAFun: "+isInAFun+" topStack: "+syntacticStack.peek()+
+                    " sematicState: "+ semanticaState+" parametersOR: "+ parametersOR +" errorFuction "+errorFuction+" asigfuction "+asigFuntion);
             if(syntacticStack.peek()>=200&&syntacticStack.peek()<=292){ // Esto quiere decir que es un NO terminal
 
                 matrizData = mapearToken();
@@ -146,9 +148,9 @@ public class Sintaxis {
             printOperandStack();
             System.out.println("O P E R A T O R S   S T A C K");
             printOperatorStack();
-//            System.out.println("------------------------------------------------------------------------------------------------------------------------");
-//            System.out.println("S T R U C T U R E   S T A C K");
-//            printStructureStack();
+            System.out.println("------------------------------------------------------------------------------------------------------------------------");
+            System.out.println("S T R U C T U R E   S T A C K");
+            printStructureStack();
             System.out.println("------------------------------------------------------------------------------------------------------------------------");
 
         }
@@ -230,6 +232,7 @@ public class Sintaxis {
                         };
                         sqlQuerys.addTemporal(op);
                         sqlQuerys.updateAsignations(op.getLexema(),op.getType());
+                        asigFuntion = false;
 
                         boolean state = true;
                         String symbol = sqlQuerys.getAsignationOperator(op.getLine());
@@ -322,6 +325,7 @@ public class Sintaxis {
         sqlQuerys.addTemporal(op2);
         operandsStack.push(op2);
         operatorStack.pop();
+        // TODO aqui va el cuadruplo de action
     }
     private void declaration(){
         switch(generalStateStack.peek()){
@@ -600,7 +604,7 @@ public class Sintaxis {
                                     // regla 9
                                     if(!errorOR){
                                         sqlQuerys.updateAsignations(operandsStack.peek().getLexema(),operandsStack.peek().getType());
-
+                                        asigFuntion = false;
                                         String [] a = sqlQuerys.getTypeDataAsignation(operandsStack.peek().getLine());
                                         boolean state = true;
 
@@ -627,33 +631,33 @@ public class Sintaxis {
                                 case IF -> {
                                     semanticaRulesList.add(new Semantica(forSentence ? 1081 : 1010,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "boolean", operandsStack.peek().getDataType(), operandsStack.peek().getType() == 2 ));
                                     if( operandsStack.peek().getType() != 2 ){
-                                        erroresList.add(new Errores(operatorStack.peek().getLexema(), forSentence ? 1081 : 1010, tokenList.getFirst().getLinea(),"la condicion no es boolean","Error semantico",ambitoStack.peek().getNumber()));
+                                        erroresList.add(new Errores(operandsStack.peek().getLexema(), forSentence ? 1081 : 1010, tokenList.getFirst().getLinea(),"la condicion no es boolean","Error semantico",ambitoStack.peek().getNumber()));
                                     }
                                 }
                                 case WHILE -> {
                                     semanticaRulesList.add(new Semantica(1011,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "boolean", operandsStack.peek().getDataType(), operandsStack.peek().getType() == 2 ));
                                     if( operandsStack.peek().getType() != 2 ){
-                                        erroresList.add(new Errores(operatorStack.peek().getLexema(), 1011, tokenList.getFirst().getLinea(),"la condicion no es boolean","Error semantico",ambitoStack.peek().getNumber()));
+                                        erroresList.add(new Errores(operandsStack.peek().getLexema(), 1011, tokenList.getFirst().getLinea(),"la condicion no es boolean","Error semantico",ambitoStack.peek().getNumber()));
                                     }
 
                                 }
                                 case DOWHILE -> {
                                     semanticaRulesList.add(new Semantica(1012,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "boolean", operandsStack.peek().getDataType(), operandsStack.peek().getType() == 2));
                                     if( operandsStack.peek().getType() != 2 ){
-                                        erroresList.add(new Errores(operatorStack.peek().getLexema(), 1012, tokenList.getFirst().getLinea(),"la condicion no es boolean","Error semantico",ambitoStack.peek().getNumber()));
+                                        erroresList.add(new Errores(operandsStack.peek().getLexema(), 1012, tokenList.getFirst().getLinea(),"la condicion no es boolean","Error semantico",ambitoStack.peek().getNumber()));
                                     }
 
                                 }
                                 case SWITCH -> {
                                     semanticaRulesList.add(new Semantica(1031,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "string/number", operandsStack.peek().getDataType(), operandsStack.peek().getType() == 0 || operandsStack.peek().getType() == 3));
-                                    structuresStack.push(new Structures("begin switch","switch",tokenList.getFirst().getLinea()));
+
                                     if(operandsStack.peek().getType() == 0 || operandsStack.peek().getType() == 3){
                                         structuresStack.peek().setSwitchType(operandsStack.peek().getType() == 0);
 //                                        switchTypeStack.push(operandsStack.peek().getType() == 0); // true number false string
                                     }
                                     else{
                                         switchError = true;
-                                        erroresList.add(new Errores(operatorStack.peek().getLexema(), 1031, tokenList.getFirst().getLinea(),"la sentencia no es number/string","Error semantico",ambitoStack.peek().getNumber()));
+                                        erroresList.add(new Errores(operandsStack.peek().getLexema(), 1031, tokenList.getFirst().getLinea(),"la sentencia no es number/string","Error semantico",ambitoStack.peek().getNumber()));
                                     }
 
                                 }
@@ -666,7 +670,7 @@ public class Sintaxis {
                                         }
                                         else {
                                             semanticaRulesList.add(new Semantica(1030,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "error switch",operandsStack.peek().getDataType(),false));
-                                            erroresList.add(new Errores(operatorStack.peek().getLexema(), 1030, tokenList.getFirst().getLinea(),"la sentencia no es number/string","Error semantico",ambitoStack.peek().getNumber()));
+                                            erroresList.add(new Errores(operandsStack.peek().getLexema(), 1030, tokenList.getFirst().getLinea(),"la sentencia no es number/string","Error semantico",ambitoStack.peek().getNumber()));
                                             break;
                                         }
                                     }
@@ -676,9 +680,9 @@ public class Sintaxis {
                                     boolean state = operandsStack.peek().getDataType().equals(getTypeSwitch(structuresStack));
                                     semanticaRulesList.add(new Semantica(1030,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), getTypeSwitch(structuresStack), operandsStack.peek().getDataType(),state));
                                     if (!state){
-                                        erroresList.add(new Errores(operatorStack.peek().getLexema(), 1030, tokenList.getFirst().getLinea(),"la sentencia no es igual a la del switch","Error semantico",ambitoStack.peek().getNumber()));
+                                        erroresList.add(new Errores(operandsStack.peek().getLexema(), 1030, tokenList.getFirst().getLinea(),"la sentencia no es igual a la del switch","Error semantico",ambitoStack.peek().getNumber()));
                                     }
-                                    structuresStack.push(new Structures("begin case","case",tokenList.getFirst().getLinea()));
+
                                 }
                                 case ARRAY -> { // Reglas 4, 5 y 6
                                     arrayDimensionOR++;
@@ -702,15 +706,16 @@ public class Sintaxis {
                                                 semanticaRulesList.add(new Semantica(1060,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "< "+arrayLengthReal, operandsStack.peek().getLexema(), arrayLengthRead < arrayLengthReal ));
                                                 errorArray = !(arrayLengthRead < arrayLengthReal);
                                                 if(! (arrayLengthRead < arrayLengthReal)) {
-                                                    erroresList.add(new Errores(operatorStack.peek().getLexema(), 1060, tokenList.getFirst().getLinea(), "Longitud de array invalida", "Error semantico", ambitoStack.peek().getNumber()));
+                                                    erroresList.add(new Errores(operandsStack.peek().getLexema(), 1060, tokenList.getFirst().getLinea(), "Longitud de array invalida", "Error semantico", ambitoStack.peek().getNumber()));
                                                 }
                                             }
                                             sqlQuerys.updateAsignations(arrayAsignation.getLexema(),arrayAsignation.getType());
+                                            asigFuntion = false;
                                         }
                                         else{
                                             semanticaRulesList.add(new Semantica(1050,operandsStack.peek().getLine(),ambitoStack.peek().getNumber(), "number" , operandsStack.peek().getLexema(), false ));
                                             errorArray = true;
-                                            erroresList.add(new Errores(operatorStack.peek().getLexema(), 1050, tokenList.getFirst().getLinea(), "La posicion no es tipo number", "Error semantico", ambitoStack.peek().getNumber()));
+                                            erroresList.add(new Errores(operandsStack.peek().getLexema(), 1050, tokenList.getFirst().getLinea(), "La posicion no es tipo number", "Error semantico", ambitoStack.peek().getNumber()));
                                         }
                                     }
                                     else {
@@ -718,7 +723,7 @@ public class Sintaxis {
                                         errorArray = true;
                                         erroresList.add(new Errores(arrayAsignation.getLexema(), 1040, tokenList.getFirst().getLinea(), "Dimension de array invalida", "Error semantico", ambitoStack.peek().getNumber()));
                                     }
-
+                                    asigFuntion = false;
                                 }
                                 case CALLING -> {
                                     // Regla 10 y 12
@@ -729,6 +734,9 @@ public class Sintaxis {
 
                                         // evaluar si el type del parametro es correcto
                                         String realType = sqlQuerys.getTypeOfAParameter(parametersOR, funcion.getNewAmbito(), funcion.getLexema());
+                                        System.out.println("type real "+realType);
+                                        System.out.println(operandsStack.peek().getDataType());
+                                        System.out.println(funcion.getLexema());
                                         if(operandsStack.peek().getDataType().equals(realType)){
                                             System.out.println("tipo correcto");
                                             semanticaRulesList.add(new Semantica(1120, funcion.getLine(), ambitoStack.peek().getNumber(),realType, operandsStack.peek().getLexema(),true));
@@ -741,7 +749,8 @@ public class Sintaxis {
                                             else{
                                                 System.out.println("tipo incorrecto");
                                                 semanticaRulesList.add(new Semantica(1120, funcion.getLine(), ambitoStack.peek().getNumber(),realType, operandsStack.peek().getLexema(),false));
-                                                erroresList.add(new Errores(operatorStack.peek().getLexema(), 1120, funcion.getLine(), "Tipo de parametro incorrecto", "Error semantico", ambitoStack.peek().getNumber()));
+                                                // TODO arreglar esto
+                                                erroresList.add(new Errores(operandsStack.peek().getLexema(), 1120, funcion.getLine(), "Tipo de parametro incorrecto", "Error semantico", ambitoStack.peek().getNumber()));
                                                 errorFuction = true;
                                             }
 
@@ -750,7 +759,7 @@ public class Sintaxis {
                                     else{
                                         System.out.println("sobra un parametro");
                                         semanticaRulesList.add(new Semantica(1101, funcion.getLine(), ambitoStack.peek().getNumber(), "=" + funcion.getParDim(), operandsStack.peek().getLexema(), false));
-                                        erroresList.add(new Errores(operatorStack.peek().getLexema(), 1101, funcion.getLine(), "Parametro de sobra", "Error semantico", ambitoStack.peek().getNumber()));
+                                        erroresList.add(new Errores(operandsStack.peek().getLexema(), 1101, funcion.getLine(), "Parametro de sobra", "Error semantico", ambitoStack.peek().getNumber()));
                                         errorFuction = true;
                                     }
 
@@ -766,6 +775,9 @@ public class Sintaxis {
                         arrayOR = false;
                     }
                     semanticaState = parameters ? SemanticaState.CALLING : SemanticaState.NONE;
+                    if(semanticaState != SemanticaState.CALLING){
+                        errorFuction = false;
+                    }
                     errorOR = false;
 
                 }
@@ -810,7 +822,9 @@ public class Sintaxis {
                         errorOR = false;
                     }
                     semanticaState = SemanticaState.ASIG;
+                    asigFuntion = true;
                 }
+
                 break;
             case 1371: // ++
                 if(!errorAmbito && !errorOR){
@@ -924,13 +938,17 @@ public class Sintaxis {
                 semanticaState = SemanticaState.NONE;
                 break;
             case 1406: // Abre Switch
+                structuresStack.push(new Structures("begin switch","switch",tokenList.getFirst().getLinea()));
                 semanticaState = SemanticaState.SWITCH;
+                cerroSwitch = false;
                 break;
             case 1407: // Cierra Swich
+                cerroSwitch = true;
                 semanticaState = SemanticaState.NONE;
                 break;
             case 1408: // Abre case
                 semanticaState = SemanticaState.CASE;
+                structuresStack.push(new Structures("begin case","case",tokenList.getFirst().getLinea()));
                 break;
             case 1409: // Cierra case
                 structuresStack.pop();
@@ -1060,7 +1078,7 @@ public class Sintaxis {
 //                bkihjuwvhjfawhjawfejv
                 if(!errorAmbito){ // regla 10
                     if (semanticaState == SemanticaState.ASIG){ // caso funcion(... TODO aqui cambiará con la pila pq no importa que sea antes se podra cambiar
-                        asigFuntion = true;
+//                        asigFuntion = true;
                         semanticaState = SemanticaState.CALLING;
                     }
                     else /*if (semanticaState == SemanticaState.NONE)*/{
@@ -1111,61 +1129,102 @@ public class Sintaxis {
                     if(parametersOR < funcion.getParDim()){
                         System.out.println("Faltan parametros");
                         semanticaRulesList.add(new Semantica(1100, funcion.getLine(), funcion.getAmbito(), "=" + funcion.getParDim(), "", false));
-                        erroresList.add(new Errores(funcion.getLexema(), 1100, funcion.getLine(), "No es array o variable", "Error semantico", ambitoStack.peek().getNumber()));
+                        erroresList.add(new Errores(funcion.getLexema(), 1100, funcion.getLine(), "Faltan parametros", "Error semantico", ambitoStack.peek().getNumber()));
                     }
-
+                    System.out.println(structuresStack.peek());
                     System.out.println("cierra calling");
                     structuresStack.pop();
                         if(structuresStack.isEmpty()){
+                            System.out.println("hola:D");
+                            if(asigFuntion){
+                                semanticaState = SemanticaState.ASIG;
+                                if (!errorFuction){
+                                    Operand op;
+                                    op = switch (funcion.getDataType()) {
+                                        case "number" -> new Operand("TNUM"+(sqlQuerys.getTempTypeLine(0)),-90,0,tokenList.getFirst().getLinea());   // number
+                                        case "real" -> new Operand("TR"+(sqlQuerys.getTempTypeLine(1)),-71,1,tokenList.getFirst().getLinea());   // real
+                                        case "boolean" -> new Operand("TB"+(sqlQuerys.getTempTypeLine(2)),-72,2,tokenList.getFirst().getLinea());   // boolean
+                                        case "string" -> new Operand("TS"+(sqlQuerys.getTempTypeLine(3)),-91,3,tokenList.getFirst().getLinea());   // string
+                                        case "null" -> new Operand("TNULL"+(sqlQuerys.getTempTypeLine(4)),-61,4,tokenList.getFirst().getLinea());   // null
+                                        default -> new Operand("TV"+(sqlQuerys.getTempTypeLine(5)),-200,6,tokenList.getFirst().getLinea());   // var
+                                    };
+                                    operandsStack.push(op);
+                                    sqlQuerys.addTemporal(op);
+                                }
+                            }
+                            asigFuntion = false;
+                            break;
+                        }
+                        if(structuresStack.peek().getType().equals("begin switch")){
                             if(asigFuntion){
                                 semanticaState = SemanticaState.ASIG;
                             }
-                            break;
+//                            break;
                         }
-                        switch (structuresStack.peek().getType()){
-                            case "calling metodo","calling funcion" -> {
-                                semanticaState = SemanticaState.CALLING;
-                                funcion = structuresStack.peek().getCalling_array();
-                                parametersOR = structuresStack.peek().getParameters();
-                                System.out.println("parameters OR "+parametersOR);
-                            }
-                            case "open array" -> {
-                                semanticaState = SemanticaState.ARRAY;
-                                arrayAsignation = structuresStack.peek().getCalling_array();
-                                arrayDimensionOR = structuresStack.peek().getParameters();
-                            }
-                            case "begin case" -> semanticaState = SemanticaState.CASE;
-                            case "begin do while" -> semanticaState = SemanticaState.DOWHILE;
-                            case "begin while" -> semanticaState = SemanticaState.WHILE;
-                            case "begin switch" -> semanticaState = SemanticaState.SWITCH;
-                            case "begin if" -> semanticaState = SemanticaState.IF;
-                            default -> {
-                                if(asigFuntion){
-                                    semanticaState = SemanticaState.ASIG;
+                        if (!errorFuction){
+                            Operand op;
+                            op = switch (funcion.getDataType()) {
+                                case "number" -> new Operand("TNUM"+(sqlQuerys.getTempTypeLine(0)),-90,0,tokenList.getFirst().getLinea());   // number
+                                case "real" -> new Operand("TR"+(sqlQuerys.getTempTypeLine(1)),-71,1,tokenList.getFirst().getLinea());   // real
+                                case "boolean" -> new Operand("TB"+(sqlQuerys.getTempTypeLine(2)),-72,2,tokenList.getFirst().getLinea());   // boolean
+                                case "string" -> new Operand("TS"+(sqlQuerys.getTempTypeLine(3)),-91,3,tokenList.getFirst().getLinea());   // string
+                                case "null" -> new Operand("TNULL"+(sqlQuerys.getTempTypeLine(4)),-61,4,tokenList.getFirst().getLinea());   // null
+                                default -> new Operand("TV"+(sqlQuerys.getTempTypeLine(5)),-200,6,tokenList.getFirst().getLinea());   // var
+                            };
+                            operandsStack.push(op);
+                            sqlQuerys.addTemporal(op);
+                        }
+                            switch (structuresStack.peek().getType()){
+                                case "calling metodo","calling funcion" -> {
+                                    semanticaState = SemanticaState.CALLING;
+                                    funcion = structuresStack.peek().getCalling_array();
+                                    parametersOR = structuresStack.peek().getParameters();
+                                    System.out.println("parameters OR " + parametersOR);
                                 }
-                                else{
-                                    semanticaState = SemanticaState.NONE;
+                                case "open array" -> {
+                                    semanticaState = SemanticaState.ARRAY;
+                                    arrayAsignation = structuresStack.peek().getCalling_array();
+                                    arrayDimensionOR = structuresStack.peek().getParameters();
+                                    asigFuntion = false;
                                 }
-                                parametersOR = 0;
-                            }
-                        };
+                                case "begin case" -> {
+                                    semanticaState = SemanticaState.CASE;
+                                    asigFuntion = false;
+                                }
+                                case "begin do while" -> {
+                                    semanticaState = SemanticaState.DOWHILE;
+                                    asigFuntion = false;
+                                }
+                                case "begin while" -> {
+                                    semanticaState = SemanticaState.WHILE;
+                                    asigFuntion = false;
+                                }
+                                case "begin switch" -> {
+                                    semanticaState = cerroSwitch ? semanticaState : SemanticaState.SWITCH;
+                                    asigFuntion = false;
+                                }
+                                case "begin if" -> {
+                                    semanticaState = SemanticaState.IF;
+                                    asigFuntion = false;
+                                }
+                                default -> {
+                                    if(asigFuntion){
+                                        semanticaState = SemanticaState.ASIG;
+                                    }
+                                    else{
+                                        semanticaState = SemanticaState.NONE;
+                                        asigFuntion = false;
+                                    }
+                                    parametersOR = 0;
+                                }
+//                            };
+                        }
 
-                    if (!errorFuction){
-                        Operand op;
-                        op = switch (funcion.getDataType()) {
-                            case "number" -> new Operand("TNUM"+(sqlQuerys.getTempTypeLine(0)),-90,0,tokenList.getFirst().getLinea());   // number
-                            case "real" -> new Operand("TR"+(sqlQuerys.getTempTypeLine(1)),-71,1,tokenList.getFirst().getLinea());   // real
-                            case "boolean" -> new Operand("TB"+(sqlQuerys.getTempTypeLine(2)),-72,2,tokenList.getFirst().getLinea());   // boolean
-                            case "string" -> new Operand("TS"+(sqlQuerys.getTempTypeLine(3)),-91,3,tokenList.getFirst().getLinea());   // string
-                            case "null" -> new Operand("TNULL"+(sqlQuerys.getTempTypeLine(4)),-61,4,tokenList.getFirst().getLinea());   // null
-                            default -> new Operand("TV"+(sqlQuerys.getTempTypeLine(5)),-200,6,tokenList.getFirst().getLinea());   // var
-                        };
-                        operandsStack.push(op);
-                        sqlQuerys.addTemporal(op);
-                    }
+
+
                 }
                 parameters = false;
-                asigFuntion = false;
+
                 errorFuction = false;
                 break;
             case 1420:
@@ -1771,26 +1830,26 @@ public class Sintaxis {
             {-107},                                                                                                     // 112
             {-108},                                                                                                     // 113
             {254,261},                                                                                                  // 114
-            {1300,-95,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 115 MET CAD
-            {1300,-96,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 116
-            {1300,-97,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 117
-            {1300,-98,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 118
-            {1300,-99,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                  // 119
-            {1300,-100,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                 // 120
-            {1300,-101,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                 // 121
-            {1300,-102,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                 // 122
-            {1300,-103,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                 // 123
-            {1300,-104,1301,1350,1371,-10,1418,273,-16,273,-16,273,1419,-11},                                                                         // 124
-            {1300,-105,1301,1350,1371,-10,1418,273,-16,273,-16,273,1419,-11},                                                                         // 125
-            {1300,-106,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                 // 126 MET CAD
-            {1300,-79,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                  // 127
-            {1300,-80,1301,1350,1371,-10,1418,273,-16,273,1419,-11},                                                                                  // 128
-            {1300,-81,1301,1350,1371,-10,1418,273,-16,273,-16,273,1419,-11},                                                                              // 129
-            {1300,-82,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 130
-            {1300,-83,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 131
-            {1300,-84,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 132
-            {1300,-85,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 133
-            {1300,-86,1301,1350,1371,-10,1418,273,1419,-11},                                                                                          // 134
+            {1300,-95,1301,-10,1418,273,1419,-11},                                                                                          // 115 MET CAD
+            {1300,-96,1301,-10,1418,273,1419,-11},                                                                                          // 116
+            {1300,-97,1301,-10,1418,273,1419,-11},                                                                                          // 117
+            {1300,-98,1301,-10,1418,273,1419,-11},                                                                                          // 118
+            {1300,-99,1301,-10,1418,273,-16,273,1419,-11},                                                                                  // 119
+            {1300,-100,1301,-10,1418,273,-16,273,1419,-11},                                                                                 // 120
+            {1300,-101,1301,-10,1418,273,-16,273,1419,-11},                                                                                 // 121
+            {1300,-102,1301,-10,1418,273,-16,273,1419,-11},                                                                                 // 122
+            {1300,-103,1301,-10,1418,273,-16,273,1419,-11},                                                                                 // 123
+            {1300,-104,1301,-10,1418,273,-16,273,-16,273,1419,-11},                                                                         // 124
+            {1300,-105,1301,-10,1418,273,-16,273,-16,273,1419,-11},                                                                         // 125
+            {1300,-106,1301,-10,1418,273,-16,273,1419,-11},                                                                                 // 126 MET CAD
+            {1300,-79,1301,-10,1418,273,-16,273,1419,-11},                                                                                  // 127
+            {1300,-80,1301,-10,1418,273,-16,273,1419,-11},                                                                                  // 128
+            {1300,-81,1301,-10,1418,273,-16,273,-16,273,1419,-11},                                                                              // 129
+            {1300,-82,1301,-10,1418,273,1419,-11},                                                                                          // 130
+            {1300,-83,1301,-10,1418,273,1419,-11},                                                                                          // 131
+            {1300,-84,1301,-10,1418,273,1419,-11},                                                                                          // 132
+            {1300,-85,1301,-10,1418,273,1419,-11},                                                                                          // 133
+            {1300,-86,1301,-10,1418,273,1419,-11},                                                                                          // 134
             {269},                                                                                                      // 135
             {-17,273,272,-18},                                                                                          // 136
             {-16,1416,273,272},                                                                                              // 137
