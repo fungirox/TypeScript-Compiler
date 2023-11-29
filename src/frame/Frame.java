@@ -1,5 +1,6 @@
 package frame;
 
+import cuadruplos.Cuadruplo;
 import lexico.Errores;
 import lexico.Lexico;
 import lexico.Token;
@@ -50,6 +51,7 @@ public class Frame extends JFrame{
     private final LinkedList<Token> tokenListSintaxis =new LinkedList<>();
     private LinkedList<Token> copy = new LinkedList<>();
     private final LinkedList<Semantica> semanticaLinkedList = new LinkedList<>();
+    private final LinkedList<Cuadruplo> cuadruplosList = new LinkedList<>();
     private Sintaxis sintaxis;
     private boolean compilo=false;
     private int []contadores=new int[21];
@@ -430,7 +432,7 @@ public class Frame extends JFrame{
                 else{
                     lexico = new Lexico(matrizLexico,txtCodigo.getText()+'\n',tblTokens/*,tblError*/,tblContadores,erroresList,tokenListSintaxis,contadores);
                     compilo = true;
-                    sintaxis = new Sintaxis(matrizSintactica,erroresList,tokenListSintaxis,matrizSemantica,semanticaLinkedList);
+                    sintaxis = new Sintaxis(matrizSintactica,erroresList,tokenListSintaxis,matrizSemantica,semanticaLinkedList,cuadruplosList);
                 }
                 lexico.compilar();
                 erroresLexico = erroresList.size();
@@ -494,7 +496,7 @@ public class Frame extends JFrame{
             JOptionPane.showMessageDialog(null,"Primero debes Compilar (o゜▽゜)o☆");
     }
     public void writeExcel(final String path){
-        CargarRecursos.writeToExcel(copy,erroresList,contadores,erroresLexico,erroresSintaxis,path,semanticaLinkedList,erroresAmbito,erroresSemantica);
+        CargarRecursos.writeToExcel(copy,erroresList,contadores,erroresLexico,erroresSintaxis,path,semanticaLinkedList,erroresAmbito,erroresSemantica,cuadruplosList);
     }
     private void btnOpenFileActionPerformed(java.awt.event.ActionEvent evt) throws IOException {
         if(compilo)

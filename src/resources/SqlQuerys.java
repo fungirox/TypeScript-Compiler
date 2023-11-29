@@ -266,7 +266,7 @@ public class SqlQuerys {
             System.out.println(e);
         }
     }
-    private int getLastIdAsignations(){
+    public int getLastIdAsignations(){
         int lastId = 0;
         try {
             Statement statement = connection.createStatement();
@@ -285,6 +285,7 @@ public class SqlQuerys {
         }
         return lastId;
     }
+
     private int getLastIdTemporals(){
         int lastId = 0;
         try {

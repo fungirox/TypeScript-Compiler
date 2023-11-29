@@ -2,29 +2,24 @@ package cuadruplos;
 
 public class Cuadruplo {
     private String label,action,value1,value2,result;
-    private int line,cuadrupoId;
     private String type; // La fila del excel
+    private final int ambito;
 
     // Constructor para tipo JMP normal
-    public Cuadruplo ( ) {
-
+    public Cuadruplo (final int ambito) {
+        this.ambito = ambito;
     }
     @Override
     public String toString() {
-        return String.format("%15s%15s%20s%20s%15s%15s%15d",
+        return String.format("%15s%15s%20s%20s%15s%15s",
                 this.label,
                 this.action,
                 this.value1,
                 this.value2,
                 this.result,
-                this.type,
-                this.line);
+                this.type);
     }
 
-    public void label(final int num,final String type){
-        this.type = type;
-        this.label = type + "-E" + num;
-    }
     public void label_begin_end(final boolean begin,final String id){
         this.label = begin ? "begin" : "end";
         this.action = id;
@@ -53,13 +48,27 @@ public class Cuadruplo {
         this.result = result;
         System.out.println("action "+action);
         this.type = switch (action){
-            case "OR" -> "Ope-Log";
-            case "=","!=","<",">" -> "Ope-Rel";
-            case "add","sub","mult" -> "Oper-Arit";
-            case "asig" -> "asig";
-
+            case "!","||","&&","~","|","&","^" -> "Ope-Log";
+            case "==","!=","<",">","<=",">=" -> "Ope-Rel";
+            case "+","-","*","/","%" -> "Oper-Arit";
+            case "++","--" -> "Ope-Uni";
+            case "=", "+=", "-=", "*=", "/=", "%=", "&=", "^=", "<<=", ">>=", ">>>=", "=>"-> "asig";
             default -> "placeholder";
         };
+        this.action = switch (action){
+            default -> action;
+            case "+" -> "add";
+            case "-" -> "minus";
+            case "*" -> "mult";
+            case "=" -> "asig";
+            case "/" -> "div";
+        };
+    }
+    public void asignation(final String action,final String value1,final String result){
+        this.action = action.equals("=") ? "asig" : action;
+        this.value1 = value1;
+        this.result = result;
+        this.type = "asig";
     }
     public void array(final String id){
         this.action = "array";
@@ -114,5 +123,13 @@ public class Cuadruplo {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public int getAmbito() {
+        return ambito;
     }
 }

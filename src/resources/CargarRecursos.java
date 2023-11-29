@@ -1,6 +1,7 @@
 package resources;
 
 
+import cuadruplos.Cuadruplo;
 import lexico.Errores;
 import lexico.Token;
 import org.apache.poi.ss.usermodel.Cell;
@@ -163,7 +164,7 @@ public class CargarRecursos {
         }
         return matriz;
     }
-    public static void writeToExcel(final LinkedList<Token> listaToken,final LinkedList<Errores> listaErrores,final int[] contadores,final int lexico, final int sintaxis,final String path, final LinkedList<Semantica> semanticaLinkedList, final int erroresAmbito, final int erroresSemantica){
+    public static void writeToExcel(final LinkedList<Token> listaToken, final LinkedList<Errores> listaErrores, final int[] contadores, final int lexico, final int sintaxis, final String path, final LinkedList<Semantica> semanticaLinkedList, final int erroresAmbito, final int erroresSemantica, final LinkedList<Cuadruplo> cuadruplosList){
         XSSFWorkbook book=new XSSFWorkbook();
         XSSFSheet tokenSheet=book.createSheet("Token");
         Row headerRow1=tokenSheet.createRow(0);
@@ -274,6 +275,22 @@ public class CargarRecursos {
         writeSemantica2Excel(sm2Sheet,semanticaLinkedList);
 
         /*
+         * Cuadruplo
+         * */
+        XSSFSheet cuadruplosSheet = book.createSheet("Cuadruplos");
+        Row cuadruplosRows = cuadruplosSheet.createRow(0);
+        //headers
+        for(int i = 0 ; i < rowHeadCuadruplos.length ; i++){
+            Cell cell = cuadruplosRows.createCell(i);
+            cell.setCellValue(rowHeadCuadruplos[i]);
+        }
+        writeCuadruplo(cuadruplosSheet,cuadruplosList);
+
+        /*
+         * Cuadruplo contadores
+         * */
+
+        /*
          *  Escribir archivo
          */
         FileOutputStream out;
@@ -284,6 +301,20 @@ public class CargarRecursos {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    private static void writeCuadruplo(XSSFSheet cuadruploSheet, final LinkedList<Cuadruplo> cuadruploList){
+            Row dataRow;
+            for(int i=0 ; i < cuadruploList.size() ; i++){
+                dataRow = cuadruploSheet.createRow(i+1);
+                Cuadruplo aux1 = cuadruploList.get(i);
+                dataRow.createCell(0).setCellValue(aux1.getLabel());
+                dataRow.createCell(1).setCellValue(aux1.getAction());
+                dataRow.createCell(2).setCellValue(aux1.getValue1());
+                dataRow.createCell(3).setCellValue(aux1.getValue2());
+                dataRow.createCell(4).setCellValue(aux1.getResult());
+                dataRow.createCell(5).setCellValue(aux1.getType());
+                dataRow.createCell(6).setCellValue(aux1.getAmbito());
+            }
     }
     private static void writeSemantica2Excel(XSSFSheet semanticaSheet,final LinkedList<Semantica> semanticaLinkedList){
         Row dataRow;
@@ -400,6 +431,12 @@ public class CargarRecursos {
     };
     private final static String [] rowHeadSm2={
             "Regla","Tope pila","Valor Real","Linea","Edo","Ambito"
+    };
+    private final static String [] rowHeadCuadruplos = {
+        "etiqueta","accion","valor 1","valor 2","resultado","tipo","ambito"
+    };
+    private final static String [] rowHeadCuadruplosContadores = {
+            "ambito","TB","TNUM","TR","TS","TNULL","TV","Call","Asig","Ope-Rel","Ope-Log","Ope-Arit","Ope-Uni","JF","JT","JMP","e IF","e While","e switch","e funcion","main"
     };
 }
 // Linea	Tstring	Tnum	Tbool	Treal	T#	Tvoid	Tvariants	Asignaciones	Errores
