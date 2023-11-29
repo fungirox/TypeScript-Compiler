@@ -160,8 +160,8 @@ public class Sintaxis {
 //            System.out.println("------------------------------------------------------------------------------------------------------------------------");
 //            System.out.println("S T R U C T U R E   S T A C K");
 //            printStructureStack();
-            System.out.println("------------------------------------------------------------------------------------------------------------------------");
-            printCuadruplosList();
+//            System.out.println("------------------------------------------------------------------------------------------------------------------------");
+//            printCuadruplosList();
             System.out.println("------------------------------------------------------------------------------------------------------------------------");
 
         }
@@ -246,7 +246,7 @@ public class Sintaxis {
                             default -> new Operand("TV"+(sqlQuerys.getTempTypeLine(5)),-200,6,tokenList.getFirst().getLinea());   // var
                         };
                         result = op.getLexema();
-                        sqlQuerys.addTemporal(op);
+                        sqlQuerys.addTemporal(op,ambitoStack.peek().getNumber());
                         sqlQuerys.updateAsignations(op.getLexema(),op.getType());
                         asigFuntion = false;
 
@@ -345,7 +345,7 @@ public class Sintaxis {
         result = op2.getLexema();
         cuadruplosList.add(new Cuadruplo(ambitoStack.peek().getNumber()));
         cuadruplosList.getLast().action_operation(action,value1,value2,result);
-        sqlQuerys.addTemporal(op2);
+        sqlQuerys.addTemporal(op2,ambitoStack.peek().getNumber());
         operandsStack.push(op2);
         operatorStack.pop();
         // TODO aqui va el cuadruplo de action
@@ -718,14 +718,14 @@ public class Sintaxis {
                                                     Cuadruplo OR = cuadruplosList.getLast();
                                                     // no sacamos el or pero usamos su result para el proximo OR
                                                     Operand op = new Operand("TB"+(sqlQuerys.getTempTypeLine(2)),-72,2,tokenList.getFirst().getLinea());
-                                                    sqlQuerys.addTemporal(op);
+                                                    sqlQuerys.addTemporal(op,ambitoStack.peek().getNumber());
                                                     cuadruplosList.addLast(new Cuadruplo(ambitoStack.peek().getNumber()));
                                                     cuadruplosList.getLast().action_operation("==",getLexemaSwitch(structuresStack),operandsStack.peek().getLexema(),op.getLexema());
                                                     Cuadruplo comparacion_value1 = cuadruplosList.getLast();
 
                                                     // ahora el OR
                                                     Operand op2 = new Operand("TB"+(sqlQuerys.getTempTypeLine(2)),-72,2,tokenList.getFirst().getLinea());
-                                                    sqlQuerys.addTemporal(op2);
+                                                    sqlQuerys.addTemporal(op2,ambitoStack.peek().getNumber());
                                                     cuadruplosList.addLast(new Cuadruplo(ambitoStack.peek().getNumber()));
                                                     cuadruplosList.getLast().action_operation("OR",OR.getResult(),comparacion_value1.getResult(),op2.getLexema());
 
@@ -736,14 +736,14 @@ public class Sintaxis {
                                                 else {
                                                     Cuadruplo comparacion_value1 = cuadruplosList.getLast();
                                                     Operand op = new Operand("TB"+(sqlQuerys.getTempTypeLine(2)),-72,2,tokenList.getFirst().getLinea());
-                                                    sqlQuerys.addTemporal(op);
+                                                    sqlQuerys.addTemporal(op,ambitoStack.peek().getNumber());
                                                     cuadruplosList.addLast(new Cuadruplo(ambitoStack.peek().getNumber()));
                                                     cuadruplosList.getLast().action_operation("==",getLexemaSwitch(structuresStack),operandsStack.peek().getLexema(),op.getLexema());
                                                     Cuadruplo comparacion_value2 = cuadruplosList.getLast();
 
                                                     // ahora el OR
                                                     Operand op2 = new Operand("TB"+(sqlQuerys.getTempTypeLine(2)),-72,2,tokenList.getFirst().getLinea());
-                                                    sqlQuerys.addTemporal(op2);
+                                                    sqlQuerys.addTemporal(op2,ambitoStack.peek().getNumber());
                                                     cuadruplosList.addLast(new Cuadruplo(ambitoStack.peek().getNumber()));
                                                     cuadruplosList.getLast().action_operation("OR",comparacion_value1.getResult(),comparacion_value2.getResult(),op2.getLexema());
 
@@ -755,7 +755,7 @@ public class Sintaxis {
                                             else {
                                                 cuadruplosList.addLast(new Cuadruplo(ambitoStack.peek().getNumber()));
                                                 Operand op = new Operand("TB"+(sqlQuerys.getTempTypeLine(2)),-72,2,tokenList.getFirst().getLinea());
-                                                sqlQuerys.addTemporal(op);
+                                                sqlQuerys.addTemporal(op,ambitoStack.peek().getNumber());
                                                 cuadruplosList.getLast().action_operation("==",getLexemaSwitch(structuresStack),operandsStack.peek().getLexema(),op.getLexema());
 
                                                 label++;
@@ -785,14 +785,14 @@ public class Sintaxis {
                                                 Cuadruplo OR = cuadruplosList.getLast();
                                                 // no sacamos el or pero usamos su result para el proximo OR
                                                 Operand op = new Operand("TB"+(sqlQuerys.getTempTypeLine(2)),-72,2,tokenList.getFirst().getLinea());
-                                                sqlQuerys.addTemporal(op);
+                                                sqlQuerys.addTemporal(op,ambitoStack.peek().getNumber());
                                                 cuadruplosList.addLast(new Cuadruplo(ambitoStack.peek().getNumber()));
                                                 cuadruplosList.getLast().action_operation("==",getLexemaSwitch(structuresStack),operandsStack.peek().getLexema(),op.getLexema());
                                                 Cuadruplo comparacion_value1 = cuadruplosList.getLast();
 
                                                 // ahora el OR
                                                 Operand op2 = new Operand("TB"+(sqlQuerys.getTempTypeLine(2)),-72,2,tokenList.getFirst().getLinea());
-                                                sqlQuerys.addTemporal(op2);
+                                                sqlQuerys.addTemporal(op2,ambitoStack.peek().getNumber());
                                                 cuadruplosList.addLast(new Cuadruplo(ambitoStack.peek().getNumber()));
                                                 cuadruplosList.getLast().action_operation("OR",OR.getResult(),comparacion_value1.getResult(),op2.getLexema());
 
@@ -803,14 +803,14 @@ public class Sintaxis {
                                             else {
                                                 Cuadruplo comparacion_value1 = cuadruplosList.getLast();
                                                 Operand op = new Operand("TB"+(sqlQuerys.getTempTypeLine(2)),-72,2,tokenList.getFirst().getLinea());
-                                                sqlQuerys.addTemporal(op);
+                                                sqlQuerys.addTemporal(op,ambitoStack.peek().getNumber());
                                                 cuadruplosList.addLast(new Cuadruplo(ambitoStack.peek().getNumber()));
                                                 cuadruplosList.getLast().action_operation("==",getLexemaSwitch(structuresStack),operandsStack.peek().getLexema(),op.getLexema());
                                                 Cuadruplo comparacion_value2 = cuadruplosList.getLast();
 
                                                 // ahora el OR
                                                 Operand op2 = new Operand("TB"+(sqlQuerys.getTempTypeLine(2)),-72,2,tokenList.getFirst().getLinea());
-                                                sqlQuerys.addTemporal(op2);
+                                                sqlQuerys.addTemporal(op2,ambitoStack.peek().getNumber());
                                                 cuadruplosList.addLast(new Cuadruplo(ambitoStack.peek().getNumber()));
                                                 cuadruplosList.getLast().action_operation("OR",comparacion_value1.getResult(),comparacion_value2.getResult(),op2.getLexema());
 
@@ -822,7 +822,7 @@ public class Sintaxis {
                                         else{
                                             cuadruplosList.addLast(new Cuadruplo(ambitoStack.peek().getNumber()));
                                             Operand op = new Operand("TB"+(sqlQuerys.getTempTypeLine(2)),-72,2,tokenList.getFirst().getLinea());
-                                            sqlQuerys.addTemporal(op);
+                                            sqlQuerys.addTemporal(op,ambitoStack.peek().getNumber());
                                             cuadruplosList.getLast().action_operation("==",getLexemaSwitch(structuresStack),operandsStack.peek().getLexema(),op.getLexema());
 
                                             label++;
@@ -1281,7 +1281,7 @@ public class Sintaxis {
                 if (errorArray){
                     Operand op = new Operand("TV"+(sqlQuerys.getTempTypeLine(5)),-200,6,tokenList.getFirst().getLinea());
                     operandsStack.push(op);   // array type
-                    sqlQuerys.addTemporal(op);
+                    sqlQuerys.addTemporal(op,ambitoStack.peek().getNumber());
                     structuresStack.pop();
                     arrayDimensionOR = 0;
                 }
@@ -1297,7 +1297,7 @@ public class Sintaxis {
                         default -> new Operand("TV"+(sqlQuerys.getTempTypeLine(5)),-200,6,tokenList.getFirst().getLinea());   // var
                     };
                     operandsStack.push(op);
-                    sqlQuerys.addTemporal(op);
+                    sqlQuerys.addTemporal(op,ambitoStack.peek().getNumber());
                     structuresStack.pop();
                     if(!structuresStack.isEmpty()){
                         System.out.println("hola:)");
@@ -1358,16 +1358,12 @@ public class Sintaxis {
                         }
                     }
                 }
-
                 errorArray = false;
-
-
                 // si es necesario meter de nuevo a la pila dicho elemento
 
                 break;
 
             case 1418:
-//                bkihjuwvhjfawhjawfejv
                 if(!errorAmbito){ // regla 10
                     if (semanticaState == SemanticaState.ASIG){ // caso funcion(...  aqui cambiará con la pila pq no importa que sea antes se podra cambiar
 //                        asigFuntion = true;
@@ -1428,7 +1424,7 @@ public class Sintaxis {
                         erroresList.add(new Errores(funcion.getLexema(), 1100, funcion.getLine(), "Faltan parametros", "Error semantico", ambitoStack.peek().getNumber()));
                         // checar esto jeje
                         operandsStack.push(new Operand("TV"+(sqlQuerys.getTempTypeLine(5)),-200,6,tokenList.getFirst().getLinea()));
-                        sqlQuerys.addTemporal(operandsStack.peek());
+                        sqlQuerys.addTemporal(operandsStack.peek(),ambitoStack.peek().getNumber());
                         break;
                     }
 //                    cuadruplos.add(new Cuadruplo());
@@ -1452,7 +1448,7 @@ public class Sintaxis {
                                         default -> new Operand("TV"+(sqlQuerys.getTempTypeLine(5)),-200,6,tokenList.getFirst().getLinea());   // var
                                     };
                                     operandsStack.push(op);
-                                    sqlQuerys.addTemporal(op);
+                                    sqlQuerys.addTemporal(op,ambitoStack.peek().getNumber());
                                     cuadruplosList.getLast().setResult(op.getLexema());
                                 }
                             }
@@ -1476,7 +1472,7 @@ public class Sintaxis {
                                 default -> new Operand("TV"+(sqlQuerys.getTempTypeLine(5)),-200,6,tokenList.getFirst().getLinea());   // var
                             };
                             operandsStack.push(op);
-                            sqlQuerys.addTemporal(op);
+                            sqlQuerys.addTemporal(op,ambitoStack.peek().getNumber());
                         }
                             switch (structuresStack.peek().getType()){
                                 case "calling metodo","calling funcion" -> {
@@ -1815,7 +1811,7 @@ public class Sintaxis {
             else{
                 memberDetailsList.addLast(new MemberDetails(tokenList.getFirst().getLexema(),"",m?"interface":"class","",ambitoStack.peek().getNumber(),0,0,null));
                 memberPositionClass = memberDetailsList.size()-1;
-                structuresStack.push(new Structures("begin int class",tokenList.getFirst().getLexema(),tokenList.getFirst().getLinea()));
+                structuresStack.push(new Structures("begin funcion",tokenList.getFirst().getLexema(),tokenList.getFirst().getLinea()));
                 cuadruplosList.add(new Cuadruplo(ambitoStack.peek().getNumber()));
                 cuadruplosList.getLast().label_begin_end(true,tokenList.getFirst().getLexema());
             }
@@ -1874,7 +1870,7 @@ public class Sintaxis {
                 memberDetailsList.addLast(new MemberDetails(letID,"void",classFun,"",ambitoStack.peek().getNumber(),0,0,null));
                 memberPositionClass = memberDetailsList.size()-1;
                 memberString = letID;
-                structuresStack.push(new Structures("begin let",letID,tokenList.getFirst().getLinea()));
+                structuresStack.push(new Structures("begin funcion",letID,tokenList.getFirst().getLinea()));
                 cuadruplosList.add(new Cuadruplo(ambitoStack.peek().getNumber()));
                 cuadruplosList.getLast().label_begin_end(true,letID);
             }

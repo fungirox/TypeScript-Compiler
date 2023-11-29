@@ -58,12 +58,12 @@ public class SqlQuerys {
             System.out.println(e);
         }
     }
-    public void addTemporal(Operand operand){
+    public void addTemporal(Operand operand, final int ambito){
 //        System.out.println("jojo "+operand);
         try {
             Statement statement =  connection.createStatement();
-            statement.execute("INSERT INTO a20130044.temporals (lexeme,typeString,typeNumber,line) VALUES ('"+operand.getLexema()+"','"+operand.getDataType()+"'," +
-                    "'"+operand.getType()+"','"+operand.getLine()+"');");
+            statement.execute("INSERT INTO a20130044.temporals (lexeme,typeString,typeNumber,line,ambito) VALUES ('"+operand.getLexema()+"','"+operand.getDataType()+"'," +
+                    "'"+operand.getType()+"','"+operand.getLine()+"',"+ambito+");");
 
         } catch (SQLException e) {
             System.out.println(e);
@@ -658,6 +658,24 @@ public class SqlQuerys {
             System.out.println(e);
         }
         return typeId;
+    }
+    public int getTemporalsPerAmbito(final int ambito, final int type){
+        int countTemporal = 0;
+        try {
+            Statement statement = connection.createStatement();
+            String query = "SELECT COUNT(*) AS cantidad FROM temporals WHERE typeNumber = "+type+" AND ambito = "+ambito;
+            ResultSet rs = statement.executeQuery(query);  // Cambiado a executeQuery directamente
+            while (rs.next()) {
+                countTemporal = rs.getInt("cantidad");
+            }
+
+            // Cerrar el ResultSet y el Statement después de su uso
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return countTemporal;
     }
     final String [] native_functions = {
             // toLowerCase

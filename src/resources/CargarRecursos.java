@@ -289,6 +289,14 @@ public class CargarRecursos {
         /*
          * Cuadruplo contadores
          * */
+        XSSFSheet cuadruplosConSheet = book.createSheet("Cuadruplos Contadores");
+        Row cuadruplosConRows = cuadruplosConSheet.createRow(0);
+        //headers
+        for(int i = 0 ; i < rowHeadCuadruplosContadores.length ; i++){
+            Cell cell = cuadruplosConRows.createCell(i);
+            cell.setCellValue(rowHeadCuadruplosContadores[i]);
+        }
+        writeCuadruploCon(cuadruplosConSheet,cuadruplosList);
 
         /*
          *  Escribir archivo
@@ -302,6 +310,82 @@ public class CargarRecursos {
             e.printStackTrace();
         }
     }
+    private static void writeCuadruploCon(XSSFSheet cuadruploSheet, final LinkedList<Cuadruplo> cuadruploList){
+        //"ambito","TB","TNUM","TR","TS","TNULL","TV",,,,,,,,,,,,,,
+        Row dataRow;
+        int ambitos = connectionSQL.getAmbitos();
+        for(int i = 0 ; i <= ambitos ; i++){
+            //Añadir ambito
+            dataRow = cuadruploSheet.createRow(i+1);
+            dataRow.createCell(0).setCellValue(i);
+            dataRow.createCell(1).setCellValue(connectionSQL.getTemporalsPerAmbito(i,2)); // temporal boolean
+            dataRow.createCell(2).setCellValue(connectionSQL.getTemporalsPerAmbito(i,0)); // temporal number
+            dataRow.createCell(3).setCellValue(connectionSQL.getTemporalsPerAmbito(i,1)); // temporal real
+            dataRow.createCell(4).setCellValue(connectionSQL.getTemporalsPerAmbito(i,3)); // temporal string
+            dataRow.createCell(5).setCellValue(connectionSQL.getTemporalsPerAmbito(i,4)); // temporal null
+            dataRow.createCell(6).setCellValue(connectionSQL.getTemporalsPerAmbito(i,5)); // temporal var
+
+            dataRow.createCell(7).setCellValue(action(i,"Call",cuadruploList)); // "Call"
+            dataRow.createCell(8).setCellValue(action(i,"asig",cuadruploList)); // "Asig"
+            dataRow.createCell(9).setCellValue(type(i,"Ope-Rel",cuadruploList)); // "Ope-Rel"
+            dataRow.createCell(10).setCellValue(type(i,"Ope-Log",cuadruploList)); // "Ope-Log"
+            dataRow.createCell(11).setCellValue(type(i,"Ope-Arit",cuadruploList)); // "Ope-Arit"
+            dataRow.createCell(12).setCellValue(type(i,"Ope-Uni",cuadruploList)); // "Ope-Uni"
+            dataRow.createCell(13).setCellValue(action(i,"JF",cuadruploList)); // "JF"
+            dataRow.createCell(14).setCellValue(action(i,"JT",cuadruploList)); // "JT"
+            dataRow.createCell(15).setCellValue(action(i,"JMP",cuadruploList)); // "JMP"
+            dataRow.createCell(16).setCellValue(label(i,"IF",cuadruploList)); // "e IF"
+            dataRow.createCell(17).setCellValue(label(i,"WHILE",cuadruploList)); // "e While"
+            dataRow.createCell(18).setCellValue(label(i,"SWITCH",cuadruploList)); // "e switch"
+            dataRow.createCell(19).setCellValue(labelBegin(i,cuadruploList)); // "e funcion"
+            dataRow.createCell(20).setCellValue(i == 0 ? 1 : 0); // "main"
+
+        }
+    }
+    private static int action(final int ambito,final String action,final LinkedList<Cuadruplo> cuadruploList){
+        int suma = 0;
+        for (Cuadruplo cuadruplo : cuadruploList) {
+            if(cuadruplo.getAction() != null){
+                if(cuadruplo.getAction().equals(action) && cuadruplo.getAmbito() == ambito){
+                    suma ++;
+                }
+            }
+        }
+        return suma;
+    }
+    private static int type(final int ambito,final String type,final LinkedList<Cuadruplo> cuadruploList){
+        int suma = 0;
+        for (Cuadruplo cuadruplo : cuadruploList) {
+            if(cuadruplo.getType() != null){
+                if(cuadruplo.getType().equals(type) && cuadruplo.getAmbito() == ambito){
+                    suma ++;
+                }
+            }
+        }
+        return suma;
+    }
+    private static int label(final int ambito,final String label,final LinkedList<Cuadruplo> cuadruploList){
+        int suma = 0;
+        for (Cuadruplo cuadruplo : cuadruploList) {
+            if(cuadruplo.getLabel() != null){
+                if(cuadruplo.getLabel().contains(label) && cuadruplo.getAmbito() == ambito){
+                    suma ++;
+                }
+            }
+        }
+        return suma;
+    }private static int labelBegin(final int ambito,final LinkedList<Cuadruplo> cuadruploList){
+        int suma = 0;
+        for (Cuadruplo cuadruplo : cuadruploList) {
+            if(cuadruplo.getLabel() != null){
+                if(cuadruplo.getLabel().equals("begin") && cuadruplo.getAmbito() == ambito){
+                    suma ++;
+                }
+            }
+        }
+        return suma;
+    }
+
     private static void writeCuadruplo(XSSFSheet cuadruploSheet, final LinkedList<Cuadruplo> cuadruploList){
             Row dataRow;
             for(int i=0 ; i < cuadruploList.size() ; i++){
